@@ -248,30 +248,34 @@ body.night .sms-bubble.other { background: rgba(255,255,255,.2); color: #fff; }
   line-height: 1.4; max-width: 100%;
 }
 .sms-im-input {
-  position: absolute; left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px));
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px;
-  background: rgba(255,255,255,.55);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
-  border-radius: 28px;
-  border: 0.5px solid rgba(255,255,255,.5);
-  box-shadow: 0 4px 20px rgba(0,0,0,.08);
-  min-height: 48px;
+  position: absolute; left: 16px; right: 16px; bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px 6px 6px;
+  background: #ffffff;
+  border-radius: 24px;
+  border: none;
+  box-shadow: 0 2px 16px rgba(0,0,0,.12);
+  min-height: 44px;
   z-index: 5;
+  box-sizing: border-box;
 }
 .sms-im-input .sms-plus {
-  width: 34px; height: 34px; border-radius: 50%; border: none;
-  background: rgba(0,0,0,.06); font-size: 22px; line-height: 1; color: #333;
+  width: 32px; height: 32px; border-radius: 50%; border: none;
+  background: transparent; font-size: 18px; line-height: 1; color: #1c1c1e;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  font-weight: 600;
 }
 .sms-im-input input {
-  flex: 1; border-radius: 18px; border: none;
-  padding: 8px 12px; font-size: 16px; background: transparent; outline: none;
+  flex: 1; min-width: 0; border-radius: 18px; border: none;
+  padding: 8px 4px; font-size: 16px; background: transparent; outline: none; color: #1c1c1e;
 }
+.sms-im-input input::placeholder { color: #8e8e93; }
 .sms-im-input .sms-send {
   border: none; background: #007aff; color: #fff;
-  border-radius: 16px; padding: 8px 12px; font-size: 14px;
+  border-radius: 16px; padding: 6px 12px; font-size: 14px; flex-shrink: 0;
+}
+.sms-im-input #smsMicBtn {
+  flex-shrink: 0; opacity: .9;
 }
 
 /* gal masonry */
@@ -2063,7 +2067,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-20H';
+const EENOK_BUILD = '2026-08-20I';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -15417,6 +15421,10 @@ function editHomePolaroid() {
 
 function getChangelogData() {
   return [
+    { v: '2026-08-20I', items: [
+      '还原 Instagram 私信底栏（相机+虚线框+四图标，防裁切）',
+      '还原短信 iMessage 白底悬浮输入条（↑ 生成 + 麦克风）'
+    ]},
     { v: '2026-08-20H', items: [
       '自查：通话发消息自动对方接话；剧本杀房间补 skMsgArea；SK/IG 满宽',
       '生成回复后强制滚底，减少发消息回顶'
@@ -18771,16 +18779,16 @@ function openIgDm(id) {
         <div class="text-sub" style="font-size:12px;margin-top:6px">${mutual?'你们已在 Instagram 互关':'你已关注对方 '+followDays+' 天'}</div>
       </div>
       <div style="flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 0;min-height:0;width:100%;box-sizing:border-box" id="igDmMsgs">${msgs||'<div class="empty">发一条消息吧</div>'}</div>
-      <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-top:0.5px solid #efefef;background:#fff">
-        <button type="button" onclick="igDmGen('${id}')" title="生成" style="width:42px;height:42px;border-radius:50%;border:none;background:#8b5cf6;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(139,92,246,.35)">
+      <div style="flex-shrink:0;display:flex;align-items:center;gap:10px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));border-top:0.5px solid #efefef;background:#fff;width:100%;box-sizing:border-box;min-width:0">
+        <button type="button" onclick="igDmGen('${id}')" title="生成" style="width:44px;height:44px;border-radius:50%;border:none;background:#8b5cf6;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(139,92,246,.35)">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="3.5"/></svg>
         </button>
-        <div style="flex:1;display:flex;align-items:center;gap:10px;padding:8px 14px;border:1.5px dashed #c7c7c7;border-radius:24px;background:#fafafa;min-height:42px">
-          <input id="igDmInput" placeholder="限时消息…" style="flex:1;border:none;background:transparent;font-size:15px;outline:none;min-width:0" onkeydown="if(event.key==='Enter'){event.preventDefault();igDmSend('${id}');}">
-          <button type="button" style="border:none;background:transparent;padding:0;opacity:.55;display:flex" title="语音"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v4"/></svg></button>
-          <button type="button" style="border:none;background:transparent;padding:0;opacity:.55;display:flex" title="图片"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></button>
-          <button type="button" style="border:none;background:transparent;padding:0;opacity:.55;display:flex" title="表情"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg></button>
-          <button type="button" style="border:none;background:transparent;padding:0;opacity:.55;display:flex" title="更多"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></svg></button>
+        <div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;padding:8px 12px;border:1.5px dashed #c7c7c7;border-radius:24px;background:#fafafa;min-height:44px;box-sizing:border-box">
+          <input id="igDmInput" placeholder="限时消息…" enterkeyhint="send" style="flex:1;border:none;background:transparent;font-size:15px;outline:none;min-width:0;width:0" onkeydown="if(event.key==='Enter'){event.preventDefault();igDmSend('${id}');}">
+          <button type="button" style="border:none;background:transparent;padding:0;opacity:.55;display:flex;flex-shrink:0;width:22px;height:22px;align-items:center;justify-content:center" title="语音" onclick="showToast('装饰')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v4"/></svg></button>
+          <button type="button" style="border:none;background:transparent;padding:0;opacity:.55;display:flex;flex-shrink:0;width:22px;height:22px;align-items:center;justify-content:center" title="图片" onclick="showToast('装饰')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></button>
+          <button type="button" style="border:none;background:transparent;padding:0;opacity:.55;display:flex;flex-shrink:0;width:22px;height:22px;align-items:center;justify-content:center" title="表情" onclick="showToast('装饰')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01"/></svg></button>
+          <button type="button" style="border:none;background:transparent;padding:0;opacity:.55;display:flex;flex-shrink:0;width:22px;height:22px;align-items:center;justify-content:center" title="更多" onclick="igDmSend('${id}')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></svg></button>
         </div>
       </div>
     </div>
@@ -21637,12 +21645,14 @@ function openSmsThread(id) {
       </div>
       <div class="sms-im-msgs" id="smsMsgArea">${msgs||'<div class="empty" style="padding:40px;opacity:.55">发一条信息</div>'}</div>
       <div class="sms-im-input">
-        <button type="button" class="sms-plus" onclick="generateSmsReply('${id}')" title="生成">↑</button>
+        <button type="button" class="sms-plus" onclick="generateSmsReply('${id}')" title="生成" aria-label="生成">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="2.2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
         <input id="smsInput" placeholder="iMessage 信息" enterkeyhint="send" onkeydown="if(event.key==='Enter'){event.preventDefault();sendSms('${id}');}" oninput="syncSmsSendBtn()">
-        <button type="button" id="smsMicBtn" onclick="showToast('语音')" style="border:none;background:transparent;width:36px;height:36px;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+        <button type="button" id="smsMicBtn" onclick="showToast('语音')" title="语音" style="border:none;background:transparent;width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:0">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.7"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v4"/></svg>
         </button>
-        <button type="button" id="smsSendBtn" class="sms-send" onclick="sendSms('${id}')" style="display:none;width:auto;padding:0 14px;height:32px;border-radius:16px;color:#fff;font-size:14px">发送</button>
+        <button type="button" id="smsSendBtn" class="sms-send" onclick="sendSms('${id}')" style="display:none">发送</button>
       </div>
     </div>
   `);
