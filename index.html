@@ -703,10 +703,10 @@ body {
   margin: 0 auto;
 }
 #page-chat[data-chat-theme="qq"] #msgArea {
-  background: #f5f5f5 !important;
+  background-color: #f5f5f5;
 }
-#page-chat[data-chat-theme="qq"] .msg-bubble,
-#page-chat[data-chat-theme="qq"] .msg-row .msg-bubble {
+#page-chat[data-chat-theme="qq"] .msg-bubble:not(.bare),
+#page-chat[data-chat-theme="qq"] .msg-row .msg-bubble:not(.bare) {
   border-radius: 12px !important;
   padding: 9px 12px !important;
   box-shadow: none !important;
@@ -714,23 +714,23 @@ body {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
-#page-chat[data-chat-theme="qq"] .msg-row.me .msg-bubble {
+#page-chat[data-chat-theme="qq"] .msg-row.me .msg-bubble:not(.bare) {
   background: #0099ff !important;
   color: #fff !important;
   border-radius: 12px !important;
 }
-#page-chat[data-chat-theme="qq"] .msg-row.other .msg-bubble {
+#page-chat[data-chat-theme="qq"] .msg-row.other .msg-bubble:not(.bare) {
   background: #ffffff !important;
   color: #1a1a1a !important;
   border-radius: 12px !important;
   border: 0.5px solid #ebebeb !important;
 }
-#page-chat[data-chat-theme="qq"] .msg-row.me .msg-bubble::after,
-#page-chat[data-chat-theme="qq"] .msg-row.other .msg-bubble::after {
+#page-chat[data-chat-theme="qq"] .msg-row.me .msg-bubble:not(.bare)::after,
+#page-chat[data-chat-theme="qq"] .msg-row.other .msg-bubble:not(.bare)::after {
   display: none !important;
   content: none !important;
 }
-#page-chat[data-chat-theme="qq"] .msg-row.me .msg-bubble::before {
+#page-chat[data-chat-theme="qq"] .msg-row.me .msg-bubble:not(.bare)::before {
   content: '';
   position: absolute;
   right: -5px; top: 12px;
@@ -738,13 +738,20 @@ body {
   border: 5px solid transparent;
   border-left-color: #0099ff;
 }
-#page-chat[data-chat-theme="qq"] .msg-row.other .msg-bubble::before {
+#page-chat[data-chat-theme="qq"] .msg-row.other .msg-bubble:not(.bare)::before {
   content: '';
   position: absolute;
   left: -5px; top: 12px;
   width: 0; height: 0;
   border: 5px solid transparent;
   border-right-color: #fff;
+}
+/* QQ 红包 / 转账：独立卡片，同尺寸 */
+#page-chat[data-chat-theme="qq"] .qq-rp-card,
+#page-chat[data-chat-theme="qq"] .qq-tf-card {
+  width: 168px !important;
+  height: 210px !important;
+  box-sizing: border-box;
 }
 /* QQ 底栏：上行输入+发送，下行图标工具条 */
 #page-chat[data-chat-theme="qq"] .wx-input-bar,
@@ -821,22 +828,22 @@ body {
 }
 
 /* 内置：微信经典绿气泡 */
-#page-chat[data-chat-theme="wechat"] .msg-bubble {
+#page-chat[data-chat-theme="wechat"] .msg-bubble:not(.bare) {
   border-radius: 4px !important;
   backdrop-filter: none !important;
   box-shadow: none !important;
 }
-#page-chat[data-chat-theme="wechat"] .msg-row.me .msg-bubble {
+#page-chat[data-chat-theme="wechat"] .msg-row.me .msg-bubble:not(.bare) {
   background: #95ec69 !important;
   color: #000 !important;
   border-radius: 4px !important;
 }
-#page-chat[data-chat-theme="wechat"] .msg-row.other .msg-bubble {
+#page-chat[data-chat-theme="wechat"] .msg-row.other .msg-bubble:not(.bare) {
   background: #fff !important;
   color: #000 !important;
   border-radius: 4px !important;
 }
-#page-chat[data-chat-theme="wechat"] .msg-row.me .msg-bubble::after {
+#page-chat[data-chat-theme="wechat"] .msg-row.me .msg-bubble:not(.bare)::after {
   display: block !important;
   content: '' !important;
   position: absolute;
@@ -847,7 +854,7 @@ body {
   border-right: none;
   width: 0; height: 0;
 }
-#page-chat[data-chat-theme="wechat"] .msg-row.other .msg-bubble::after {
+#page-chat[data-chat-theme="wechat"] .msg-row.other .msg-bubble:not(.bare)::after {
   display: block !important;
   content: '' !important;
   position: absolute;
@@ -859,30 +866,143 @@ body {
   width: 0; height: 0;
 }
 #page-chat[data-chat-theme="wechat"] #msgArea {
-  background: #ededed !important;
+  background-color: #ededed;
 }
 
-/* 内置：iOS 气泡 */
-#page-chat[data-chat-theme="ios26"] .msg-bubble {
+/* 内置：iOS / iMessage 风格 */
+#page-chat[data-chat-theme="ios26"] {
+  background: #fff !important;
+}
+#page-chat[data-chat-theme="ios26"] .chat-header {
+  background: #f9f9f9 !important;
+  border-bottom: 0.5px solid #e5e5ea !important;
+  backdrop-filter: none !important;
+}
+#page-chat[data-chat-theme="ios26"] .chat-header .nav-btn:last-child svg {
+  display: none !important;
+}
+/* 右上角视频图标 = 聊天设置 */
+#page-chat[data-chat-theme="ios26"] .chat-header .nav-btn:last-child::before {
+  content: '';
+  display: block;
+  width: 22px; height: 14px;
+  margin: 0 auto;
+  border: 1.8px solid #007aff;
+  border-radius: 4px;
+  box-shadow: 3px 2px 0 -1px #fff, 4px 3px 0 -1px #007aff;
+  box-sizing: border-box;
+}
+#page-chat[data-chat-theme="ios26"] .chat-header .name { color: #000; font-weight: 600; }
+#page-chat[data-chat-theme="ios26"] .chat-header .status { color: #8e8e93; }
+#page-chat[data-chat-theme="ios26"] #msgArea {
+  background-color: #ffffff;
+}
+#page-chat[data-chat-theme="ios26"] .msg-bubble:not(.bare) {
   border-radius: 18px !important;
   box-shadow: none !important;
   border: none !important;
   backdrop-filter: none !important;
+  padding: 8px 12px !important;
 }
-#page-chat[data-chat-theme="ios26"] .msg-row.me .msg-bubble {
+#page-chat[data-chat-theme="ios26"] .msg-row.me .msg-bubble:not(.bare) {
   background: #007aff !important;
   color: #fff !important;
   border-bottom-right-radius: 6px !important;
 }
-#page-chat[data-chat-theme="ios26"] .msg-row.other .msg-bubble {
+#page-chat[data-chat-theme="ios26"] .msg-row.other .msg-bubble:not(.bare) {
   background: #e9e9eb !important;
   color: #000 !important;
   border-bottom-left-radius: 6px !important;
 }
-#page-chat[data-chat-theme="ios26"] .msg-row .msg-bubble::after,
-#page-chat[data-chat-theme="ios26"] .msg-row .msg-bubble::before {
+#page-chat[data-chat-theme="ios26"] .msg-row .msg-bubble:not(.bare)::after,
+#page-chat[data-chat-theme="ios26"] .msg-row .msg-bubble:not(.bare)::before {
   display: none !important;
   content: none !important;
+}
+/* iOS 底栏：相机=生成，App=面板，麦克风=发送 */
+#page-chat[data-chat-theme="ios26"] .wx-input-bar,
+#page-chat[data-chat-theme="ios26"] .input-bar {
+  background: #f2f2f7 !important;
+  border-top: 0.5px solid #e5e5ea !important;
+  backdrop-filter: none !important;
+}
+#page-chat[data-chat-theme="ios26"] .wx-input-pill {
+  background: #fff !important;
+  border: 0.5px solid #d1d1d6 !important;
+  border-radius: 20px !important;
+}
+#page-chat[data-chat-theme="ios26"] .input-btn.gen svg { display: none; }
+#page-chat[data-chat-theme="ios26"] .input-btn.gen::before {
+  content: '';
+  display: block;
+  width: 22px; height: 18px;
+  border: 1.8px solid #8e8e93;
+  border-radius: 5px;
+  box-sizing: border-box;
+  background: radial-gradient(circle at 50% 55%, transparent 3px, #8e8e93 3.5px, #8e8e93 5px, transparent 5.5px);
+}
+#page-chat[data-chat-theme="ios26"] .input-btn[onclick="togglePanel()"] svg { display: none; }
+#page-chat[data-chat-theme="ios26"] .input-btn[onclick="togglePanel()"]::before {
+  content: 'A';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 1.5px solid #8e8e93;
+  color: #8e8e93;
+  font-size: 12px;
+  font-weight: 700;
+}
+#page-chat[data-chat-theme="ios26"] #wxPlusSend svg { display: none; }
+#page-chat[data-chat-theme="ios26"] #wxPlusSend::before {
+  content: '';
+  display: block;
+  width: 10px; height: 16px;
+  border: 2px solid #8e8e93;
+  border-radius: 6px;
+  box-sizing: border-box;
+  position: relative;
+}
+/* iOS 语音条：灰白胶囊 + 波形 */
+#page-chat[data-chat-theme="ios26"] .ios-voice-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 140px;
+  max-width: 220px;
+  padding: 8px 12px;
+  border-radius: 18px;
+  background: #e9e9eb;
+  color: #1c1c1e;
+}
+#page-chat[data-chat-theme="ios26"] .msg-row.me .ios-voice-bar {
+  background: #007aff;
+  color: #fff;
+}
+#page-chat[data-chat-theme="ios26"] .ios-voice-wave {
+  flex: 1;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+#page-chat[data-chat-theme="ios26"] .ios-voice-wave span {
+  width: 3px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: .85;
+}
+/* iOS 红包/转账：高级淡色系黑白灰 */
+#page-chat[data-chat-theme="ios26"] .ios-rp-card,
+#page-chat[data-chat-theme="ios26"] .ios-tf-card {
+  width: 200px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(160deg, #f7f7f8 0%, #ebebed 100%);
+  border: 0.5px solid #d8d8dc;
+  color: #1c1c1e;
+  box-sizing: border-box;
 }
 
 .msg-bubble.blocked { opacity: .55; }
@@ -1294,17 +1414,35 @@ body.night .add-menu, [data-theme="dark"] .add-menu {
 .msg-row.other .msg-bubble.bare,
 [data-ui="wechat"] .msg-bubble.bare,
 [data-ui="wechat"] .msg-row.me .msg-bubble.bare,
-[data-ui="wechat"] .msg-row.other .msg-bubble.bare {
+[data-ui="wechat"] .msg-row.other .msg-bubble.bare,
+#page-chat[data-chat-theme="qq"] .msg-bubble.bare,
+#page-chat[data-chat-theme="qq"] .msg-row.me .msg-bubble.bare,
+#page-chat[data-chat-theme="qq"] .msg-row.other .msg-bubble.bare,
+#page-chat[data-chat-theme="wechat"] .msg-bubble.bare,
+#page-chat[data-chat-theme="wechat"] .msg-row.me .msg-bubble.bare,
+#page-chat[data-chat-theme="wechat"] .msg-row.other .msg-bubble.bare,
+#page-chat[data-chat-theme="ios26"] .msg-bubble.bare,
+#page-chat[data-chat-theme="ios26"] .msg-row.me .msg-bubble.bare,
+#page-chat[data-chat-theme="ios26"] .msg-row.other .msg-bubble.bare {
   background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
   box-shadow: none !important;
   padding: 0 !important;
   border: none !important;
   border-radius: 0 !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+  color: inherit !important;
 }
 .msg-bubble.bare::after, .msg-bubble.bare::before,
-[data-ui="wechat"] .msg-bubble.bare::after, [data-ui="wechat"] .msg-bubble.bare::before {
+[data-ui="wechat"] .msg-bubble.bare::after, [data-ui="wechat"] .msg-bubble.bare::before,
+#page-chat[data-chat-theme="qq"] .msg-bubble.bare::after,
+#page-chat[data-chat-theme="qq"] .msg-bubble.bare::before,
+#page-chat[data-chat-theme="wechat"] .msg-bubble.bare::after,
+#page-chat[data-chat-theme="wechat"] .msg-bubble.bare::before,
+#page-chat[data-chat-theme="ios26"] .msg-bubble.bare::after,
+#page-chat[data-chat-theme="ios26"] .msg-bubble.bare::before {
   display: none !important; content: none !important;
 }
 .msg-emoji-img { width: 64px; height: 64px; max-width: 22vw; max-height: 22vw; object-fit: contain; display: block; }
@@ -2067,7 +2205,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-20L';
+const EENOK_BUILD = '2026-08-20M';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -3528,11 +3666,7 @@ function applyChatStyle(id) {
   const chat = state.chats[id] || {};
   const area = document.getElementById('msgArea');
   const page = document.getElementById('page-chat');
-  if (area) {
-    if (chat.bg) area.style.background = `url(${chat.bg}) center/cover`;
-    else area.style.background = '';
-  }
-  // 内置主题用 data 属性（CSS 已写死在 stylesheet，优先级够）
+  // 内置主题用 data 属性（CSS 用 background-color，不抢 wallpaper）
   if (page) {
     const tn = chat.themeName || '';
     if (tn === 'qq' || tn === 'wechat' || tn === 'ios26') {
@@ -3541,9 +3675,26 @@ function applyChatStyle(id) {
       page.removeAttribute('data-chat-theme');
     }
   }
+  // 壁纸：会话 bg > 全局 chatWp；用 !important 盖住主题底色
+  if (area) {
+    const wp = chat.bg || (state.theme && state.theme.chatWp) || '';
+    if (wp) {
+      area.style.setProperty('background-image', 'url("' + String(wp).replace(/"/g, '') + '")', 'important');
+      area.style.setProperty('background-size', 'cover', 'important');
+      area.style.setProperty('background-position', 'center', 'important');
+      area.style.setProperty('background-repeat', 'no-repeat', 'important');
+      area.style.setProperty('background-color', 'transparent', 'important');
+    } else {
+      area.style.removeProperty('background-image');
+      area.style.removeProperty('background-size');
+      area.style.removeProperty('background-position');
+      area.style.removeProperty('background-repeat');
+      area.style.removeProperty('background-color');
+      area.style.background = '';
+    }
+  }
   let styleEl = document.getElementById('chatCustomCss');
   if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'chatCustomCss'; document.head.appendChild(styleEl); }
-  // 自定义 CSS 仍注入；内置主题主要靠 data-chat-theme
   styleEl.textContent = chat.css || '';
   try { refreshChatHeaderQQ(); } catch(e) {}
 }
@@ -3825,16 +3976,38 @@ function renderMessages(opts) {
     } else if (m.type === 'emoji') {
       content = `<img class="msg-emoji-img" src="${m.content}" onclick="event.stopPropagation();onImageClick(${idx})">`;
     } else if (m.type === 'redpacket') {
-      content = `<div class="rp-card" style="display:flex;align-items:center;gap:12px;background:#fa9d3b;border-radius:10px;padding:14px 16px;width:248px;min-height:88px;box-sizing:border-box;color:#fff;position:relative">
-        <div style="width:40px;height:48px;background:#e74c3c;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:inset 0 -6px 0 rgba(0,0,0,.08)">
-          <span style="width:22px;height:22px;border-radius:50%;background:#f5c542;color:#c0392b;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">¥</span>
+      const tn = (chat && chat.themeName) || '';
+      if (tn === 'qq') {
+        content = `<div class="qq-rp-card" style="width:168px;height:210px;border-radius:12px;background:linear-gradient(165deg,#ff5a4e 0%,#e83a3a 55%,#d92f2f 100%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:22px 14px 16px;box-sizing:border-box;position:relative;overflow:hidden">
+          <div style="position:absolute;inset:0;opacity:.12;background:radial-gradient(circle at 20% 20%,#fff 0%,transparent 40%),radial-gradient(circle at 80% 70%,#fff 0%,transparent 35%)"></div>
+          <div style="position:relative;z-index:1;text-align:center;margin-top:8px">
+            <div style="font-size:28px;line-height:1;opacity:.95">🐧</div>
+            <div style="font-size:11px;letter-spacing:.2em;opacity:.85;margin-top:2px">QQ</div>
+          </div>
+          <div style="position:relative;z-index:1;font-size:20px;font-weight:600;letter-spacing:.06em;text-align:center">${escapeHtml(m.desc || '恭喜发财')}</div>
+          <div style="position:relative;z-index:1;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(255,255,255,.5)">
+            <span style="width:14px;height:14px;border-radius:50%;background:#ffe9a8"></span>
+          </div>
         </div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:15px;font-weight:600;line-height:1.3">${escapeHtml(m.desc || '恭喜发财，大吉大利')}</div>
-          <div style="height:1px;background:rgba(255,255,255,.35);margin:10px 0 6px"></div>
-          <div style="font-size:12px;opacity:.9">微信红包</div>
-        </div>
-      </div>`;
+        <div style="font-size:11px;color:#8e8e93;margin-top:6px;text-align:center;width:168px">普通红包</div>`;
+      } else if (tn === 'ios26') {
+        content = `<div class="ios-rp-card" style="width:200px;border-radius:14px;padding:14px 16px;background:linear-gradient(160deg,#f7f7f8,#ebebed);border:0.5px solid #d8d8dc;color:#1c1c1e;box-sizing:border-box">
+          <div style="font-size:11px;color:#8e8e93;letter-spacing:.04em">红包</div>
+          <div style="font-size:16px;font-weight:600;margin-top:8px;line-height:1.35">${escapeHtml(m.desc || '恭喜发财')}</div>
+          <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid #d8d8dc;font-size:12px;color:#8e8e93">轻触查看</div>
+        </div>`;
+      } else {
+        content = `<div class="rp-card" style="display:flex;align-items:center;gap:12px;background:#fa9d3b;border-radius:10px;padding:14px 16px;width:248px;min-height:88px;box-sizing:border-box;color:#fff;position:relative">
+          <div style="width:40px;height:48px;background:#e74c3c;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:inset 0 -6px 0 rgba(0,0,0,.08)">
+            <span style="width:22px;height:22px;border-radius:50%;background:#f5c542;color:#c0392b;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">¥</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:600;line-height:1.3">${escapeHtml(m.desc || '恭喜发财，大吉大利')}</div>
+            <div style="height:1px;background:rgba(255,255,255,.35);margin:10px 0 6px"></div>
+            <div style="font-size:12px;opacity:.9">微信红包</div>
+          </div>
+        </div>`;
+      }
     } else if (m.type === 'shop_card') {
       content = `<div class="shop-card-msg" onclick="if(typeof openShopProduct==='function'&&m.productIdx!=null)openShopProduct(m.productIdx)" style="min-width:180px;max-width:240px;background:#fff;border-radius:10px;overflow:hidden;border:1px solid #e5e5ea;color:#1c1c1e">
         <div style="padding:8px 10px;background:#f5f5f7;font-size:11px;color:#888">商品卡片 · 求代付</div>
@@ -3845,18 +4018,35 @@ function renderMessages(opts) {
         </div>
       </div>`;
     } else if (m.type === 'transfer') {
-      content = `<div class="tf-card" style="background:#fa9d3b;border-radius:10px;padding:14px 16px;width:248px;min-height:88px;box-sizing:border-box;color:#fff">
-        <div style="display:flex;align-items:center;gap:12px">
-          <div style="width:40px;height:40px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M7 7h10v10"/><path d="M7 17L17 7"/></svg>
+      const tn2 = (chat && chat.themeName) || '';
+      if (tn2 === 'qq') {
+        content = `<div class="qq-tf-card" style="width:168px;height:210px;border-radius:12px;background:linear-gradient(165deg,#6ec8ff 0%,#4aa8e8 50%,#3a9ad9 100%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 14px;box-sizing:border-box">
+          <div style="font-size:12px;opacity:.9;letter-spacing:.08em">转账</div>
+          <div style="font-size:28px;font-weight:700;margin:16px 0 8px;letter-spacing:.5px">¥${m.amount}</div>
+          <div style="font-size:13px;opacity:.95;text-align:center;line-height:1.35">${escapeHtml(m.desc || '转账')}</div>
+          <div style="margin-top:auto;padding-top:12px;font-size:11px;opacity:.8">QQ转账</div>
+        </div>`;
+      } else if (tn2 === 'ios26') {
+        content = `<div class="ios-tf-card" style="width:200px;border-radius:14px;padding:14px 16px;background:linear-gradient(160deg,#f7f7f8,#ebebed);border:0.5px solid #d8d8dc;color:#1c1c1e;box-sizing:border-box">
+          <div style="font-size:11px;color:#8e8e93;letter-spacing:.04em">转账</div>
+          <div style="font-size:24px;font-weight:700;margin-top:8px;letter-spacing:.3px">¥${m.amount}</div>
+          <div style="font-size:13px;color:#555;margin-top:4px">${escapeHtml(m.desc || '转账')}</div>
+          <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid #d8d8dc;font-size:12px;color:#8e8e93">轻触查看</div>
+        </div>`;
+      } else {
+        content = `<div class="tf-card" style="background:#fa9d3b;border-radius:10px;padding:14px 16px;width:248px;min-height:88px;box-sizing:border-box;color:#fff">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:40px;height:40px;border-radius:50%;border:2px solid #fff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M7 7h10v10"/><path d="M7 17L17 7"/></svg>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:20px;font-weight:700;letter-spacing:.5px">¥${m.amount}</div>
+              <div style="font-size:13px;margin-top:2px;opacity:.95">${escapeHtml(m.desc || '转账')}</div>
+            </div>
           </div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:20px;font-weight:700;letter-spacing:.5px">¥${m.amount}</div>
-            <div style="font-size:13px;margin-top:2px;opacity:.95">${escapeHtml(m.desc || '转账')}</div>
-          </div>
-        </div>
-        <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.3);font-size:12px;opacity:.9">微信转账</div>
-      </div>`;
+          <div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,.3);font-size:12px;opacity:.9">微信转账</div>
+        </div>`;
+      }
     } else if (m.type === 'paycode') {
       const tip = m.from === 'user' ? '点击让角色扫码付款' : '点击扫码付款';
       content = `<div class="paycode-card" style="min-width:180px;max-width:220px;background:#fff;border:1px solid #e5e5e5;border-radius:12px;overflow:hidden;color:#1c1c1e;cursor:pointer" onclick="event.stopPropagation();showPayCodeFromMsg(${idx})">
@@ -3915,9 +4105,23 @@ function renderMessages(opts) {
       // 独立卡片样式，与普通气泡区分
       content = null;
     } else if (m.type === 'voice') {
-      const bars = Array.from({length: 6}, (_, i) => `<span style="height:${4 + Math.random()*12}px"></span>`).join('');
+      const dur = m.duration || Math.min(60, Math.max(1, Math.ceil(String(m.content || '').length / 4))) || 3;
       const textBelow = m._showText ? `<div style="margin-top:6px;padding:6px 8px;background:rgba(0,0,0,.05);border-radius:6px;font-size:13px;line-height:1.4">${escapeHtml(m.content||'')}</div>` : '';
-      content = `<div class="voice-bubble" data-voice-idx="${idx}" style="cursor:pointer"><span class="icon"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg></span><div class="bars">${bars}</div><span style="font-size:13px">${m.duration || 3}″</span></div>${textBelow}`;
+      const tnV = (chat && chat.themeName) || '';
+      if (tnV === 'ios26') {
+        const waves = [6, 12, 8, 16, 10, 14, 7, 11, 15, 9, 13, 8].map(function(h){ return '<span style="height:'+h+'px"></span>'; }).join('');
+        content = `<div class="ios-voice-bar" data-voice-idx="${idx}" style="cursor:pointer">
+          <span style="width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.08);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="10" height="12" viewBox="0 0 10 12" fill="currentColor"><path d="M1 1l8 5-8 5V1z"/></svg>
+          </span>
+          <div class="ios-voice-wave">${waves}</div>
+          <span style="font-size:12px;opacity:.85;flex-shrink:0">0:${dur < 10 ? '0'+dur : dur}</span>
+          <span style="opacity:.7;font-size:14px">🔊</span>
+        </div>${textBelow}`;
+      } else {
+        const bars = [5, 10, 7, 14, 9, 12].map(function(h){ return '<span style="height:'+h+'px"></span>'; }).join('');
+        content = `<div class="voice-bubble" data-voice-idx="${idx}" style="cursor:pointer"><span class="icon"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg></span><div class="bars">${bars}</div><span style="font-size:13px">${dur}″</span></div>${textBelow}`;
+      }
     } else if (m.type === 'recall') {
       // 仿微信：居中灰色系统提示，不走气泡
       content = null; // special handled below
@@ -3956,7 +4160,7 @@ function renderMessages(opts) {
     }
     const showFail = (!isMe && chat.blockedByMe);
     const status = showFail ? '<div class="msg-status">！发送失败</div>' : '';
-    const bare = (m.type === 'image' || m.type === 'emoji' || m.type === 'article_card' || m.type === 'location' || m.type === 'shop_card' || m.type === 'paycode' || m.type === 'redpacket' || m.type === 'transfer' || m.type === 'dateInvite' || m.type === 'card' || m.cardType === 'mbti');
+    const bare = (m.type === 'image' || m.type === 'emoji' || m.type === 'article_card' || m.type === 'location' || m.type === 'shop_card' || m.type === 'paycode' || m.type === 'redpacket' || m.type === 'transfer' || m.type === 'dateInvite' || m.type === 'card' || m.cardType === 'mbti' || (m.type === 'voice' && chat.themeName === 'ios26'));
     const cls = (m.type === 'redpacket' ? 'redpacket' : m.type === 'transfer' ? 'transfer' : '') + (bare ? ' bare' : '');
     const sel = state.multiSelect ? `<div onclick="event.stopPropagation();toggleMsgSelect(${idx})" style="width:22px;height:22px;border-radius:50%;border:2px solid ${(state.selectedMsgs&&state.selectedMsgs.has(idx))?'#07c160':'#ccc'};background:${(state.selectedMsgs&&state.selectedMsgs.has(idx))?'#07c160':'transparent'};margin-right:8px;flex-shrink:0;align-self:center"></div>` : '';
     html += `
@@ -4443,14 +4647,41 @@ function openRerollPanel() {
   openModal('重roll', `
     <div class="form-group"><label>告诉 AI 这次怎么回复（可留空直接重生成）</label>
     <textarea id="rerollReq" placeholder="例如：更温柔一点、换个话题、简短回复..." style="min-height:100px"></textarea></div>
+    <div class="text-sub" style="font-size:12px;line-height:1.5">会删除角色上一轮消息，再用新内容替换。</div>
   `, `<button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="doPanelReroll()">生成</button>`);
 }
+/** 删除角色上一轮连续消息（从末尾往前直到 user/system） */
+function stripLastCharReply(chat) {
+  if (!chat || !Array.isArray(chat.messages)) return 0;
+  const msgs = chat.messages;
+  let i = msgs.length - 1;
+  let removed = 0;
+  while (i >= 0) {
+    const m = msgs[i];
+    if (!m) break;
+    if (m.from === 'user' || m.from === 'system' || m.type === 'system' || m.type === 'recall') break;
+    i--;
+    removed++;
+  }
+  if (removed > 0) {
+    chat.messages = msgs.slice(0, msgs.length - removed);
+  }
+  return removed;
+}
 function doPanelReroll() {
-  const req = document.getElementById('rerollReq').value.trim();
+  const reqEl = document.getElementById('rerollReq');
+  const req = (reqEl && reqEl.value || '').trim();
   closeModal();
+  const chat = state.chats[state.currentChatId];
+  if (!chat) return;
+  // 立刻删掉上一轮角色消息并刷新界面
+  const n = stripLastCharReply(chat);
+  if (n) {
+    try { save(); renderMessages({ forceBottom: true }); } catch(e) {}
+  }
   state._rerollReq = req || '';
+  state._rerollMode = true;
   generateReply();
-  state._rerollReq = null;
 }
 function setTyping(on) {
   const el = document.getElementById('chatStatus');
@@ -4572,9 +4803,20 @@ function parseCharRichContent(raw) {
     extras.push({ type: 'redpacket', amount: Number(amt).toFixed(2), desc: (desc || '恭喜发财').trim() });
     return '';
   });
-  t = t.replace(/\[语音[:：]([^\]]+)\]/g, function(_, c) {
-    extras.push({ type: 'voice', content: c.trim() });
+  t = t.replace(/\[(?:语音|voice|ボイス)[:：\s]+([^\]]+)\]/gi, function(_, c) {
+    const body = String(c || '').trim();
+    if (!body) return '';
+    const dur = Math.min(60, Math.max(1, Math.ceil(body.length / 4)));
+    extras.push({ type: 'voice', content: body, duration: dur });
     return '';
+  });
+  // 兼容「语音：xxx」无括号写法（单独一行）
+  t = t.replace(/(?:^|\n)\s*(?:语音|voice)\s*[:：]\s*(.+?)(?=\n|$)/gi, function(_, c) {
+    const body = String(c || '').trim();
+    if (!body || /^\[/.test(body)) return _;
+    const dur = Math.min(60, Math.max(1, Math.ceil(body.length / 4)));
+    extras.push({ type: 'voice', content: body, duration: dur });
+    return '\n';
   });
   t = t.replace(/\[位置[:：]([^|\]]+)(?:\|([^\]]*))?\]/g, function(_, name, addr) {
     extras.push({ type: 'location', name: name.trim(), addr: (addr || '').trim() });
@@ -5565,8 +5807,13 @@ async function realGenerate(id, c) {
       return { role: m.from === 'user' ? 'user' : 'assistant', content };
     }).filter(h => h.content);
     if (state._rerollReq) {
-      history.push({ role: 'user', content: '【重roll要求】' + state._rerollReq + '。请根据上文重新回复。' });
+      history.push({ role: 'user', content: '【重roll要求】' + state._rerollReq + '。请根据上文重新回复，不要重复旧说法。' });
       state._rerollReq = null;
+    }
+    // 双保险：若仍标记 reroll 且末尾还有角色消息则再剥一次
+    if (state._rerollMode) {
+      try { stripLastCharReply(chat); } catch(e) {}
+      state._rerollMode = false;
     }
     // 最近是否有用户收款码
     const recentPay = (chat.messages || []).slice(-8).some(function(m){ return m.type === 'paycode' && m.from === 'user'; });
@@ -5603,11 +5850,12 @@ ${userP.charKnows===false?'（对方可能使用了小号，你不一定知道�
 【可发富媒体】需要时用单独一行标记（不要解释标记本身）：
 [转账:金额:备注] 例 [转账:20:给你买奶茶]
 [红包:金额:祝福] 例 [红包:0.88:恭喜]
-[语音:要说的话]
+[语音:要说的话]  ← 必须单独一行、完整方括号；禁止只写「发了条语音」而不带标记
 [位置:地点名|详细地址]
 [图片:画面描述]
 [表情:一个表情或颜文字]
 [收款码:备注]
+【格式铁律】富媒体必须用上述标记单独成行，系统才能解析成气泡。语音务必写成 [语音:完整要说的话]，不要拆成「[语音」和正文两行，不要省略方括号。
 对方若发了收款码且你愿意付钱，必须带一行 [转账:金额:备注]，否则钱不会到账。`;
     const wbs = state.worldBooks.filter(w => w.enabled && (w.scope === 'global' || (chat.worldBookIds || []).includes(w.id)));
     const order = { front: 0, mid: 1, back: 2 };
@@ -9764,27 +10012,67 @@ function onEmojiFile(e) {
   e.target.value = '';
 }
 function addEmojiUrl() {
-  openModal('URL 批量上传', `
-    <div class="form-group"><label>每行：含义|分类|URL</label>
-      <textarea id="emUrls" placeholder="开心|默认|https://xx.com/1.png" style="min-height:120px"></textarea>
+  const cats = [];
+  try {
+    (state.customEmojis || []).forEach(function(e) {
+      const c = e.category || '默认';
+      if (cats.indexOf(c) < 0) cats.push(c);
+    });
+  } catch(e) {}
+  if (cats.indexOf('默认') < 0) cats.unshift('默认');
+  openModal('URL 导入表情', `
+    <div class="form-group"><label>每行一条：含义 + URL（空格或竖线分隔）</label>
+      <textarea id="emUrls" placeholder="开心 https://xx.com/1.png&#10;摸头|https://xx.com/2.png" style="min-height:120px"></textarea>
     </div>
-    <div class="form-group"><label>默认范围</label>
+    <div class="form-group"><label>分类（下面选择，全部导入到此分类）</label>
+      <select id="emCatPick">${cats.map(function(c){ return '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>'; }).join('')}
+        <option value="__new__">＋ 新建分类…</option>
+      </select>
+      <input id="emCatNew" placeholder="新分类名" style="display:none;margin-top:8px;width:100%;padding:8px;border-radius:10px;border:1px solid var(--line);box-sizing:border-box">
+    </div>
+    <div class="form-group"><label>范围</label>
       <select id="emScope2"><option value="global">全局</option>${(state.chars||[]).map(c=>`<option value="${c.id}">${escapeHtml(c.nick||c.realName)}</option>`).join('')}</select>
     </div>
   `, `<button class="btn btn-secondary" onclick="openEmojiManage()">返回</button><button class="btn btn-primary" onclick="saveEmojiUrls()">导入</button>`);
+  setTimeout(function(){
+    const sel = document.getElementById('emCatPick');
+    const neu = document.getElementById('emCatNew');
+    if (sel && neu) sel.onchange = function(){ neu.style.display = sel.value === '__new__' ? 'block' : 'none'; };
+  }, 40);
 }
 function saveEmojiUrls() {
-  const lines = document.getElementById('emUrls').value.trim().split('\\n').filter(Boolean);
-  const scope = document.getElementById('emScope2').value;
+  const raw = (document.getElementById('emUrls') || {}).value || '';
+  const lines = raw.split(/\n+/).map(function(s){ return s.trim(); }).filter(Boolean);
+  const scope = (document.getElementById('emScope2') || {}).value || 'global';
+  let category = (document.getElementById('emCatPick') || {}).value || '默认';
+  if (category === '__new__') {
+    category = ((document.getElementById('emCatNew') || {}).value || '').trim() || '默认';
+  }
   if (!state.customEmojis) state.customEmojis = [];
-  lines.forEach(line => {
-    const p = line.split('|').map(s=>s.trim());
-    if (p.length >= 2) {
-      const meaning = p[0], category = p.length>=3 ? p[1] : '默认', url = p.length>=3 ? p[2] : p[1];
-      if (url) state.customEmojis.push({ id:'em'+Date.now()+Math.random(), url, meaning, category, scope });
+  let n = 0;
+  lines.forEach(function(line) {
+    // 含义 + URL：支持「含义 URL」「含义|URL」「含义|分类|URL」（分类被下方统一选择覆盖时仍取 URL）
+    let meaning = '', url = '';
+    if (line.indexOf('|') >= 0) {
+      const p = line.split('|').map(function(s){ return s.trim(); });
+      if (p.length >= 3 && /^https?:\/\//i.test(p[2])) {
+        meaning = p[0]; url = p[2];
+      } else if (p.length >= 2) {
+        meaning = p[0]; url = p[p.length - 1];
+      }
+    } else {
+      const m = line.match(/^(.*?)\s+(https?:\/\/\S+)$/i);
+      if (m) { meaning = m[1].trim(); url = m[2].trim(); }
+      else if (/^https?:\/\//i.test(line)) { meaning = '表情'; url = line; }
+    }
+    if (url && /^https?:\/\//i.test(url)) {
+      state.customEmojis.push({ id: 'em' + Date.now() + Math.random().toString(36).slice(2, 6), url: url, meaning: meaning || '表情', category: category, scope: scope });
+      n++;
     }
   });
-  save(); openEmojiManage();
+  save();
+  openEmojiManage();
+  showToast(n ? ('已导入 ' + n + ' 个') : '没有可导入的行，请用「含义 URL」格式');
 }
 function delEmoji(i) {
   if (!confirm('删除？')) return;
@@ -16028,6 +16316,12 @@ function editHomePolaroid() {
 
 function getChangelogData() {
   return [
+    { v: '2026-08-20M', items: [
+      '聊天气泡：红包/转账/图/表情/位置/约会在各主题下不再被气泡包裹',
+      'QQ 主题红包竖版红卡、转账同尺寸水蓝卡；iOS 淡色系红包转账+语音条',
+      '重roll 删除上一轮角色消息再生成；语音标记格式加强；表情 URL=含义+链接+选分类',
+      '聊天壁纸：主题不再盖死 background-image，会话/全局壁纸可正常显示'
+    ]},
     { v: '2026-08-20L', items: [
       '群线下：与单聊相同的线下设置（世界书/文风/人称/字数等）',
       '剧本杀：详情/游玩/房间可查看前情提示与线索一览',
