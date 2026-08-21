@@ -931,7 +931,7 @@ body {
   display: none !important;
   content: none !important;
 }
-/* iOS 底栏：相机 | App Store | 输入框(iMessage信息) | 麦克风发送 —— 仿系统 iMessage */
+/* iOS 底栏仿系统 iMessage：相机 | App Store | [输入框 + 右侧麦克风]，无独立发送键 */
 #page-chat[data-chat-theme="ios26"] .wx-input-bar,
 #page-chat[data-chat-theme="ios26"] .input-bar {
   background: #f2f2f7 !important;
@@ -940,8 +940,8 @@ body {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 6px !important;
-  padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+  gap: 4px !important;
+  padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px)) !important;
 }
 #page-chat[data-chat-theme="ios26"] .wx-input-pill {
   flex: 1 !important;
@@ -949,77 +949,98 @@ body {
   background: #fff !important;
   border: 0.5px solid #c7c7cc !important;
   border-radius: 20px !important;
-  min-height: 36px !important;
+  min-height: 34px !important;
   display: flex !important;
   align-items: center !important;
-  padding: 0 10px !important;
+  padding: 0 6px 0 12px !important;
+  gap: 4px !important;
 }
 #page-chat[data-chat-theme="ios26"] .wx-input-pill textarea {
   flex: 1 !important;
   border: none !important;
   background: transparent !important;
   font-size: 16px !important;
-  padding: 8px 4px !important;
-  min-height: 22px !important;
+  padding: 7px 0 !important;
+  min-height: 20px !important;
+  color: #1c1c1e !important;
 }
 #page-chat[data-chat-theme="ios26"] .wx-input-pill textarea::placeholder {
   color: #8e8e93 !important;
+  opacity: 1 !important;
 }
-#page-chat[data-chat-theme="ios26"] .wx-input-pill .wx-pill-icon { display: none !important; }
-#page-chat[data-chat-theme="ios26"] .input-btn {
-  width: 36px !important;
-  height: 36px !important;
+/* 麦克风放进输入框右侧，作为发送键；去掉外面的独立发送键 */
+#page-chat[data-chat-theme="ios26"] .wx-input-pill .wx-pill-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  height: 28px !important;
   flex-shrink: 0 !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
   color: #8e8e93 !important;
 }
+#page-chat[data-chat-theme="ios26"] .wx-input-pill .wx-pill-icon svg {
+  width: 20px !important;
+  height: 20px !important;
+  stroke: #8e8e93 !important;
+}
+#page-chat[data-chat-theme="ios26"] .input-btn {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  flex-shrink: 0 !important;
+  color: #8e8e93 !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+/* 相机线条图标 = 生成 */
 #page-chat[data-chat-theme="ios26"] .input-btn.gen svg { display: none !important; }
 #page-chat[data-chat-theme="ios26"] .input-btn.gen::before {
   content: '';
   display: block;
-  width: 24px; height: 20px;
+  width: 26px; height: 20px;
   margin: 0 auto;
-  border: 2px solid #8e8e93;
-  border-radius: 6px;
+  border: 1.8px solid #8e8e93;
+  border-radius: 5px;
   box-sizing: border-box;
   background:
-    radial-gradient(circle at 50% 58%, transparent 4px, #8e8e93 4.5px, #8e8e93 6px, transparent 6.5px),
-    linear-gradient(#8e8e93, #8e8e93) 50% 2px / 10px 3px no-repeat;
+    radial-gradient(circle at 50% 58%, transparent 3.5px, #8e8e93 4px, #8e8e93 5.5px, transparent 6px),
+    linear-gradient(#8e8e93, #8e8e93) 50% 2px / 9px 2.5px no-repeat;
+}
+/* App Store 线条图标 = 面板，紧挨相机 */
+#page-chat[data-chat-theme="ios26"] .input-btn[onclick="togglePanel()"] {
+  margin-left: -2px !important;
 }
 #page-chat[data-chat-theme="ios26"] .input-btn[onclick="togglePanel()"] svg { display: none !important; }
 #page-chat[data-chat-theme="ios26"] .input-btn[onclick="togglePanel()"]::before {
   content: '';
   display: block;
-  width: 24px; height: 24px;
+  width: 22px; height: 22px;
   margin: 0 auto;
-  border-radius: 7px;
-  background: linear-gradient(135deg, #5ac8fa 0%, #007aff 100%);
-  box-shadow: inset 0 0 0 2px rgba(255,255,255,.35);
-  position: relative;
-}
-#page-chat[data-chat-theme="ios26"] .input-btn[onclick="togglePanel()"]::after {
-  content: 'A';
-  position: absolute;
-  left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 800;
-  font-family: -apple-system, system-ui, sans-serif;
-  pointer-events: none;
-}
-#page-chat[data-chat-theme="ios26"] .input-btn[onclick="togglePanel()"] {
-  position: relative;
-}
-#page-chat[data-chat-theme="ios26"] #wxPlusSend svg { display: none !important; }
-#page-chat[data-chat-theme="ios26"] #wxPlusSend::before {
-  content: '';
-  display: block;
-  width: 12px; height: 18px;
-  margin: 0 auto;
-  border: 2.2px solid #8e8e93;
-  border-radius: 8px;
+  border-radius: 6px;
+  border: 1.8px solid #8e8e93;
   box-sizing: border-box;
-  background: linear-gradient(#8e8e93, #8e8e93) 50% 3px / 6px 2px no-repeat;
+  background:
+    linear-gradient(#8e8e93,#8e8e93) 5px 5px / 5px 5px no-repeat,
+    linear-gradient(#8e8e93,#8e8e93) 12px 5px / 5px 5px no-repeat,
+    linear-gradient(#8e8e93,#8e8e93) 5px 12px / 5px 5px no-repeat,
+    linear-gradient(#8e8e93,#8e8e93) 12px 12px / 5px 5px no-repeat;
+}
+#page-chat[data-chat-theme="ios26"] .input-btn[onclick="togglePanel()"]::after { content: none !important; display: none !important; }
+/* 隐藏独立发送键 */
+#page-chat[data-chat-theme="ios26"] #wxPlusSend {
+  display: none !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
 }
 #page-chat[data-chat-theme="ios26"] #msgInput::placeholder {
   color: #8e8e93;
@@ -1412,8 +1433,8 @@ body.night .add-menu, [data-theme="dark"] .add-menu {
   box-shadow: none !important; max-width: 90%; text-align: center; padding: 4px 8px !important;
 }
 .redpacket, .rp-card {
-  width: 248px !important; min-width: 248px !important; max-width: 248px !important;
-  min-height: 88px !important; box-sizing: border-box !important;
+  width: 248px; min-width: 200px; max-width: 248px;
+  min-height: 88px; box-sizing: border-box;
 }
 .redpacket .rp-icon { font-size: 20px; margin-bottom: 4px; opacity: .9; }
 .redpacket .rp-title { font-size: 13px; opacity: .9; }
@@ -1422,9 +1443,38 @@ body.night .add-menu, [data-theme="dark"] .add-menu {
 
 /* 转账 */
 .transfer, .tf-card {
-  width: 248px !important; min-width: 248px !important; max-width: 248px !important;
-  min-height: 88px !important; box-sizing: border-box !important;
+  width: 248px; min-width: 200px; max-width: 248px;
+  min-height: 88px; box-sizing: border-box;
 }
+/* QQ / iOS 主题：外层气泡不要再强制 248px，否则卡片与头像之间会空一大截 */
+#page-chat[data-chat-theme="qq"] .msg-bubble.transfer,
+#page-chat[data-chat-theme="qq"] .msg-bubble.redpacket,
+#page-chat[data-chat-theme="ios26"] .msg-bubble.transfer,
+#page-chat[data-chat-theme="ios26"] .msg-bubble.redpacket {
+  width: fit-content !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+#page-chat[data-chat-theme="qq"] .qq-rp-card,
+#page-chat[data-chat-theme="qq"] .qq-tf-card {
+  width: 168px !important;
+  min-width: 168px !important;
+  max-width: 168px !important;
+  margin: 0 !important;
+}
+#page-chat[data-chat-theme="ios26"] .ios-rp-card,
+#page-chat[data-chat-theme="ios26"] .ios-tf-card {
+  width: 200px !important;
+  min-width: 200px !important;
+  max-width: 200px !important;
+  margin: 0 !important;
+}
+.msg-row.me .msg-avatar { margin: 0 0 0 6px !important; }
+.msg-row.other .msg-avatar { margin: 0 6px 0 0 !important; }
+.msg-row.me .msg-bubble-wrap { margin: 0 !important; }
 .transfer .tf-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .transfer .tf-icon {
   width: 28px; height: 28px; border-radius: 50%; background: #07c160;
@@ -1528,6 +1578,30 @@ body.night .add-menu, [data-theme="dark"] .add-menu {
   font-size: 24px; cursor: pointer; border-radius: 8px; overflow: hidden; flex-shrink: 0;
 }
 .emoji-item img { width: 40px; height: 40px; object-fit: contain; display: block; }
+/* 我的表情：需要显示含义，放开高度与溢出 */
+.emoji-item.emoji-with-label {
+  width: 64px !important;
+  height: auto !important;
+  min-height: 44px;
+  overflow: visible !important;
+  flex-direction: column;
+  padding: 2px 0 4px;
+}
+.emoji-item.emoji-with-label img {
+  width: 48px !important;
+  height: 48px !important;
+}
+.emoji-item.emoji-with-label .emoji-label {
+  font-size: 10px;
+  color: var(--sub);
+  margin-top: 3px;
+  max-width: 62px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  line-height: 1.2;
+}
 .emoji-panel { max-height: 240px !important; }
 .emoji-item:active { background: var(--line); }
 
@@ -1773,7 +1847,12 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 }
 .wx-pill-icon {
   border: none; background: transparent; padding: 2px; flex-shrink: 0;
-  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  display: none; align-items: center; justify-content: center; cursor: pointer;
+}
+#page-chat[data-chat-theme="ios26"] .wx-pill-icon {
+  display: inline-flex !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 .wx-pill-send {
   border: none; background: #07c160; color: #fff; border-radius: 6px;
@@ -2085,8 +2164,8 @@ body.night .loc-addr { color: #a1a1a6 !important; }
       </button>
       <div class="wx-input-pill">
         <textarea id="msgInput" rows="1" placeholder="" oninput="autoHeight(this)" onkeydown="onInputKey(event)"></textarea>
-        <!-- 输入框内麦克风 = 装饰 -->
-        <button type="button" class="wx-pill-icon" id="wxVoiceBtn" title="装饰" tabindex="-1" style="pointer-events:none;opacity:.5">
+        <!-- iOS：输入框内麦克风=发送；其他主题：装饰或隐藏 -->
+        <button type="button" class="wx-pill-icon" id="wxVoiceBtn" title="发送" onclick="if(document.getElementById('page-chat')&&document.getElementById('page-chat').getAttribute('data-chat-theme')==='ios26'){sendMsg();}return false;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.7"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
         </button>
       </div>
@@ -2094,7 +2173,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
       <button type="button" class="input-btn" onclick="togglePanel()" title="控制面板" aria-label="控制面板">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
       </button>
-      <!-- 加号 = 发送 -->
+      <!-- 加号 = 发送（iOS 主题下 CSS 隐藏，改用输入框内麦克风） -->
       <button type="button" class="input-btn" id="wxPlusSend" onclick="sendMsg()" title="发送" aria-label="发送">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" stroke-width="1.7"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
       </button>
@@ -2269,7 +2348,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-20N';
+const EENOK_BUILD = '2026-08-20O';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -3424,7 +3503,15 @@ function closeSubPage() {
         if (root === 'memory') { state._memFilter = null; state._subBackFn = null; openMemoryApp(); return; }
         if (root === 'love') { state._loveLetterId = null; openLoveApp(); return; }
         if (root === 'countdown') { openCountdownApp(state._cdTab||'all'); return; }
-        if (root === 'sk' || kind === 'scriptkill') { state._skId=null; openScriptKill('scripts'); return; }
+        if (root === 'sk' || kind === 'scriptkill') {
+          state._skId = null;
+          state._skChatId = null;
+          state._skChatRoom = null;
+          try { openScriptKill_HOME(); } catch(e1) {
+            try { openScriptKill('scripts'); } catch(e2) { goHome(); }
+          }
+          return;
+        }
         if (root === 'melo') { openMelo(state._meloTab||'home', { replace: true }); return; }
         if (root === 'phone' || root === 'phonecheck') { if (state._phoneChar) { openCharPhone(state._phoneChar); return; } openPhoneCheck(); return; }
         if (root === 'sms') { openSmsApp(); return; }
@@ -4059,7 +4146,14 @@ function renderMessages(opts) {
       if (cap) content += `<div style="font-size:12px;color:var(--sub);margin-top:4px;max-width:200px;line-height:1.4">${cap}</div>`;
       if (capTr) content += `<div class="msg-translation" style="max-width:200px">${escapeHtml(capTr)}</div>`;
     } else if (m.type === 'emoji') {
-      content = `<img class="msg-emoji-img" src="${m.content}" onclick="event.stopPropagation();onImageClick(${idx})">`;
+      const src = m.content || '';
+      const isImg = src && (src.indexOf('data:') === 0 || src.indexOf('http') === 0 || src.indexOf('blob:') === 0 || /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(src));
+      if (isImg && !m.isText) {
+        content = `<img class="msg-emoji-img" src="${src}" alt="${escapeHtml(m.meaning||'')}" onclick="event.stopPropagation();onImageClick(${idx})" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<div style=font-size:40px;line-height:1>${escapeHtml(m.meaning||'😊')}</div>')">`;
+      } else {
+        // 无图库匹配时：显示含义文字/颜文字，避免裂图
+        content = `<div style="font-size:42px;line-height:1.1;padding:4px 2px">${escapeHtml(m.meaning || src || '😊')}</div>`;
+      }
     } else if (m.type === 'redpacket') {
       const tn = (chat && chat.themeName) || '';
       if (tn === 'qq') {
@@ -4793,16 +4887,23 @@ function doPanelReroll() {
   const reqEl = document.getElementById('rerollReq');
   const req = (reqEl && reqEl.value || '').trim();
   closeModal();
-  const chat = state.chats[state.currentChatId];
-  if (!chat) return;
+  const id = state.currentChatId;
+  const chat = state.chats[id];
+  if (!chat) { showToast('当前没有会话'); return; }
   // 立刻删掉上一轮角色消息并刷新界面
   const n = stripLastCharReply(chat);
-  if (n) {
-    try { save(); renderMessages({ forceBottom: true }); } catch(e) {}
-  }
+  try { save(); renderMessages({ forceBottom: true }); } catch(e) {}
   state._rerollReq = req || '';
   state._rerollMode = true;
-  generateReply();
+  // 清掉可能卡住的生成锁，避免点了没反应
+  try {
+    if (state._genLocks) delete state._genLocks[id];
+  } catch(e) {}
+  showToast(n ? ('已删除 ' + n + ' 条，重roll 中…') : '重roll 中…');
+  try { generateReply(); } catch(e) {
+    console.warn('panel reroll', e);
+    showToast('重roll 失败：' + (e && e.message ? e.message : e));
+  }
 }
 function setTyping(on) {
   const el = document.getElementById('chatStatus');
@@ -4966,7 +5067,20 @@ function parseCharRichContent(raw) {
   // 兜底：行内残留的 [사진:…] / [Photo:…] 半截也尽量吃掉
   t = t.replace(/\[(?:사진|写真|photo|image)[^\]]*\]/gi, '');
   t = t.replace(/\[表情[:：]([^\]]+)\]/g, function(_, e) {
-    extras.push({ type: 'emoji', content: e.trim(), meaning: e.trim() });
+    const meaning = String(e || '').trim();
+    let url = '';
+    try {
+      const lib = state.customEmojis || [];
+      // 精确匹配含义 → 包含匹配 → 随机一个全局表情
+      let found = lib.find(function(x){ return (x.meaning || '') === meaning; });
+      if (!found) found = lib.find(function(x){ return (x.meaning || '').indexOf(meaning) >= 0 || meaning.indexOf(x.meaning || '') >= 0; });
+      if (!found && lib.length) {
+        const pool = lib.filter(function(x){ return x.scope === 'global' || x.scope === state.currentChatId; });
+        found = (pool.length ? pool : lib)[Math.floor(Math.random() * (pool.length || lib.length))];
+      }
+      if (found && found.url) url = found.url;
+    } catch(err) {}
+    extras.push({ type: 'emoji', content: url || meaning, meaning: meaning, isText: !url });
     return '';
   });
   t = t.replace(/\[收款码(?:[:：]([^\]]*))?\]/g, function(_, note) {
@@ -10225,9 +10339,9 @@ function renderEmojiBody() {
     });
     html += '</div>';
     (cats[activeCat]||[]).forEach(e => {
-      html += `<div class="emoji-item" title="${escapeHtml(e.meaning||'')}" onclick="insertCustomEmoji('${e.id}')" style="display:flex;flex-direction:column;align-items:center;width:64px">
-        <img src="${e.url}" style="width:48px;height:48px;object-fit:contain">
-        <span style="font-size:10px;color:var(--sub);margin-top:3px;max-width:62px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${escapeHtml(e.meaning||'表情')}</span>
+      html += `<div class="emoji-item emoji-with-label" title="${escapeHtml(e.meaning||'')}" onclick="insertCustomEmoji('${e.id}')">
+        <img src="${e.url}" alt="">
+        <span class="emoji-label">${escapeHtml(e.meaning||'表情')}</span>
       </div>`;
     });
     body.innerHTML = html;
@@ -12233,7 +12347,10 @@ function openSKFriendChat(cid) {
   if (!state.scriptKill.chats[cid]) state.scriptKill.chats[cid] = { messages: [], wallpaper: '' };
   state._skChatId = cid;
   state._skChatRoom = null;
+  state._homeRoot = 'sk';
   state._subKind = 'scriptkill';
+  state._homeDepth = 1;
+  state._subBackFn = function(){ try { openScriptKill_HOME(); } catch(e) { openScriptKill(); } };
   const chat = state.scriptKill.chats[cid];
   const msgs = chat.messages || [];
   const wp = chat.wallpaper || '';
@@ -12363,7 +12480,10 @@ function openSKRoomChat(ri) {
   if (!r.messages) r.messages = [];
   state._skChatRoom = ri;
   state._skChatId = null;
+  state._homeRoot = 'sk';
   state._subKind = 'scriptkill';
+  state._homeDepth = 1;
+  state._subBackFn = function(){ try { openScriptKill_HOME(); } catch(e) { openScriptKill(); } };
   const wp = r.wallpaper || '';
   const started = !!r.started;
   openSubPage(r.name || '房间', `
@@ -16472,6 +16592,12 @@ function editHomePolaroid() {
 
 function getChangelogData() {
   return [
+    { v: '2026-08-20O', items: [
+      '红包/转账：去掉外层 248px 强制宽，QQ·iOS 卡片贴紧头像',
+      '表情「我的」显示含义；角色[表情]匹配图库；控制面板重roll清锁',
+      'iOS 底栏：相机+App 线条图标紧挨，输入框内麦克风发送，无独立发送键',
+      '剧本杀房间/私聊退出回剧本杀首页；icity NPC 无头像用首字色块'
+    ]},
     { v: '2026-08-20N', items: [
       '重roll：气泡菜单可对单条角色消息重roll（删本轮再生成）',
       'iOS 底栏仿 iMessage：相机 / App / 输入框 / 麦克风',
@@ -18762,6 +18888,10 @@ function openIcityDiaryDetail(kind, idx) {
     av = d.avatar || '';
   }
   if (!d) return;
+  // NPC / 无头像：用首字色块占位，避免裂图
+  if (!av) {
+    try { av = defaultAvatar(nick || handle || '?'); } catch(e) { av = ''; }
+  }
   if (!d.likes) d.likes = [];
   if (!d.comments) d.comments = [];
   var liked = !!d.liked || (d.likes && d.likes.indexOf('user') >= 0);
@@ -19215,6 +19345,7 @@ async function doIcityGen() {
         personaHint = (ch.persona||'').slice(0,120);
       } else {
         nick = npcNames[Math.floor(Math.random()*npcNames.length)] + Math.floor(Math.random()*20);
+        try { avatar = defaultAvatar(nick); } catch(e) { avatar = ''; }
       }
       const userNick = (state.user && (state.user.nick || state.user.realName)) || '';
       const { text } = await apiChat([
