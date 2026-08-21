@@ -240,30 +240,30 @@ body.night .sms-im-msgs .msg-time, .night .sms-im-msgs .msg-time { color: rgba(2
   overflow-wrap: anywhere;
   box-sizing: border-box;
 }
-/* 短信气泡：背景图拉伸 + 纯色兜底 */
+/* 短信/iMessage 气泡：纯 CSS 仿系统（图三风格），图片链接已按左右正确对应 */
 .sms-bubble.me {
   background-color: #007aff !important;
-  background-image: url(https://nos.netease.com/ysf/ecf04c4b6912ee4bc50a4ddbd0cbf446.png) !important;
+  background-image: url(https://nos.netease.com/ysf/7ee8bf129ef6d76eded86a4544cb18db.png) !important;
   background-size: 100% 100% !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
   color: #fff !important;
   border: none !important;
   border-radius: 18px !important;
-  border-bottom-right-radius: 6px !important;
+  border-bottom-right-radius: 4px !important;
   box-shadow: none !important;
   padding: 10px 14px !important;
 }
 .sms-bubble.other {
   background-color: #e9e9eb !important;
-  background-image: url(https://nos.netease.com/ysf/7ee8bf129ef6d76eded86a4544cb18db.png) !important;
+  background-image: url(https://nos.netease.com/ysf/ecf04c4b6912ee4bc50a4ddbd0cbf446.png) !important;
   background-size: 100% 100% !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
   color: #000 !important;
   border: none !important;
   border-radius: 18px !important;
-  border-bottom-left-radius: 6px !important;
+  border-bottom-left-radius: 4px !important;
   box-shadow: none !important;
   padding: 10px 14px !important;
 }
@@ -943,23 +943,23 @@ body {
 }
 #page-chat[data-chat-theme="ios26"] .msg-row.me .msg-bubble:not(.bare) {
   background-color: #007aff !important;
-  background-image: url(https://nos.netease.com/ysf/ecf04c4b6912ee4bc50a4ddbd0cbf446.png) !important;
+  background-image: url(https://nos.netease.com/ysf/7ee8bf129ef6d76eded86a4544cb18db.png) !important;
   background-size: 100% 100% !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
   color: #fff !important;
   border-radius: 18px !important;
-  border-bottom-right-radius: 6px !important;
+  border-bottom-right-radius: 4px !important;
 }
 #page-chat[data-chat-theme="ios26"] .msg-row.other .msg-bubble:not(.bare) {
   background-color: #e9e9eb !important;
-  background-image: url(https://nos.netease.com/ysf/7ee8bf129ef6d76eded86a4544cb18db.png) !important;
+  background-image: url(https://nos.netease.com/ysf/ecf04c4b6912ee4bc50a4ddbd0cbf446.png) !important;
   background-size: 100% 100% !important;
   background-repeat: no-repeat !important;
   background-position: center !important;
   color: #000 !important;
   border-radius: 18px !important;
-  border-bottom-left-radius: 6px !important;
+  border-bottom-left-radius: 4px !important;
 }
 #page-chat[data-chat-theme="ios26"] .msg-row .msg-bubble:not(.bare)::after,
 #page-chat[data-chat-theme="ios26"] .msg-row .msg-bubble:not(.bare)::before {
@@ -2383,7 +2383,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-20Q';
+const EENOK_BUILD = '2026-08-21A';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -3170,8 +3170,26 @@ function mergeHomeState(primary, fallback) {
   Object.keys(out.appIcons).forEach(function(k) {
     if (out.appIcons[k] === '__IDB__') delete out.appIcons[k];
   });
-  if ((!out.pageWidgets || !Object.keys(out.pageWidgets).length) && b.pageWidgets) out.pageWidgets = b.pageWidgets;
+  // pageWidgets：按页合并，谁内容更多用谁，避免空数组覆盖
+  (function(){
+    var pa = (a.pageWidgets && typeof a.pageWidgets === 'object') ? a.pageWidgets : {};
+    var pb = (b.pageWidgets && typeof b.pageWidgets === 'object') ? b.pageWidgets : {};
+    var keys = {};
+    Object.keys(pa).forEach(function(k){ keys[k]=1; });
+    Object.keys(pb).forEach(function(k){ keys[k]=1; });
+    var merged = {};
+    Object.keys(keys).forEach(function(k){
+      var la = Array.isArray(pa[k]) ? pa[k] : [];
+      var lb = Array.isArray(pb[k]) ? pb[k] : [];
+      merged[k] = la.length >= lb.length ? la : lb;
+    });
+    if (Object.keys(merged).length) out.pageWidgets = merged;
+    else if (b.pageWidgets) out.pageWidgets = b.pageWidgets;
+  })();
   if ((!out.extraWidgets || !out.extraWidgets.length) && b.extraWidgets) out.extraWidgets = b.extraWidgets;
+  // pages 数取较大值，避免加页后被旧备份打回
+  var pagesA = (a.pages|0) || 0, pagesB = (b.pages|0) || 0;
+  out.pages = Math.max(pagesA, pagesB, out.pages|0, 1);
   if (out.glassStrength == null && b.glassStrength != null) out.glassStrength = b.glassStrength;
   if (out.iconScale == null && b.iconScale != null) out.iconScale = b.iconScale;
   if (out.iconRadius == null && b.iconRadius != null) out.iconRadius = b.iconRadius;
@@ -17313,6 +17331,38 @@ function toggleDockApp(id, name, open, on) {
   if (!on && i >= 0) state.home.dockApps.splice(i, 1);
   save();
 }
+
+function moveHomeWidget(fromPage, wi, toPage) {
+  ensureHomeState();
+  if (!state.home.pageWidgets) state.home.pageWidgets = {};
+  var list = state.home.pageWidgets[fromPage] || [];
+  if (wi < 0 || wi >= list.length) return;
+  toPage = toPage | 0;
+  fromPage = fromPage | 0;
+  if (toPage === fromPage) return;
+  if (!state.home.pageWidgets[toPage]) state.home.pageWidgets[toPage] = [];
+  var item = list.splice(wi, 1)[0];
+  if (!item) return;
+  item.x = Math.min(item.x || 16, 40);
+  item.y = Math.min(item.y || 40, 80);
+  state.home.pageWidgets[toPage].push(item);
+  state.home.page = toPage;
+  save();
+  if (typeof saveAsync === 'function') saveAsync();
+  showToast('已移到第'+(toPage+1)+'页');
+  renderHome();
+}
+function openMoveWidgetSheet(fromPage, wi) {
+  var pages = state.home.pages || 2;
+  var btns = '';
+  for (var pi = 0; pi < pages; pi++) {
+    if (pi === fromPage) continue;
+    btns += '<button type="button" class="btn btn-secondary" style="width:100%;margin:6px 0" onclick="closeModal();moveHomeWidget('+fromPage+','+wi+','+pi+')">移到第 '+(pi+1)+' 页</button>';
+  }
+  if (!btns) { showToast('没有其他页面'); return; }
+  openModal('移动小组件', btns, '<button class="btn btn-secondary" onclick="closeModal()">取消</button>');
+}
+
 function addHomeWidget(itemOrType) {
   ensureHomeState();
   if (!state.home.pageWidgets) state.home.pageWidgets = { 0: [], 1: [] };
@@ -17328,9 +17378,9 @@ function addHomeWidget(itemOrType) {
     polaroid_m: { type: 'polaroid_m', w: 120, h: 150, caption: '', content: '' },
     polaroid: { type: 'polaroid_m', w: 120, h: 150, caption: '', content: '' },
     badge3d: { type: 'badge3d', w: 110, h: 110, img: '', rot: 0 },
-    heart_badge: { type: 'heart_badge', w: 108, h: 100, img: '', rot: 0 },
+    heart_badge: { type: 'heart_badge', w: 148, h: 140, img: '', rot: 0 },
     heart_standee: {
-      type: 'heart_standee', w: 130, h: 150,
+      type: 'heart_standee', w: 200, h: 280,
       img: 'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png'
     },
     standee: { type: 'standee', w: 100, h: 160, img: '' },
@@ -27027,7 +27077,7 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
 
     var widgetHtml = widgets.map(function(w, wi) {
       var t = w.type || 'photo';
-      var del = editMode ? '<span class="home-w-del" data-widx="'+wi+'" style="position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.4);color:#fff;font-size:13px;line-height:20px;text-align:center;z-index:3">×</span>' : '';
+      var del = editMode ? ('<span class="home-w-move" data-widx="'+wi+'" title="移动到其他页" style="position:absolute;top:4px;right:28px;width:20px;height:20px;border-radius:50%;background:rgba(0,122,255,.85);color:#fff;font-size:11px;line-height:20px;text-align:center;z-index:3">⇄</span><span class="home-w-del" data-widx="'+wi+'" style="position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.4);color:#fff;font-size:13px;line-height:20px;text-align:center;z-index:3">×</span>') : '';
       var base = 'left:'+(w.x||12)+'px;top:'+(w.y||8)+'px;width:'+(w.w||150)+'px;height:'+(w.h||100)+'px;position:absolute;z-index:2;';
       var inner = '';
       if (t === 'polaroid_l' || t === 'polaroid_m' || t === 'polaroid') {
@@ -27054,22 +27104,25 @@ if (t === 'badge3d') {
       if (t === 'heart_badge') {
         var src = w.img || '';
         var rot = w.rot || 0;
-        // SVG 心形遮罩：比 CSS path() 在移动端兼容性好
-        inner = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:transparent;transform:rotate('+rot+'deg);transition:transform .4s ease">'
-          + '<svg viewBox="0 0 100 100" width="100%" height="100%" style="overflow:visible;filter:drop-shadow(0 8px 14px rgba(255,80,120,.4))">'
-          + '<defs><clipPath id="hbClip'+wi+'"><path d="M50 88 C22 64,6 42,18 26 C28 14,42 16,50 30 C58 16,72 14,82 26 C94 42,78 64,50 88 Z"/></clipPath></defs>'
+        if (!w.w || w.w < 120) w.w = 148;
+        if (!w.h || w.h < 120) w.h = 140;
+        var hp = 'M50 90 C20 68,4 48,12 30 C18 16,34 14,50 32 C66 14,82 16,88 30 C96 48,80 68,50 90 Z';
+        // 圆润饱满心形，无粉色光晕
+        inner = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:transparent;transform:rotate('+rot+'deg)">'
+          + '<svg viewBox="0 0 100 100" width="100%" height="100%" style="overflow:visible;filter:drop-shadow(0 4px 8px rgba(0,0,0,.18))">'
+          + '<defs><clipPath id="hbClip'+wi+'"><path d="'+hp+'"/></clipPath>'
+          + '<linearGradient id="hbGrad'+wi+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff8fab"/><stop offset="100%" stop-color="#ff4d6d"/></linearGradient></defs>'
           + (src
             ? '<image href="'+src+'" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice" clip-path="url(#hbClip'+wi+')"/>'
-            : '<path d="M50 88 C22 64,6 42,18 26 C28 14,42 16,50 30 C58 16,72 14,82 26 C94 42,78 64,50 88 Z" fill="url(#hbGrad'+wi+')"/>'
-              + '<defs><linearGradient id="hbGrad'+wi+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff9eb5"/><stop offset="100%" stop-color="#ff5a7a"/></linearGradient></defs>')
-          + '<path d="M50 88 C22 64,6 42,18 26 C28 14,42 16,50 30 C58 16,72 14,82 26 C94 42,78 64,50 88 Z" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2"/>'
+            : '<path d="'+hp+'" fill="url(#hbGrad'+wi+')"/>')
+          + '<path d="'+hp+'" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>'
           + '</svg></div>';
         return '<div class="home-widget" data-widx="'+wi+'" data-wtype="heart_badge" style="'+base+'overflow:visible;background:transparent;box-shadow:none;border:none">'+inner+del+'</div>';
       }
       if (t === 'heart_standee') {
         var himg = w.img || 'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png';
-        if (!w.w || w.w < 100) w.w = 130;
-        if (!w.h || w.h < 120) w.h = 160;
+        if (!w.w || w.w < 160) w.w = 200;
+        if (!w.h || w.h < 220) w.h = 280;
         inner = '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:transparent;pointer-events:none">'
           + '<img src="'+himg+'" alt="爱心" style="width:100%;height:calc(100% - 10px);object-fit:contain;object-position:center bottom;filter:drop-shadow(0 10px 16px rgba(0,0,0,.25));display:block;background:transparent" draggable="false" onerror="this.onerror=null;this.style.background=\'linear-gradient(145deg,#ff9eb5,#ff5a7a)\';this.style.borderRadius=\'20px\'">'
           + '<div style="width:40%;height:6px;margin-top:4px;border-radius:3px;background:rgba(0,0,0,.14)"></div></div>';
@@ -27106,16 +27159,20 @@ if (t === 'badge3d') {
         inner = '<div style="width:100%;height:100%;border-radius:22px;background:#ececee;box-shadow:0 10px 28px rgba(0,0,0,.12);display:flex;flex-direction:column;align-items:center;padding:10px 12px 8px;box-sizing:border-box;position:relative">'
           + '<div style="position:relative;width:72px;height:72px;margin-top:2px">'
           + '<div style="position:absolute;inset:-10px;border:2px solid rgba(180,180,185,.55);border-radius:50%"></div>'
-          + '<div style="position:absolute;top:-6px;right:-2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:11px">♡</div>'
-          + '<div style="position:absolute;left:-8px;top:18px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:10px">〰</div>'
+          + '<div style="position:absolute;top:-6px;right:-2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center">'
+          + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M20.8 4.6c-1.8-1.6-4.6-1.4-6.3.4L12 7.5 9.5 5c-1.7-1.8-4.5-2-6.3-.4-2 1.8-2.1 4.8-.3 6.7L12 21l9.1-9.7c1.8-1.9 1.7-4.9-.3-6.7z"/></svg></div>'
+          + '<div style="position:absolute;left:-8px;top:18px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center">'
+          + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2" stroke-linecap="round"><path d="M4 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/></svg></div>'
           + '<div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:2px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.1)">'+avInner+'</div></div>'
           + '<div class="mp-name" style="margin-top:8px;font-size:13px;font-weight:600;color:#1c1c1e;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+nick+'</div>'
           + '<div class="mp-uid" style="font-size:11px;color:#8e8e93;margin-top:1px">'+uid+'</div>'
           + '<div style="width:88%;margin-top:10px">'
           + '<div style="height:3px;background:#c8c8cc;border-radius:2px;position:relative"><div style="width:38%;height:100%;background:#1c1c1e;border-radius:2px"></div><div style="position:absolute;left:38%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#1c1c1e"></div></div>'
           + '<div style="display:flex;justify-content:space-between;font-size:10px;color:#8e8e93;margin-top:4px"><span>1:15</span><span>-2:38</span></div></div>'
-          + '<div style="display:flex;align-items:center;justify-content:center;gap:22px;margin-top:6px;color:#1c1c1e">'
-          + '<span style="font-size:16px">⏮</span><span style="font-size:18px">⏸</span><span style="font-size:16px">⏭</span></div>'
+          + '<div style="display:flex;align-items:center;justify-content:center;gap:26px;margin-top:8px;color:#1c1c1e">'
+          + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>'
+          + '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
+          + '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></div>'
           + '<div style="margin-top:8px;width:78%;height:28px;border-radius:14px;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;gap:3px;padding:0 10px;box-sizing:border-box">'
           + [4,8,5,12,7,10,6,14,9,5,11,7,4,9,6].map(function(h){return '<span style="width:2px;height:'+h+'px;background:#b0b0b5;border-radius:1px;display:inline-block"></span>';}).join('')
           + '</div></div>';
@@ -27405,7 +27462,7 @@ if (t === 'clock_sm') {
         } else {
           // 点到删除键：不上传
           var tgt = ev && ev.target;
-          if (tgt && (tgt.classList && tgt.classList.contains('home-w-del') || (tgt.closest && tgt.closest('.home-w-del')))) return;
+          if (tgt && (tgt.classList && tgt.classList.contains('home-w-del') || tgt.classList.contains('home-w-move') || (tgt.closest && (tgt.closest('.home-w-del') || tgt.closest('.home-w-move'))))) return;
           // 点击上传
           var list = state.home.pageWidgets[page] || [];
           var ww = list[wi];
@@ -27455,6 +27512,13 @@ if (t === 'clock_sm') {
         }
       });
     });
+        inner.querySelectorAll('.home-w-move').forEach(function(el) {
+      el.onclick = function(e) {
+        e.stopPropagation();
+        var wi = +el.dataset.widx;
+        if (typeof openMoveWidgetSheet === 'function') openMoveWidgetSheet(page, wi);
+      };
+    });
     inner.querySelectorAll('.home-w-del').forEach(function(el) {
       el.onclick = function(e) {
         e.stopPropagation();
@@ -27501,6 +27565,8 @@ if (t === 'clock_sm') {
       var p = state.home.pages || 2;
       if (p >= 8) { showToast('最多 8 个界面'); return; }
       state.home.pages = p + 1;
+      if (!state.home.pageWidgets) state.home.pageWidgets = {};
+      if (!state.home.pageWidgets[p]) state.home.pageWidgets[p] = [];
       if (!state.home.pageWidgets) state.home.pageWidgets = {};
       var ni = p;
       if (!state.home.pageWidgets[ni]) state.home.pageWidgets[ni] = [];
@@ -27742,10 +27808,10 @@ if (t === 'clock_sm') {
         {id:'polaroid_l',name:'大拍立得',size:'大型 · 可换图可编辑',img:'',w:160,h:200,page:0,type:'polaroid_l'},
         {id:'polaroid_m',name:'小拍立得',size:'中型 · 可换图可编辑',img:'',w:120,h:150,page:0,type:'polaroid_m'},
         {id:'badge3d',name:'立体吧唧',size:'中型 · 圆形 · 点击旋转',img:'',w:110,h:110,page:0,type:'badge3d'},
-        {id:'heart_badge',name:'爱心吧唧',size:'中型 · 爱心形 · 可换图',img:'',w:108,h:100,page:0,type:'heart_badge'},
+        {id:'heart_badge',name:'爱心吧唧',size:'大型 · 爱心形 · 可换图',img:'',w:108,h:100,page:0,type:'heart_badge'},
         {id:'standee',name:'立体立牌',size:'中型 · 可换图',img:'',w:100,h:160,page:0,type:'standee'},
         {id:'standee_l',name:'大型立体立牌',size:'大型 · 可换图 · 透明底',img:'',w:140,h:220,page:0,type:'standee_l'},
-        {id:'heart_standee',name:'立体爱心摆件',size:'中型 · 默认爱心图 · 可换图',img:'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png',w:130,h:150,page:0,type:'heart_standee'},
+        {id:'heart_standee',name:'立体爱心摆件',size:'大型 · 默认爱心图 · 可换图',img:'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png',w:130,h:150,page:0,type:'heart_standee'},
         {id:'airdrop_card',name:'分享卡片',size:'中型 · 仿 AirDrop · 点图换图',img:'',w:200,h:260,page:0,type:'airdrop_card'},
         {id:'music_player',name:'音乐播放器',size:'中型 · 换头像 · 可改昵称/ID',img:'',w:200,h:230,page:0,type:'music_player'},
         {id:'clock_sm',name:'时间小组件',size:'小型 · 显示当前时间',img:'',w:150,h:80,page:0,type:'clock_sm'},
@@ -27861,10 +27927,10 @@ if (t === 'clock_sm') {
         {id:'polaroid_l',name:'大拍立得',size:'大型 · 可换图可编辑',img:'',w:160,h:200,page:0,type:'polaroid_l'},
         {id:'polaroid_m',name:'小拍立得',size:'中型 · 可换图可编辑',img:'',w:120,h:150,page:0,type:'polaroid_m'},
         {id:'badge3d',name:'立体吧唧',size:'中型 · 圆形 · 点击旋转',img:'',w:110,h:110,page:0,type:'badge3d'},
-        {id:'heart_badge',name:'爱心吧唧',size:'中型 · 爱心形 · 可换图',img:'',w:108,h:100,page:0,type:'heart_badge'},
+        {id:'heart_badge',name:'爱心吧唧',size:'大型 · 爱心形 · 可换图',img:'',w:108,h:100,page:0,type:'heart_badge'},
         {id:'standee',name:'立体立牌',size:'中型 · 可换图',img:'',w:100,h:160,page:0,type:'standee'},
         {id:'standee_l',name:'大型立体立牌',size:'大型 · 可换图 · 透明底',img:'',w:140,h:220,page:0,type:'standee_l'},
-        {id:'heart_standee',name:'立体爱心摆件',size:'中型 · 默认爱心图 · 可换图',img:'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png',w:130,h:150,page:0,type:'heart_standee'},
+        {id:'heart_standee',name:'立体爱心摆件',size:'大型 · 默认爱心图 · 可换图',img:'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png',w:130,h:150,page:0,type:'heart_standee'},
         {id:'airdrop_card',name:'分享卡片',size:'中型 · 仿 AirDrop · 点图换图',img:'',w:200,h:260,page:0,type:'airdrop_card'},
         {id:'music_player',name:'音乐播放器',size:'中型 · 换头像 · 可改昵称/ID',img:'',w:200,h:230,page:0,type:'music_player'},
         {id:'clock_sm',name:'时间小组件',size:'小型 · 显示当前时间',img:'',w:150,h:80,page:0,type:'clock_sm'},
@@ -27880,18 +27946,27 @@ if (t === 'clock_sm') {
           if (!item) return;
           // 弹出选页：第1页 / 第2页
           var pages = state.home.pages || 2;
-          if (pages < 2) { item.page = 0; addHomeWidget(item); return; }
+          var cur = (state.home.page != null ? state.home.page : 0) | 0;
+          // 单页直接加到当前页；多页弹出全部页面选择
+          if (pages <= 1) { item.page = 0; addHomeWidget(item); return; }
+          var btns = '';
+          for (var pi = 0; pi < pages; pi++) {
+            var label = '第 ' + (pi+1) + ' 页' + (pi === cur ? '（当前）' : '');
+            btns += '<button type="button" class="btn '+(pi===cur?'btn-primary':'btn-secondary')+'" style="flex:1;min-width:30%;margin:4px 0" data-wadd-page="'+pi+'">'+label+'</button>';
+          }
           openModal('添加到哪一页？',
-            '<div style="display:flex;gap:10px;margin-top:8px">'
-            + '<button class="btn btn-primary" style="flex:1" id="waddP0">第 1 页</button>'
-            + '<button class="btn btn-primary" style="flex:1" id="waddP1">第 2 页</button>'
-            + '</div>',
+            '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">'+btns+'</div>'
+            + '<div style="font-size:12px;color:#8e8e93;margin-top:10px">也可在编辑模式把小组件拖到屏幕边缘移到相邻页</div>',
             '<button class="btn btn-secondary" onclick="closeModal()">取消</button>');
           setTimeout(function(){
-            var b0 = document.getElementById('waddP0');
-            var b1 = document.getElementById('waddP1');
-            if (b0) b0.onclick = function(){ var it=Object.assign({}, item, {page:0}); closeModal(); addHomeWidget(it); };
-            if (b1) b1.onclick = function(){ var it=Object.assign({}, item, {page:1}); closeModal(); addHomeWidget(it); };
+            document.querySelectorAll('[data-wadd-page]').forEach(function(btn){
+              btn.onclick = function(){
+                var pg = parseInt(btn.getAttribute('data-wadd-page'), 10) || 0;
+                var it = Object.assign({}, item, { page: pg });
+                closeModal();
+                addHomeWidget(it);
+              };
+            });
           }, 30);
         };
       });
