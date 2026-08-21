@@ -240,9 +240,31 @@ body.night .sms-im-msgs .msg-time, .night .sms-im-msgs .msg-time { color: rgba(2
   overflow-wrap: anywhere;
   box-sizing: border-box;
 }
-.sms-bubble.me { background: #007aff; color: #fff; border-bottom-right-radius: 6px; }
-.sms-bubble.other { background: rgba(60,60,67,.32); color: #000; border-bottom-left-radius: 6px; }
-body.night .sms-bubble.other { background: rgba(255,255,255,.2); color: #fff; }
+.sms-bubble.me {
+  background: transparent !important;
+  color: #fff !important;
+  border-style: solid !important;
+  border-width: 12px 16px 14px 14px !important;
+  border-radius: 0 !important;
+  border-image-source: url(https://nos.netease.com/ysf/ecf04c4b6912ee4bc50a4ddbd0cbf446.png);
+  border-image-slice: 42 48 48 42 fill;
+  border-image-width: 12px 16px 14px 14px;
+  border-image-repeat: stretch;
+  box-shadow: none !important;
+}
+.sms-bubble.other {
+  background: transparent !important;
+  color: #000 !important;
+  border-style: solid !important;
+  border-width: 12px 14px 14px 16px !important;
+  border-radius: 0 !important;
+  border-image-source: url(https://nos.netease.com/ysf/7ee8bf129ef6d76eded86a4544cb18db.png);
+  border-image-slice: 42 42 48 48 fill;
+  border-image-width: 12px 14px 14px 16px;
+  border-image-repeat: stretch;
+  box-shadow: none !important;
+}
+body.night .sms-bubble.other { color: #fff !important; }
 .sms-tr {
   font-size: 11px; color: #8e8e93; margin-top: 4px; padding: 0 6px;
   line-height: 1.4; max-width: 100%;
@@ -910,21 +932,30 @@ body {
   background-color: #ffffff;
 }
 #page-chat[data-chat-theme="ios26"] .msg-bubble:not(.bare) {
-  border-radius: 18px !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
-  border: none !important;
   backdrop-filter: none !important;
-  padding: 8px 12px !important;
+  -webkit-backdrop-filter: none !important;
+  padding: 4px 6px !important;
+  border-style: solid !important;
 }
 #page-chat[data-chat-theme="ios26"] .msg-row.me .msg-bubble:not(.bare) {
-  background: #007aff !important;
+  background: transparent !important;
   color: #fff !important;
-  border-bottom-right-radius: 6px !important;
+  border-width: 12px 16px 14px 14px !important;
+  border-image-source: url(https://nos.netease.com/ysf/ecf04c4b6912ee4bc50a4ddbd0cbf446.png);
+  border-image-slice: 42 48 48 42 fill;
+  border-image-width: 12px 16px 14px 14px;
+  border-image-repeat: stretch;
 }
 #page-chat[data-chat-theme="ios26"] .msg-row.other .msg-bubble:not(.bare) {
-  background: #e9e9eb !important;
+  background: transparent !important;
   color: #000 !important;
-  border-bottom-left-radius: 6px !important;
+  border-width: 12px 14px 14px 16px !important;
+  border-image-source: url(https://nos.netease.com/ysf/7ee8bf129ef6d76eded86a4544cb18db.png);
+  border-image-slice: 42 42 48 48 fill;
+  border-image-width: 12px 14px 14px 16px;
+  border-image-repeat: stretch;
 }
 #page-chat[data-chat-theme="ios26"] .msg-row .msg-bubble:not(.bare)::after,
 #page-chat[data-chat-theme="ios26"] .msg-row .msg-bubble:not(.bare)::before {
@@ -2348,7 +2379,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-20O';
+const EENOK_BUILD = '2026-08-20P';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -2673,7 +2704,7 @@ function compressDataUrl(dataUrl, maxW, quality, keepAlpha) {
       // 立牌 / 图标 / 通话壁纸等需要透明底：强制 PNG，禁止压成 JPEG
       var ft = String(state.fileTarget || '');
       var isWidgetUpload = ft.indexOf('homeWidget') === 0 || ft.indexOf('homeWidgetImg') === 0;
-      var forcePng = !!keepAlpha || isWidgetUpload || ft === 'standee' || ft === 'standee_l' || ft.indexOf('homeAppIcon') === 0 || ft === 'callBg' || ft.indexOf('pw3Cell') === 0 || (dataUrl.indexOf('image/png') >= 0 && (ft === 'homeWallpaper' || ft.indexOf('dock') >= 0));
+      var forcePng = !!keepAlpha || isWidgetUpload || ft === 'standee' || ft === 'standee_l' || ft === 'heart_standee' || ft === 'heart_badge' || ft.indexOf('homeAppIcon') === 0 || ft === 'callBg' || ft.indexOf('pw3Cell') === 0 || (dataUrl.indexOf('image/png') >= 0 && (ft === 'homeWallpaper' || ft.indexOf('dock') >= 0));
       const img = new Image();
       img.onload = () => {
         let w = img.width, h = img.height;
@@ -7178,7 +7209,8 @@ function onFileSelected(e) {
       }
       state.home.page = pageIdx;
       // 空白照片墙等：尺寸不随图片改变
-      var fixed = state._widgetFixedSize || (state.home.pageWidgets[pageIdx][wIdx].type === 'pw_blank' || state.home.pageWidgets[pageIdx][wIdx].type === 'photowall3');
+      var _wt = state.home.pageWidgets[pageIdx][wIdx].type;
+var fixed = state._widgetFixedSize || (_wt === 'pw_blank' || _wt === 'photowall3' || _wt === 'airdrop_card' || _wt === 'heart_badge' || _wt === 'heart_standee' || _wt === 'badge3d' || _wt === 'standee' || _wt === 'standee_l');
       state._widgetFixedSize = false;
       if (!fixed) {
         try {
@@ -17208,7 +17240,9 @@ function openHomeBeauty() {
   const wtypes = [
     {t:'polaroid_l',n:'大拍立得'},{t:'polaroid_m',n:'中拍立得'},
     {t:'photowall',n:'横屏照片墙'},{t:'ins_card',n:'仿ins卡片'},{t:'text_banner',n:'横屏文案'},
-    {t:'badge3d',n:'立体吧唧'},{t:'standee',n:'立体立牌'}
+    {t:'badge3d',n:'立体吧唧'},{t:'heart_badge',n:'爱心吧唧'},
+    {t:'standee',n:'立体立牌'},{t:'heart_standee',n:'立体爱心摆件'},
+    {t:'airdrop_card',n:'分享卡片'}
   ];
   openSubPage('美化', `
     <div style="padding:12px 14px 40px;overflow-y:auto;height:100%;box-sizing:border-box">
@@ -17291,6 +17325,17 @@ function addHomeWidget(itemOrType) {
     polaroid_m: { type: 'polaroid_m', w: 120, h: 150, caption: '', content: '' },
     polaroid: { type: 'polaroid_m', w: 120, h: 150, caption: '', content: '' },
     badge3d: { type: 'badge3d', w: 110, h: 110, img: '', rot: 0 },
+    heart_badge: { type: 'heart_badge', w: 108, h: 100, img: '', rot: 0 },
+    heart_standee: {
+      type: 'heart_standee', w: 130, h: 150,
+      img: 'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png'
+    },
+    standee: { type: 'standee', w: 100, h: 160, img: '' },
+    standee_l: { type: 'standee_l', w: 140, h: 220, img: '' },
+    airdrop_card: {
+      type: 'airdrop_card', w: 200, h: 260,
+      title: 'AirDrop', subtitle: 'would like to share a photo.', img: '', fromName: 'vibes'
+    },
     clock_sm: { type: 'clock_sm', w: 150, h: 80 },
     photowall3: { type: 'photowall3', w: 200, h: 140, imgs: [] },
     pw_blank: { type: 'pw_blank', w: 100, h: 100, img: '' },
@@ -26951,6 +26996,42 @@ if (t === 'badge3d') {
           + '</div>';
         return '<div class="home-widget" data-widx="'+wi+'" data-wtype="badge3d" style="'+base+'overflow:visible;background:transparent;box-shadow:none">'+inner+del+'</div>';
       }
+      if (t === 'heart_badge') {
+        var heartClip = 'path("M50 88 C 20 65, 4 42, 18 26 C 28 15, 42 18, 50 30 C 58 18, 72 15, 82 26 C 96 42, 80 65, 50 88 Z")';
+        inner = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:transparent">'
+          + '<div style="width:92%;height:92%;clip-path:'+heartClip+';-webkit-clip-path:'+heartClip+';background:'+(w.img?('url('+w.img+') center/cover'):'linear-gradient(145deg,#ff9eb5,#ff6b8a)')+';box-shadow:0 10px 22px rgba(255,80,120,.35);transform:rotate('+(w.rot||0)+'deg);transition:transform .4s ease;position:relative">'
+          + (w.img ? '' : '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,.2)">爱心</div>')
+          + '<div style="position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.45),transparent 42%,rgba(0,0,0,.06));pointer-events:none"></div>'
+          + '</div></div>';
+        return '<div class="home-widget" data-widx="'+wi+'" data-wtype="heart_badge" style="'+base+'overflow:visible;background:transparent;box-shadow:none;border:none">'+inner+del+'</div>';
+      }
+      if (t === 'heart_standee') {
+        var himg = w.img || 'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png';
+        inner = '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:transparent">'
+          + '<div style="width:94%;height:86%;display:flex;align-items:flex-end;justify-content:center">'
+          + '<img src="'+himg+'" style="width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 10px 16px rgba(0,0,0,.22));display:block" draggable="false">'
+          + '</div>'
+          + '<div style="width:42%;height:5px;margin-top:3px;border-radius:3px;background:rgba(0,0,0,.12)"></div></div>';
+        return '<div class="home-widget" data-widx="'+wi+'" data-wtype="heart_standee" style="'+base+'overflow:visible;background:transparent;box-shadow:none;border:none">'+inner+del+'</div>';
+      }
+      if (t === 'airdrop_card') {
+        var fromN = escapeHtml(w.fromName || 'vibes');
+        var sub = escapeHtml(w.subtitle || 'would like to share a photo.');
+        var ttl = escapeHtml(w.title || 'AirDrop');
+        var photo = w.img
+          ? '<img class="ad-photo" src="'+w.img+'" style="width:100%;height:100%;object-fit:cover;display:block" draggable="false">'
+          : '<div class="ad-photo" style="width:100%;height:100%;background:linear-gradient(160deg,#c8d0d8,#9aa8b4);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.85);font-size:13px">点击换图</div>';
+        inner = '<div style="width:100%;height:100%;border-radius:18px;overflow:hidden;background:#f2f2f7;box-shadow:0 12px 32px rgba(0,0,0,.18);display:flex;flex-direction:column">'
+          + '<div style="padding:14px 14px 10px;text-align:center;background:#f7f7f8;flex-shrink:0">'
+          + '<div style="font-size:16px;font-weight:700;color:#1c1c1e">'+ttl+'</div>'
+          + '<div style="font-size:12px;color:#6e6e73;margin-top:4px;line-height:1.35">'+fromN+' '+sub+'</div></div>'
+          + '<div class="ad-photo-wrap" data-widx="'+wi+'" style="flex:1;min-height:0;background:#000;cursor:pointer">'+photo+'</div>'
+          + '<div style="display:flex;border-top:0.5px solid #d1d1d6;background:#fff;flex-shrink:0">'
+          + '<div style="flex:1;text-align:center;padding:12px 0;font-size:16px;color:#007aff;border-right:0.5px solid #d1d1d6">Decline</div>'
+          + '<div style="flex:1;text-align:center;padding:12px 0;font-size:16px;color:#007aff;font-weight:600">Accept</div>'
+          + '</div></div>';
+        return '<div class="home-widget" data-widx="'+wi+'" data-wtype="airdrop_card" style="'+base+'overflow:visible;background:transparent;box-shadow:none;border:none">'+inner+del+'</div>';
+      }
       if (t === 'clock_sm') {
         var now = new Date();
         var hm = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
@@ -27246,7 +27327,7 @@ if (t === 'badge3d') {
               '<button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="(function(){var L=state.home.pageWidgets['+page+'];if(L&&L['+wi+']){L['+wi+'].content=document.getElementById(\'bannerTxt\').value;}save();closeModal();renderHome();})()">保存</button>');
             return;
           }
-          if (ww.type === 'badge3d') {
+          if (ww.type === 'badge3d' || ww.type === 'heart_badge') {
             if (ww.img && !editMode) {
               ww.rot = ((ww.rot||0) + 45) % 360;
               save(); renderHome();
@@ -27560,14 +27641,17 @@ if (t === 'badge3d') {
       var catalog = [
         {id:'polaroid_l',name:'大拍立得',size:'大型 · 可换图可编辑',img:'',w:160,h:200,page:0,type:'polaroid_l'},
         {id:'polaroid_m',name:'小拍立得',size:'中型 · 可换图可编辑',img:'',w:120,h:150,page:0,type:'polaroid_m'},
-        {id:'badge3d',name:'立体吧唧',size:'中型 · 点击旋转',img:'',w:110,h:110,page:0,type:'badge3d'},
+        {id:'badge3d',name:'立体吧唧',size:'中型 · 圆形 · 点击旋转',img:'',w:110,h:110,page:0,type:'badge3d'},
+        {id:'heart_badge',name:'爱心吧唧',size:'中型 · 爱心形 · 可换图',img:'',w:108,h:100,page:0,type:'heart_badge'},
         {id:'standee',name:'立体立牌',size:'中型 · 可换图',img:'',w:100,h:160,page:0,type:'standee'},
         {id:'standee_l',name:'大型立体立牌',size:'大型 · 可换图 · 透明底',img:'',w:140,h:220,page:0,type:'standee_l'},
+        {id:'heart_standee',name:'立体爱心摆件',size:'中型 · 默认爱心图 · 可换图',img:'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png',w:130,h:150,page:0,type:'heart_standee'},
+        {id:'airdrop_card',name:'分享卡片',size:'中型 · 仿 AirDrop · 点图换图',img:'',w:200,h:260,page:0,type:'airdrop_card'},
         {id:'clock_sm',name:'时间小组件',size:'小型 · 显示当前时间',img:'',w:150,h:80,page:0,type:'clock_sm'},
         {id:'photowall3',name:'三宫格照片墙',size:'中型 · 三格',img:'',w:200,h:140,page:0,type:'photowall3'},
-        {id:'pw_s',name:'空白照片墙·小',size:'小型',img:'',w:100,h:100,page:0,type:'pw_blank',sizeKey:'s'},
-        {id:'pw_v',name:'空白照片墙·竖',size:'竖形',img:'',w:110,h:160,page:0,type:'pw_blank',sizeKey:'v'},
-        {id:'pw_l',name:'空白照片墙·大',size:'大型',img:'',w:220,h:160,page:0,type:'pw_blank',sizeKey:'l'},
+        {id:'pw_s',name:'空白照片墙·小',size:'小型 · 点框换图',img:'',w:100,h:100,page:0,type:'pw_blank',sizeKey:'s'},
+        {id:'pw_v',name:'空白照片墙·竖',size:'竖形 · 点框换图',img:'',w:110,h:160,page:0,type:'pw_blank',sizeKey:'v'},
+        {id:'pw_l',name:'空白照片墙·大',size:'大型 · 点框换图',img:'',w:220,h:160,page:0,type:'pw_blank',sizeKey:'l'},
         {id:'text_banner',name:'横屏文案',size:'横幅',img:'',w:280,h:56,page:0,type:'text_banner'}
       ];
       main = '<div style="padding:16px"><div style="font-size:12px;color:#8e8e93;margin-bottom:12px">添加后可在桌面拖动；点空白卡片可上传图片</div>'
@@ -27675,14 +27759,17 @@ if (t === 'badge3d') {
       var catalog = [
         {id:'polaroid_l',name:'大拍立得',size:'大型 · 可换图可编辑',img:'',w:160,h:200,page:0,type:'polaroid_l'},
         {id:'polaroid_m',name:'小拍立得',size:'中型 · 可换图可编辑',img:'',w:120,h:150,page:0,type:'polaroid_m'},
-        {id:'badge3d',name:'立体吧唧',size:'中型 · 点击旋转',img:'',w:110,h:110,page:0,type:'badge3d'},
+        {id:'badge3d',name:'立体吧唧',size:'中型 · 圆形 · 点击旋转',img:'',w:110,h:110,page:0,type:'badge3d'},
+        {id:'heart_badge',name:'爱心吧唧',size:'中型 · 爱心形 · 可换图',img:'',w:108,h:100,page:0,type:'heart_badge'},
         {id:'standee',name:'立体立牌',size:'中型 · 可换图',img:'',w:100,h:160,page:0,type:'standee'},
         {id:'standee_l',name:'大型立体立牌',size:'大型 · 可换图 · 透明底',img:'',w:140,h:220,page:0,type:'standee_l'},
+        {id:'heart_standee',name:'立体爱心摆件',size:'中型 · 默认爱心图 · 可换图',img:'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png',w:130,h:150,page:0,type:'heart_standee'},
+        {id:'airdrop_card',name:'分享卡片',size:'中型 · 仿 AirDrop · 点图换图',img:'',w:200,h:260,page:0,type:'airdrop_card'},
         {id:'clock_sm',name:'时间小组件',size:'小型 · 显示当前时间',img:'',w:150,h:80,page:0,type:'clock_sm'},
         {id:'photowall3',name:'三宫格照片墙',size:'中型 · 三格',img:'',w:200,h:140,page:0,type:'photowall3'},
-        {id:'pw_s',name:'空白照片墙·小',size:'小型',img:'',w:100,h:100,page:0,type:'pw_blank',sizeKey:'s'},
-        {id:'pw_v',name:'空白照片墙·竖',size:'竖形',img:'',w:110,h:160,page:0,type:'pw_blank',sizeKey:'v'},
-        {id:'pw_l',name:'空白照片墙·大',size:'大型',img:'',w:220,h:160,page:0,type:'pw_blank',sizeKey:'l'},
+        {id:'pw_s',name:'空白照片墙·小',size:'小型 · 点框换图',img:'',w:100,h:100,page:0,type:'pw_blank',sizeKey:'s'},
+        {id:'pw_v',name:'空白照片墙·竖',size:'竖形 · 点框换图',img:'',w:110,h:160,page:0,type:'pw_blank',sizeKey:'v'},
+        {id:'pw_l',name:'空白照片墙·大',size:'大型 · 点框换图',img:'',w:220,h:160,page:0,type:'pw_blank',sizeKey:'l'},
         {id:'text_banner',name:'横屏文案',size:'横幅',img:'',w:280,h:56,page:0,type:'text_banner'}
       ];
       document.querySelectorAll('[data-wadd]').forEach(function(btn){
