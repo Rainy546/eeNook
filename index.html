@@ -240,31 +240,34 @@ body.night .sms-im-msgs .msg-time, .night .sms-im-msgs .msg-time { color: rgba(2
   overflow-wrap: anywhere;
   box-sizing: border-box;
 }
+/* 短信气泡：背景图拉伸 + 纯色兜底 */
 .sms-bubble.me {
-  background: transparent !important;
+  background-color: #007aff !important;
+  background-image: url(https://nos.netease.com/ysf/ecf04c4b6912ee4bc50a4ddbd0cbf446.png) !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
   color: #fff !important;
-  border-style: solid !important;
-  border-width: 12px 16px 14px 14px !important;
-  border-radius: 0 !important;
-  border-image-source: url(https://nos.netease.com/ysf/ecf04c4b6912ee4bc50a4ddbd0cbf446.png);
-  border-image-slice: 42 48 48 42 fill;
-  border-image-width: 12px 16px 14px 14px;
-  border-image-repeat: stretch;
+  border: none !important;
+  border-radius: 18px !important;
+  border-bottom-right-radius: 6px !important;
   box-shadow: none !important;
+  padding: 10px 14px !important;
 }
 .sms-bubble.other {
-  background: transparent !important;
+  background-color: #e9e9eb !important;
+  background-image: url(https://nos.netease.com/ysf/7ee8bf129ef6d76eded86a4544cb18db.png) !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
   color: #000 !important;
-  border-style: solid !important;
-  border-width: 12px 14px 14px 16px !important;
-  border-radius: 0 !important;
-  border-image-source: url(https://nos.netease.com/ysf/7ee8bf129ef6d76eded86a4544cb18db.png);
-  border-image-slice: 42 42 48 48 fill;
-  border-image-width: 12px 14px 14px 16px;
-  border-image-repeat: stretch;
+  border: none !important;
+  border-radius: 18px !important;
+  border-bottom-left-radius: 6px !important;
   box-shadow: none !important;
+  padding: 10px 14px !important;
 }
-body.night .sms-bubble.other { color: #fff !important; }
+body.night .sms-bubble.other { color: #fff !important; background-color: #3a3a3c !important; }
 .sms-tr {
   font-size: 11px; color: #8e8e93; margin-top: 4px; padding: 0 6px;
   line-height: 1.4; max-width: 100%;
@@ -932,30 +935,31 @@ body {
   background-color: #ffffff;
 }
 #page-chat[data-chat-theme="ios26"] .msg-bubble:not(.bare) {
-  border-radius: 0 !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  padding: 4px 6px !important;
-  border-style: solid !important;
+  border: none !important;
+  padding: 10px 14px !important;
 }
 #page-chat[data-chat-theme="ios26"] .msg-row.me .msg-bubble:not(.bare) {
-  background: transparent !important;
+  background-color: #007aff !important;
+  background-image: url(https://nos.netease.com/ysf/ecf04c4b6912ee4bc50a4ddbd0cbf446.png) !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
   color: #fff !important;
-  border-width: 12px 16px 14px 14px !important;
-  border-image-source: url(https://nos.netease.com/ysf/ecf04c4b6912ee4bc50a4ddbd0cbf446.png);
-  border-image-slice: 42 48 48 42 fill;
-  border-image-width: 12px 16px 14px 14px;
-  border-image-repeat: stretch;
+  border-radius: 18px !important;
+  border-bottom-right-radius: 6px !important;
 }
 #page-chat[data-chat-theme="ios26"] .msg-row.other .msg-bubble:not(.bare) {
-  background: transparent !important;
+  background-color: #e9e9eb !important;
+  background-image: url(https://nos.netease.com/ysf/7ee8bf129ef6d76eded86a4544cb18db.png) !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
   color: #000 !important;
-  border-width: 12px 14px 14px 16px !important;
-  border-image-source: url(https://nos.netease.com/ysf/7ee8bf129ef6d76eded86a4544cb18db.png);
-  border-image-slice: 42 42 48 48 fill;
-  border-image-width: 12px 14px 14px 16px;
-  border-image-repeat: stretch;
+  border-radius: 18px !important;
+  border-bottom-left-radius: 6px !important;
 }
 #page-chat[data-chat-theme="ios26"] .msg-row .msg-bubble:not(.bare)::after,
 #page-chat[data-chat-theme="ios26"] .msg-row .msg-bubble:not(.bare)::before {
@@ -2379,7 +2383,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-20P';
+const EENOK_BUILD = '2026-08-20Q';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -4326,7 +4330,6 @@ function renderMessages(opts) {
           </span>
           <div class="ios-voice-wave">${waves}</div>
           <span style="font-size:12px;opacity:.85;flex-shrink:0">0:${dur < 10 ? '0'+dur : dur}</span>
-          <span style="opacity:.7;font-size:14px">🔊</span>
         </div>${textBelow}`;
       } else {
         const bars = [5, 10, 7, 14, 9, 12].map(function(h){ return '<span style="height:'+h+'px"></span>'; }).join('');
@@ -7210,7 +7213,7 @@ function onFileSelected(e) {
       state.home.page = pageIdx;
       // 空白照片墙等：尺寸不随图片改变
       var _wt = state.home.pageWidgets[pageIdx][wIdx].type;
-var fixed = state._widgetFixedSize || (_wt === 'pw_blank' || _wt === 'photowall3' || _wt === 'airdrop_card' || _wt === 'heart_badge' || _wt === 'heart_standee' || _wt === 'badge3d' || _wt === 'standee' || _wt === 'standee_l');
+var fixed = state._widgetFixedSize || (_wt === 'pw_blank' || _wt === 'photowall3' || _wt === 'airdrop_card' || _wt === 'music_player' || _wt === 'heart_badge' || _wt === 'heart_standee' || _wt === 'badge3d' || _wt === 'standee' || _wt === 'standee_l');
       state._widgetFixedSize = false;
       if (!fixed) {
         try {
@@ -17242,7 +17245,7 @@ function openHomeBeauty() {
     {t:'photowall',n:'横屏照片墙'},{t:'ins_card',n:'仿ins卡片'},{t:'text_banner',n:'横屏文案'},
     {t:'badge3d',n:'立体吧唧'},{t:'heart_badge',n:'爱心吧唧'},
     {t:'standee',n:'立体立牌'},{t:'heart_standee',n:'立体爱心摆件'},
-    {t:'airdrop_card',n:'分享卡片'}
+    {t:'airdrop_card',n:'分享卡片'},{t:'music_player',n:'音乐播放器'}
   ];
   openSubPage('美化', `
     <div style="padding:12px 14px 40px;overflow-y:auto;height:100%;box-sizing:border-box">
@@ -17335,6 +17338,10 @@ function addHomeWidget(itemOrType) {
     airdrop_card: {
       type: 'airdrop_card', w: 200, h: 260,
       title: 'AirDrop', subtitle: 'would like to share a photo.', img: '', fromName: 'vibes'
+    },
+    music_player: {
+      type: 'music_player', w: 200, h: 230,
+      img: '', nick: '昵称', uid: '@id', title: 'Now Playing'
     },
     clock_sm: { type: 'clock_sm', w: 150, h: 80 },
     photowall3: { type: 'photowall3', w: 200, h: 140, imgs: [] },
@@ -19727,7 +19734,7 @@ async function doIgGenFeed() {
       const placeImg = igMakePlaceholderImg(imgDesc || caption, (c && c.id) || i);
       f.posts.unshift({
         nick: c ? (c.realName || c.nick) : 'explore', avatar: c && c.avatar || '', charId: c && c.id || '',
-        caption, imgDesc, img: placeImg, ts: Date.now(), likes: Math.floor(Math.random()*200), comments: [], mine: false
+        caption, imgDesc, img: placeImg, ts: Date.now(), likes: Math.floor(Math.random()*200), comments: (typeof igSeedComments==='function'?igSeedComments(caption,3):[]), mine: false
       });
     }
     save(); openForumIG('home');
@@ -19883,7 +19890,7 @@ async function igGenCharPosts(id) {
       let caption = (text||'').trim(), imgDesc = '';
       try { const j = JSON.parse(caption.replace(/```json|```/g,'').trim()); caption=(j.caption||caption).slice(0,60); imgDesc=(j.imgDesc||'').slice(0,40); } catch(e) { caption = caption.slice(0,60); }
       const placeImg = igMakePlaceholderImg(imgDesc || caption, id + i);
-      f.posts.unshift({ nick: c.realName||c.nick||id, avatar: c.avatar||'', charId: id, caption, imgDesc, img: placeImg, ts:Date.now(), likes:Math.floor(Math.random()*80), comments:[], mine:false });
+      f.posts.unshift({ nick: c.realName||c.nick||id, avatar: c.avatar||'', charId: id, caption, imgDesc, img: placeImg, ts:Date.now(), likes:Math.floor(Math.random()*80), comments: (typeof igSeedComments==='function'?igSeedComments(caption,3):[]), mine:false });
     }
     if (f.profiles && f.profiles[id]) f.profiles[id].postsCount = (f.posts||[]).filter(x=>x.charId===id).length;
     save(); showToast('已生成'); igViewUserPosts(id);
@@ -19986,12 +19993,62 @@ function igComment(i) {
       <button class="btn btn-secondary" onclick="igGenComment(${i})">生成评论</button>
       <button class="btn btn-primary" onclick="const t=document.getElementById('igCmt').value.trim();if(!t)return;ensureIG().posts[${i}].comments.push({nick:ensureIG().profile.nick,text:t});save();closeModal();igComment(${i})">发布</button>`);
 }
+
+function igSeedComments(caption, count) {
+  count = count || 3;
+  var nicks = ['不吃香菜','一只路过的鸽子','数学真的很难','晚风吹过','便利店灯光','地铁末班车','阳台绿植','路过的猫','德彪西','楼主家教'];
+  var samples = [
+    '好有感觉，收藏了。',
+    '这排版也太干净了吧。',
+    '学到了，想试试同样的风格。',
+    '笑死，楼主这语气太真实了。',
+    '氛围感绝了。',
+    '求同款滤镜。',
+    '看完突然想去散步。',
+    '简洁但很有力量。'
+  ];
+  var out = [];
+  for (var i = 0; i < count; i++) {
+    out.push({
+      nick: nicks[(Math.floor(Math.random()*nicks.length)+i)%nicks.length],
+      text: samples[(Math.floor(Math.random()*samples.length)+i)%samples.length],
+      ts: Date.now() - i * 1000
+    });
+  }
+  return out;
+}
+
 async function igGenComment(i) {
   try {
-    const { text } = await apiChat([{role:'user',content:'用一句很短的中文社交媒体评论，自然口语，不要引号。'}],{max_tokens:40,temperature:0.9});
-    ensureIG().posts[i].comments.push({ nick: '用户'+(Math.floor(Math.random()*90)+10), text: (text||'').trim() });
-    save(); igComment(i);
-  } catch(e) { alert(e.message||e); }
+    showToast('生成评论中…');
+    const p = ensureIG().posts[i];
+    if (!p) return;
+    if (!p.comments) p.comments = [];
+    const nicks = ['不吃香菜','一只路过的鸽子','数学真的很难','晚风吹过','便利店灯光','地铁末班车','阳台绿植','路过的猫'];
+    let batch = [];
+    try {
+      const { text } = await apiChat([
+        { role:'user', content: '为一条 Instagram 帖子写 3 条中文评论，每条一行，格式：昵称|评论内容。口语自然、温和，不要引号、不要编号。帖子文案：' + String(p.caption||p.content||'').slice(0,80) }
+      ], { max_tokens: 180, temperature: 0.92 });
+      String(text||'').split(/\n+/).forEach(function(line){
+        line = line.trim();
+        if (!line) return;
+        var parts = line.split('|');
+        if (parts.length >= 2) batch.push({ nick: parts[0].trim().replace(/^\d+[\.\、\s]*/, ''), text: parts.slice(1).join('|').trim() });
+        else batch.push({ nick: nicks[Math.floor(Math.random()*nicks.length)], text: line.replace(/^\d+[\.\、\s]*/, '') });
+      });
+    } catch(e) {}
+    if (!batch.length) {
+      batch = [
+        { nick: nicks[Math.floor(Math.random()*nicks.length)], text: '好有感觉，收藏了。' },
+        { nick: nicks[Math.floor(Math.random()*nicks.length)], text: '这排版也太干净了吧。' },
+        { nick: nicks[Math.floor(Math.random()*nicks.length)], text: '学到了，想试试同样的风格。' }
+      ];
+    }
+    batch.slice(0, 4).forEach(function(c){ p.comments.push({ nick: c.nick, text: c.text, ts: Date.now() }); });
+    save();
+    igOpenComments(i);
+  } catch(e) { showToast(e.message||String(e)); }
 }
 function igRepost(i) {
   const f = ensureIG();
@@ -20147,20 +20204,31 @@ function igOpenComments(i) {
   const p = ensureIG().posts[i];
   if (!p) return;
   if (!p.comments) p.comments = [];
+  const n = p.comments.length;
   const list = p.comments.map((c,ci)=>`
-    <div style="padding:10px 0;border-bottom:0.5px solid #eee;display:flex;gap:10px">
-      <div style="width:32px;height:32px;border-radius:50%;background:#eee;flex-shrink:0"></div>
-      <div style="flex:1"><div style="font-weight:600;font-size:13px">${escapeHtml(c.nick||'用户')}</div>
-      <div style="font-size:14px;margin-top:2px">${escapeHtml(c.text||'')}</div></div>
-    </div>`).join('') || '<div class="empty" style="padding:24px">还没有评论</div>';
-  openModal('评论', `
-    <div style="max-height:40vh;overflow:auto">${list}</div>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <input id="igCmtIn" placeholder="写评论…" style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:20px">
-      <button type="button" class="btn btn-primary" onclick="igAddComment(${i})">发送</button>
-      <button type="button" class="btn btn-secondary" onclick="igGenComment(${i})">○</button>
+    <div style="padding:14px 0;border-bottom:0.5px solid #f0f0f0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span style="font-weight:600;font-size:14px;color:#1c1c1e">${escapeHtml(c.nick||'用户')}</span>
+        <span onclick="(function(){var P=ensureIG().posts[${i}];if(!P||!P.comments)return;P.comments.splice(${ci},1);save();igOpenComments(${i});})()" style="font-size:12px;color:#bbb;cursor:pointer;padding:2px 6px">删除</span>
+      </div>
+      <div style="font-size:14px;line-height:1.55;color:#333">${escapeHtml(c.text||'')}</div>
+    </div>`).join('') || '<div style="padding:40px 16px;text-align:center;color:#999;font-size:13px">还没有评论</div>';
+  openModal('', `
+    <div style="margin:-16px -16px 0;display:flex;flex-direction:column;max-height:70vh">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:0.5px solid #f0f0f0;flex-shrink:0">
+        <div style="font-size:16px;font-weight:700;color:#1c1c1e">全部评论(${n})</div>
+        <span onclick="closeModal()" style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:20px;color:#999;cursor:pointer">×</span>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:0 16px;min-height:120px">${list}</div>
+      <div style="padding:10px 16px;text-align:center;flex-shrink:0">
+        <button type="button" onclick="igGenComment(${i})" style="border:1px solid #e5e5ea;background:#fff;border-radius:20px;padding:8px 18px;font-size:13px;color:#666;cursor:pointer">加载更多评论</button>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;padding:10px 16px 12px;border-top:0.5px solid #f0f0f0;flex-shrink:0;background:#fafafa">
+        <input id="igCmtIn" placeholder="写下你的温和评论…" style="flex:1;padding:10px 14px;border:none;border-radius:22px;background:#f0f0f2;font-size:14px;outline:none">
+        <button type="button" onclick="igAddComment(${i})" style="border:none;background:#1c1c1e;color:#fff;border-radius:22px;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer">发送</button>
+      </div>
     </div>
-  `, `<button class="btn btn-secondary" onclick="closeModal()">关闭</button>`);
+  `, '');
 }
 function igAddComment(i) {
   const t = (document.getElementById('igCmtIn')||{}).value||'';
@@ -20170,20 +20238,7 @@ function igAddComment(i) {
   p.comments.push({ nick: state.user.nick||'我', text: t.trim(), ts: Date.now() });
   save(); closeModal(); igOpenComments(i);
 }
-async function igGenComment(i) {
-  const p = ensureIG().posts[i];
-  if (!p) return;
-  try {
-    const c = state.chars.find(x=>x.id===p.charId);
-    const { text } = await apiChat([
-      { role:'system', content: getOnlineChatRules('写一条短评论。'+(c?('你是'+c.nick+'，人设：'+(c.persona||'')):'路人')+'。少用emoji。只输出评论。') },
-      { role:'user', content: '动态：'+(p.caption||'') }
-    ], { max_tokens: 60, temperature: 0.9 });
-    p.comments = p.comments||[];
-    p.comments.push({ nick: c?c.nick:'用户', text: (text||'').trim().slice(0,80), ts: Date.now() });
-    save(); closeModal(); igOpenComments(i);
-  } catch(e) { alert(e.message||e); }
-}
+
 function igEditProfile() {
   const p = ensureIG().profile;
   openModal('编辑主页', `
@@ -26997,22 +27052,28 @@ if (t === 'badge3d') {
         return '<div class="home-widget" data-widx="'+wi+'" data-wtype="badge3d" style="'+base+'overflow:visible;background:transparent;box-shadow:none">'+inner+del+'</div>';
       }
       if (t === 'heart_badge') {
-        var heartClip = 'path("M50 88 C 20 65, 4 42, 18 26 C 28 15, 42 18, 50 30 C 58 18, 72 15, 82 26 C 96 42, 80 65, 50 88 Z")';
-        inner = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:transparent">'
-          + '<div style="width:92%;height:92%;clip-path:'+heartClip+';-webkit-clip-path:'+heartClip+';background:'+(w.img?('url('+w.img+') center/cover'):'linear-gradient(145deg,#ff9eb5,#ff6b8a)')+';box-shadow:0 10px 22px rgba(255,80,120,.35);transform:rotate('+(w.rot||0)+'deg);transition:transform .4s ease;position:relative">'
-          + (w.img ? '' : '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,.2)">爱心</div>')
-          + '<div style="position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.45),transparent 42%,rgba(0,0,0,.06));pointer-events:none"></div>'
-          + '</div></div>';
+        var src = w.img || '';
+        var rot = w.rot || 0;
+        // SVG 心形遮罩：比 CSS path() 在移动端兼容性好
+        inner = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:transparent;transform:rotate('+rot+'deg);transition:transform .4s ease">'
+          + '<svg viewBox="0 0 100 100" width="100%" height="100%" style="overflow:visible;filter:drop-shadow(0 8px 14px rgba(255,80,120,.4))">'
+          + '<defs><clipPath id="hbClip'+wi+'"><path d="M50 88 C22 64,6 42,18 26 C28 14,42 16,50 30 C58 16,72 14,82 26 C94 42,78 64,50 88 Z"/></clipPath></defs>'
+          + (src
+            ? '<image href="'+src+'" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice" clip-path="url(#hbClip'+wi+')"/>'
+            : '<path d="M50 88 C22 64,6 42,18 26 C28 14,42 16,50 30 C58 16,72 14,82 26 C94 42,78 64,50 88 Z" fill="url(#hbGrad'+wi+')"/>'
+              + '<defs><linearGradient id="hbGrad'+wi+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff9eb5"/><stop offset="100%" stop-color="#ff5a7a"/></linearGradient></defs>')
+          + '<path d="M50 88 C22 64,6 42,18 26 C28 14,42 16,50 30 C58 16,72 14,82 26 C94 42,78 64,50 88 Z" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2"/>'
+          + '</svg></div>';
         return '<div class="home-widget" data-widx="'+wi+'" data-wtype="heart_badge" style="'+base+'overflow:visible;background:transparent;box-shadow:none;border:none">'+inner+del+'</div>';
       }
       if (t === 'heart_standee') {
         var himg = w.img || 'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png';
-        inner = '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:transparent">'
-          + '<div style="width:94%;height:86%;display:flex;align-items:flex-end;justify-content:center">'
-          + '<img src="'+himg+'" style="width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 10px 16px rgba(0,0,0,.22));display:block" draggable="false">'
-          + '</div>'
-          + '<div style="width:42%;height:5px;margin-top:3px;border-radius:3px;background:rgba(0,0,0,.12)"></div></div>';
-        return '<div class="home-widget" data-widx="'+wi+'" data-wtype="heart_standee" style="'+base+'overflow:visible;background:transparent;box-shadow:none;border:none">'+inner+del+'</div>';
+        if (!w.w || w.w < 100) w.w = 130;
+        if (!w.h || w.h < 120) w.h = 160;
+        inner = '<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;background:transparent;pointer-events:none">'
+          + '<img src="'+himg+'" alt="爱心" style="width:100%;height:calc(100% - 10px);object-fit:contain;object-position:center bottom;filter:drop-shadow(0 10px 16px rgba(0,0,0,.25));display:block;background:transparent" draggable="false" onerror="this.onerror=null;this.style.background=\'linear-gradient(145deg,#ff9eb5,#ff5a7a)\';this.style.borderRadius=\'20px\'">'
+          + '<div style="width:40%;height:6px;margin-top:4px;border-radius:3px;background:rgba(0,0,0,.14)"></div></div>';
+        return '<div class="home-widget" data-widx="'+wi+'" data-wtype="heart_standee" style="'+base+'overflow:visible;background:transparent !important;box-shadow:none;border:none">'+inner+del+'</div>';
       }
       if (t === 'airdrop_card') {
         var fromN = escapeHtml(w.fromName || 'vibes');
@@ -27032,7 +27093,35 @@ if (t === 'badge3d') {
           + '</div></div>';
         return '<div class="home-widget" data-widx="'+wi+'" data-wtype="airdrop_card" style="'+base+'overflow:visible;background:transparent;box-shadow:none;border:none">'+inner+del+'</div>';
       }
-      if (t === 'clock_sm') {
+      
+      if (t === 'music_player') {
+        if (!w.w || w.w < 160) w.w = 200;
+        if (!w.h || w.h < 200) w.h = 230;
+        var av = w.img || '';
+        var nick = escapeHtml(w.nick || '昵称');
+        var uid = escapeHtml(w.uid || '@id');
+        var avInner = av
+          ? '<img src="'+av+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" draggable="false">'
+          : '<div style="width:100%;height:100%;border-radius:50%;background:linear-gradient(145deg,#ddd,#bbb);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px">头像</div>';
+        inner = '<div style="width:100%;height:100%;border-radius:22px;background:#ececee;box-shadow:0 10px 28px rgba(0,0,0,.12);display:flex;flex-direction:column;align-items:center;padding:10px 12px 8px;box-sizing:border-box;position:relative">'
+          + '<div style="position:relative;width:72px;height:72px;margin-top:2px">'
+          + '<div style="position:absolute;inset:-10px;border:2px solid rgba(180,180,185,.55);border-radius:50%"></div>'
+          + '<div style="position:absolute;top:-6px;right:-2px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:11px">♡</div>'
+          + '<div style="position:absolute;left:-8px;top:18px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:10px">〰</div>'
+          + '<div style="width:72px;height:72px;border-radius:50%;overflow:hidden;border:2px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,.1)">'+avInner+'</div></div>'
+          + '<div class="mp-name" style="margin-top:8px;font-size:13px;font-weight:600;color:#1c1c1e;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+nick+'</div>'
+          + '<div class="mp-uid" style="font-size:11px;color:#8e8e93;margin-top:1px">'+uid+'</div>'
+          + '<div style="width:88%;margin-top:10px">'
+          + '<div style="height:3px;background:#c8c8cc;border-radius:2px;position:relative"><div style="width:38%;height:100%;background:#1c1c1e;border-radius:2px"></div><div style="position:absolute;left:38%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#1c1c1e"></div></div>'
+          + '<div style="display:flex;justify-content:space-between;font-size:10px;color:#8e8e93;margin-top:4px"><span>1:15</span><span>-2:38</span></div></div>'
+          + '<div style="display:flex;align-items:center;justify-content:center;gap:22px;margin-top:6px;color:#1c1c1e">'
+          + '<span style="font-size:16px">⏮</span><span style="font-size:18px">⏸</span><span style="font-size:16px">⏭</span></div>'
+          + '<div style="margin-top:8px;width:78%;height:28px;border-radius:14px;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;gap:3px;padding:0 10px;box-sizing:border-box">'
+          + [4,8,5,12,7,10,6,14,9,5,11,7,4,9,6].map(function(h){return '<span style="width:2px;height:'+h+'px;background:#b0b0b5;border-radius:1px;display:inline-block"></span>';}).join('')
+          + '</div></div>';
+        return '<div class="home-widget" data-widx="'+wi+'" data-wtype="music_player" style="'+base+'overflow:visible;background:transparent;box-shadow:none;border:none">'+inner+del+'</div>';
+      }
+if (t === 'clock_sm') {
         var now = new Date();
         var hm = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
         inner = '<div style="width:100%;height:100%;border-radius:18px;background:rgba(255,255,255,.55);backdrop-filter:blur(12px);display:flex;flex-direction:column;align-items:center;justify-content:center;border:0.5px solid rgba(126,200,200,.35)">'
@@ -27338,6 +27427,17 @@ if (t === 'badge3d') {
             state.fileTarget = 'homeWidget_'+page+'_'+wi;
             var fiB = document.getElementById('fileInput');
             if (fiB) { fiB.accept = 'image/*'; fiB.value = ''; fiB.click(); }
+            return;
+          }
+          if (ww.type === 'music_player' && !editMode) {
+            openModal('音乐播放器',
+              '<div style="text-align:center;margin-bottom:12px">'
+              + (ww.img ? '<img src="'+ww.img+'" style="width:72px;height:72px;border-radius:50%;object-fit:cover">' : '<div style="width:72px;height:72px;border-radius:50%;background:#ddd;margin:0 auto;line-height:72px;color:#fff">头像</div>')
+              + '</div>'
+              + '<button type="button" class="btn btn-secondary" style="width:100%;margin-bottom:10px" onclick="state._widgetUploadPage='+page+';state._widgetFixedSize=true;state.fileTarget=\'homeWidget_'+page+'_'+wi+'\';var fi=document.getElementById(\'fileInput\');fi.accept=\'image/*\';fi.value=\'\';fi.click()">更换头像</button>'
+              + '<div class="form-group"><label>昵称</label><input id="mpNick" value="'+escapeHtml(ww.nick||'')+'"></div>'
+              + '<div class="form-group"><label>ID</label><input id="mpUid" value="'+escapeHtml(ww.uid||'')+'" placeholder="@id"></div>',
+              '<button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="(function(){var L=state.home.pageWidgets['+page+'];if(L&&L['+wi+']){L['+wi+'].nick=document.getElementById(\'mpNick\').value;L['+wi+'].uid=document.getElementById(\'mpUid\').value;}save();closeModal();renderHome();})()">保存</button>');
             return;
           }
           if ((ww.type === 'polaroid_l' || ww.type === 'polaroid_m' || ww.type === 'polaroid') && !editMode) {
@@ -27647,6 +27747,7 @@ if (t === 'badge3d') {
         {id:'standee_l',name:'大型立体立牌',size:'大型 · 可换图 · 透明底',img:'',w:140,h:220,page:0,type:'standee_l'},
         {id:'heart_standee',name:'立体爱心摆件',size:'中型 · 默认爱心图 · 可换图',img:'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png',w:130,h:150,page:0,type:'heart_standee'},
         {id:'airdrop_card',name:'分享卡片',size:'中型 · 仿 AirDrop · 点图换图',img:'',w:200,h:260,page:0,type:'airdrop_card'},
+        {id:'music_player',name:'音乐播放器',size:'中型 · 换头像 · 可改昵称/ID',img:'',w:200,h:230,page:0,type:'music_player'},
         {id:'clock_sm',name:'时间小组件',size:'小型 · 显示当前时间',img:'',w:150,h:80,page:0,type:'clock_sm'},
         {id:'photowall3',name:'三宫格照片墙',size:'中型 · 三格',img:'',w:200,h:140,page:0,type:'photowall3'},
         {id:'pw_s',name:'空白照片墙·小',size:'小型 · 点框换图',img:'',w:100,h:100,page:0,type:'pw_blank',sizeKey:'s'},
@@ -27765,6 +27866,7 @@ if (t === 'badge3d') {
         {id:'standee_l',name:'大型立体立牌',size:'大型 · 可换图 · 透明底',img:'',w:140,h:220,page:0,type:'standee_l'},
         {id:'heart_standee',name:'立体爱心摆件',size:'中型 · 默认爱心图 · 可换图',img:'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png',w:130,h:150,page:0,type:'heart_standee'},
         {id:'airdrop_card',name:'分享卡片',size:'中型 · 仿 AirDrop · 点图换图',img:'',w:200,h:260,page:0,type:'airdrop_card'},
+        {id:'music_player',name:'音乐播放器',size:'中型 · 换头像 · 可改昵称/ID',img:'',w:200,h:230,page:0,type:'music_player'},
         {id:'clock_sm',name:'时间小组件',size:'小型 · 显示当前时间',img:'',w:150,h:80,page:0,type:'clock_sm'},
         {id:'photowall3',name:'三宫格照片墙',size:'中型 · 三格',img:'',w:200,h:140,page:0,type:'photowall3'},
         {id:'pw_s',name:'空白照片墙·小',size:'小型 · 点框换图',img:'',w:100,h:100,page:0,type:'pw_blank',sizeKey:'s'},
