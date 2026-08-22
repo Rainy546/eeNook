@@ -2470,7 +2470,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22J';
+const EENOK_BUILD = '2026-08-22K';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -3879,6 +3879,16 @@ function openChat(id, isGroup) {
   try { bindChatKeyboardFix(); } catch(e) {}
   state.currentChatId = id;
   state.currentIsGroup = !!isGroup;
+  // 进入私聊时静默同步一次跨App线索（每角色 10 分钟内最多一次）
+  try {
+    if (!isGroup && id) {
+      if (!state._crossSyncAt) state._crossSyncAt = {};
+      if (!state._crossSyncAt[id] || Date.now() - state._crossSyncAt[id] > 600000) {
+        state._crossSyncAt[id] = Date.now();
+        if (typeof syncCrossAppToShortMemory === 'function') syncCrossAppToShortMemory(id);
+      }
+    }
+  } catch(e) {}
   state._official = null;
   state._officialIdx = null;
   if (!state.chats[id]) {
@@ -8453,26 +8463,96 @@ function openSocialAccounts() {
 function collectSocialMemory(charId, limit) {
   limit = limit || 8;
   const lines = [];
+  if (!charId) return '';
   try {
-    const chat = state.chats[charId];
-    if (chat && chat.socialApps && chat.socialApps.linkMem) {
-      // IG DMs
-      if (chat.socialApps.ig && state.forumIG && state.forumIG.dms && state.forumIG.dms[charId]) {
-        (state.forumIG.dms[charId].messages||[]).slice(-limit).forEach(m => {
-          lines.push('[Instagram]' + (m.from==='user'?'我':'对方') + ':' + (m.content||''));
-        });
-      }
-      // SMS
-      if (chat.socialApps.sms && state.sms && state.sms.threads) {
-        const t = state.sms.threads[charId] || Object.values(state.sms.threads).find(x=>x.charId===charId);
-        if (t) (t.messages||[]).slice(-limit).forEach(m => {
-          lines.push('[短信]' + (m.from==='user'?'我':'对方') + ':' + (m.content||''));
-        });
-      }
+    const chat = state.chats[charId] || state.chats[(state.chars||[]).find(function(c){return c&&c.id===charId;}) && charId];
+    const link = !(chat && chat.socialApps) || chat.socialApps.linkMem !== false; // 默认互通
+    // IG DMs
+    if (link && state.forumIG && state.forumIG.dms && state.forumIG.dms[charId]) {
+      (state.forumIG.dms[charId].messages||[]).slice(-limit).forEach(function(m) {
+        if (m && (m.content||'').trim()) lines.push('[Instagram]' + (m.from==='user'?'我':'对方') + ':' + String(m.content).slice(0,80));
+      });
     }
+    // SMS
+    if (link && state.sms && state.sms.threads) {
+      var t = state.sms.threads[charId] || Object.values(state.sms.threads).find(function(x){ return x && x.charId===charId; });
+      if (t) (t.messages||[]).slice(-limit).forEach(function(m) {
+        if (m && (m.content||'').trim()) lines.push('[短信]' + (m.from==='user'?'我':'对方') + ':' + String(m.content).slice(0,80));
+      });
+    }
+    // 电话 / 语音留言
+    try {
+      var calls = (state.phoneCalls || []).concat((state.phoneApp && state.phoneApp.calls) || []);
+      calls.filter(function(x){ return x && x.charId===charId; }).slice(0, 3).forEach(function(x) {
+        lines.push('[电话]' + (x.missed?'未接·':'') + String(x.summary||x.name||'').replace(/\n/g,'；').slice(0,100));
+      });
+      ((state.phoneApp && state.phoneApp.voicemails) || []).filter(function(v){ return v && (v.charId===charId || v.name); }).slice(0, 2).forEach(function(v) {
+        if (v.charId && v.charId!==charId) return;
+        lines.push('[语音留言]' + String(v.text||'').slice(0,80));
+      });
+    } catch(e1) {}
+    // 线下见面摘要
+    try {
+      var hist = state.offline && state.offline.meetHistory && state.offline.meetHistory[charId];
+      if (hist && hist.length) {
+        var last = hist[hist.length-1];
+        if (last && last.summary) lines.push('[线下]' + String(last.summary).slice(0,120));
+      }
+    } catch(e2) {}
+    // 世界·生活随笔
+    try {
+      if (typeof ensureCharWorld === 'function') {
+        var w = ensureCharWorld(charId);
+        if (w && w.life && w.life.length) {
+          w.life.slice(-3).forEach(function(L) {
+            if (L && L.text) lines.push('[日常]' + String(L.text).slice(0,80));
+          });
+        }
+      }
+    } catch(e3) {}
+    // 记忆 App 卡片
+    try {
+      var items = (state.memoryApp && state.memoryApp.items) || [];
+      items.filter(function(it){ return it && it.charId===charId; }).slice(0, 4).forEach(function(it) {
+        var tx = it.text || it.content || it.title || '';
+        if (tx) lines.push('[珍藏]' + String(tx).slice(0,80));
+      });
+    } catch(e4) {}
+    // 信件
+    try {
+      var love = (state.loveApp && state.loveApp.letters) || [];
+      love.filter(function(L){ return L && L.charId===charId; }).slice(0, 2).forEach(function(L) {
+        lines.push('[信件]' + String(L.body||L.content||L.title||'').slice(0,80));
+      });
+    } catch(e5) {}
   } catch(e) {}
-  return lines.join('\n');
+  return lines.slice(0, limit + 6).join('\n');
 }
+/** 把跨 App 线索写入该角色微信短期记忆（去重，不刷屏） */
+function syncCrossAppToShortMemory(charId) {
+  try {
+    if (!charId) charId = state.currentChatId;
+    if (!charId) return 0;
+    if (!state.chats[charId]) state.chats[charId] = { messages: [], shortMemory: [], longMemory: [] };
+    var chat = state.chats[charId];
+    if (!chat.shortMemory) chat.shortMemory = [];
+    var raw = collectSocialMemory(charId, 10) || '';
+    var lines = raw.split('\n').filter(Boolean);
+    var added = 0;
+    var existing = chat.shortMemory.map(function(m){ return String(m.content||m.text||''); }).join('|');
+    lines.forEach(function(line) {
+      var key = line.slice(0, 36);
+      if (existing.indexOf(key) >= 0) return;
+      chat.shortMemory.push({ content: line.slice(0, 160), ts: Date.now(), from: 'crossApp' });
+      existing += '|' + key;
+      added++;
+    });
+    if (chat.shortMemory.length > 40) chat.shortMemory = chat.shortMemory.slice(-40);
+    if (added) save();
+    return added;
+  } catch(e) { return 0; }
+}
+
 function openMemMount() {
   const chat = state.chats[state.currentChatId];
   if (!chat) return;
@@ -16553,8 +16633,35 @@ function ensureHomeState() {
   if (!state.sms || typeof state.sms !== 'object') state.sms = { threads: {} };
   if (!state.offline) state.offline = { meets: [] };
 }
+function checkDueCountdowns() {
+  try {
+    if (state._cdToastAt && Date.now() - state._cdToastAt < 120000) return;
+    var list = (state.countdown && state.countdown.items) || state.countdowns || [];
+    if (!list.length && state.countdownApp && state.countdownApp.items) list = state.countdownApp.items;
+    var now = Date.now();
+    var due = [];
+    (list || []).forEach(function(it) {
+      if (!it) return;
+      var t = it.ts || it.date || it.target;
+      if (!t) return;
+      var ts = typeof t === 'number' ? t : Date.parse(t);
+      if (isNaN(ts)) return;
+      var diff = ts - now;
+      if (diff >= 0 && diff < 36 * 3600 * 1000) {
+        due.push((it.title || it.name || '倒数日') + ' · 还剩' + Math.max(1, Math.ceil(diff/3600000)) + '小时');
+      } else if (diff < 0 && diff > -12 * 3600 * 1000) {
+        due.push((it.title || it.name || '倒数日') + ' · 已到');
+      }
+    });
+    if (due.length) {
+      state._cdToastAt = Date.now();
+      showToast(due[0] + (due.length > 1 ? (' 等'+due.length+'项') : ''));
+    }
+  } catch(e) {}
+}
 function goHome() {
   ensureHomeState();
+  try { checkDueCountdowns(); } catch(e) {}
   armClickGuard(700);
   state._navLock = false;
   state.inWechat = false;
@@ -23108,9 +23215,9 @@ function openPhonePad(tab) {
         <div style="padding:12px;border-bottom:0.5px solid #eee">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
             <div style="font-weight:600;flex:1">${escapeHtml(v.name||'未知')}</div>
-            <div style="display:flex;gap:8px;flex-shrink:0">
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
               <button type="button" onclick="playVoicemail(${i})" style="border:none;background:#f2f2f7;color:#007aff;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer">播放</button>
-              <button type="button" onclick="deleteVoicemail(${i})" style="border:none;background:#f2f2f7;color:#ff3b30;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer">删除</button>
+              <button type="button" onclick="deleteVoicemail(${i})" title="删除" style="border:none;background:transparent;color:#c7c7cc;width:22px;height:22px;border-radius:50%;font-size:16px;line-height:20px;padding:0;cursor:pointer;font-weight:300">×</button>
             </div>
           </div>
           <div style="font-size:14px;color:#333;margin-top:6px;line-height:1.5">${escapeHtml(v.text||'')}</div>
