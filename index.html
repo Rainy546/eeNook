@@ -667,6 +667,83 @@ body {
 }
 
 
+
+/* ========== Bubble 风格 ========== */
+#page-chat[data-chat-theme="bubble"] {
+  background: #f5f5f7 !important;
+}
+#page-chat[data-chat-theme="bubble"] .chat-header {
+  background: #ffffff !important;
+  border-bottom: 0.5px solid #eee !important;
+  height: 56px !important;
+}
+#page-chat[data-chat-theme="bubble"] .chat-header .name {
+  color: #1c1c1e !important;
+  font-weight: 700 !important;
+  font-size: 17px !important;
+}
+#page-chat[data-chat-theme="bubble"] .chat-header .status {
+  display: none !important;
+}
+#page-chat[data-chat-theme="bubble"] #msgArea {
+  background: #f5f5f7 !important;
+}
+#page-chat[data-chat-theme="bubble"] .msg-bubble:not(.bare),
+#page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare) {
+  border-radius: 16px !important;
+  padding: 10px 14px !important;
+  font-size: 15px !important;
+  line-height: 1.45 !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+#page-chat[data-chat-theme="bubble"] .msg-row.me .msg-bubble:not(.bare) {
+  background: #c4b5fd !important;
+  color: #1c1c1e !important;
+}
+#page-chat[data-chat-theme="bubble"] .msg-row.other .msg-bubble:not(.bare) {
+  background: #ffffff !important;
+  color: #1c1c1e !important;
+  border: 0.5px solid #ececf0 !important;
+}
+#page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare)::before,
+#page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare)::after {
+  display: none !important;
+  content: none !important;
+}
+#page-chat[data-chat-theme="bubble"] .msg-bubble.redpacket,
+#page-chat[data-chat-theme="bubble"] .msg-bubble.transfer,
+#page-chat[data-chat-theme="bubble"] .msg-bubble.bare {
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+#page-chat[data-chat-theme="bubble"] .msg-row .msg-translation,
+#page-chat[data-chat-theme="bubble"] .msg-row [style*="translation"] {
+  color: #7c6bc4 !important;
+}
+#page-chat[data-chat-theme="bubble"] .wx-input-bar,
+#page-chat[data-chat-theme="bubble"] .input-bar {
+  background: #fff !important;
+  border-top: 0.5px solid #eee !important;
+}
+#page-chat[data-chat-theme="bubble"] .wx-input-pill {
+  background: #f0f0f3 !important;
+  border-radius: 22px !important;
+  border: none !important;
+}
+#page-chat[data-chat-theme="bubble"] .bubble-rp-card,
+#page-chat[data-chat-theme="bubble"] .bubble-tf-card {
+  width: 200px;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: linear-gradient(160deg, #ede9fe, #ddd6fe);
+  border: 0.5px solid #c4b5fd;
+  color: #4c1d95;
+  box-sizing: border-box;
+}
+
 /* ========== KakaoTalk 风格 ========== */
 #page-chat[data-chat-theme="kakao"] {
   background: #b2c7d9 !important;
@@ -676,9 +753,19 @@ body {
   border-bottom: none !important;
   height: 52px !important;
 }
+#page-chat[data-chat-theme="kakao"] .chat-header .name-area {
+  text-align: left !important;
+  flex: 1 !important;
+  margin-left: 2px !important;
+}
 #page-chat[data-chat-theme="kakao"] .chat-header .name {
   color: #1c1c1e !important;
   font-weight: 600 !important;
+  font-size: 17px !important;
+  text-align: left !important;
+}
+#page-chat[data-chat-theme="kakao"] .chat-header {
+  justify-content: flex-start !important;
 }
 #page-chat[data-chat-theme="kakao"] .chat-header .status { display: none !important; }
 #page-chat[data-chat-theme="kakao"] #msgArea {
@@ -718,9 +805,9 @@ body {
   width: 200px;
   border-radius: 12px;
   padding: 14px 16px;
-  background: linear-gradient(160deg, #f7f7f8, #ebebed);
-  border: 0.5px solid #d8d8dc;
-  color: #1c1c1e;
+  background: linear-gradient(160deg, #fff8dc, #f5e6b8);
+  border: 0.5px solid #e8d9a0;
+  color: #5c4a1e;
   box-sizing: border-box;
 }
 #page-chat[data-chat-theme="kakao"] .wx-input-bar,
@@ -2459,7 +2546,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22B';
+const EENOK_BUILD = '2026-08-22C';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -3971,7 +4058,7 @@ function applyChatStyle(id) {
   // 内置主题用 data 属性（CSS 用 background-color，不抢 wallpaper）
   if (page) {
     const tn = chat.themeName || '';
-    if (tn === 'qq' || tn === 'wechat' || tn === 'ios26' || tn === 'kakao') {
+    if (tn === 'qq' || tn === 'wechat' || tn === 'ios26' || tn === 'kakao' || tn === 'bubble') {
       page.setAttribute('data-chat-theme', tn);
     } else {
       page.removeAttribute('data-chat-theme');
@@ -4317,7 +4404,20 @@ function renderMessages(opts) {
       }
     } else if (m.type === 'redpacket') {
       const tn = (chat && chat.themeName) || '';
-      if (tn === 'qq') {
+      if (tn === 'bubble') {
+        content = `<div class="bubble-rp-card" style="width:200px;border-radius:14px;padding:14px 16px;background:linear-gradient(160deg,#ede9fe,#ddd6fe);border:0.5px solid #c4b5fd;color:#4c1d95;box-sizing:border-box">
+          <div style="font-size:11px;opacity:.8">红包</div>
+          <div style="font-size:24px;font-weight:700;margin-top:8px">¥${m.amount||''}</div>
+          <div style="font-size:13px;margin-top:4px">${escapeHtml(m.desc||'恭喜发财')}</div>
+        </div>`;
+      } else if (tn === 'kakao') {
+        content = `<div class="kakao-rp-card" style="width:200px;border-radius:12px;padding:14px 16px;background:linear-gradient(160deg,#fff8dc,#f5e6b8);border:0.5px solid #e8d9a0;color:#5c4a1e;box-sizing:border-box">
+          <div style="font-size:11px;opacity:.8;letter-spacing:.04em">红包</div>
+          <div style="font-size:24px;font-weight:700;margin-top:8px">¥${m.amount||''}</div>
+          <div style="font-size:13px;margin-top:4px">${escapeHtml(m.desc||'恭喜发财')}</div>
+          <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid rgba(92,74,30,.2);font-size:12px;opacity:.75">Kakao 红包</div>
+        </div>`;
+      } else if (tn === 'qq') {
         content = `<div class="qq-rp-card" style="width:168px;height:210px;border-radius:12px;background:linear-gradient(165deg,#ff5a4e 0%,#e83a3a 55%,#d92f2f 100%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:22px 14px 16px;box-sizing:border-box;position:relative;overflow:hidden">
           <div style="position:absolute;inset:0;opacity:.12;background:radial-gradient(circle at 20% 20%,#fff 0%,transparent 40%),radial-gradient(circle at 80% 70%,#fff 0%,transparent 35%)"></div>
           <div style="position:relative;z-index:1;text-align:center;margin-top:8px">
@@ -4359,7 +4459,20 @@ function renderMessages(opts) {
       </div>`;
     } else if (m.type === 'transfer') {
       const tn2 = (chat && chat.themeName) || '';
-      if (tn2 === 'qq') {
+      if (tn2 === 'bubble') {
+        content = `<div class="bubble-tf-card" style="width:200px;border-radius:14px;padding:14px 16px;background:linear-gradient(160deg,#ede9fe,#ddd6fe);border:0.5px solid #c4b5fd;color:#4c1d95;box-sizing:border-box">
+          <div style="font-size:11px;opacity:.8">转账</div>
+          <div style="font-size:24px;font-weight:700;margin-top:8px">¥${m.amount||''}</div>
+          <div style="font-size:13px;margin-top:4px">${escapeHtml(m.desc||'转账')}</div>
+        </div>`;
+      } else if (tn2 === 'kakao') {
+        content = `<div class="kakao-tf-card" style="width:200px;border-radius:12px;padding:14px 16px;background:linear-gradient(160deg,#fff8dc,#f5e6b8);border:0.5px solid #e8d9a0;color:#5c4a1e;box-sizing:border-box">
+          <div style="font-size:11px;opacity:.8">转账</div>
+          <div style="font-size:24px;font-weight:700;margin-top:8px">¥${m.amount||''}</div>
+          <div style="font-size:13px;margin-top:4px">${escapeHtml(m.desc||'转账')}</div>
+          <div style="margin-top:12px;padding-top:10px;border-top:0.5px solid rgba(92,74,30,.2);font-size:12px;opacity:.75">Kakao 转账</div>
+        </div>`;
+      } else if (tn2 === 'qq') {
         content = `<div class="qq-tf-card" style="width:168px;height:210px;border-radius:12px;background:linear-gradient(165deg,#6ec8ff 0%,#4aa8e8 50%,#3a9ad9 100%);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 14px;box-sizing:border-box">
           <div style="font-size:12px;opacity:.9;letter-spacing:.08em">转账</div>
           <div style="font-size:28px;font-weight:700;margin:16px 0 8px;letter-spacing:.5px">¥${m.amount}</div>
@@ -4760,23 +4873,23 @@ function respondDateInvite(idx, status) {
 /** 角色同意约会：写入接受卡片（供 generateReply / 规则调用） */
 function pushDateInviteResponse(chatId, status, place, note) {
   if (!state.chats[chatId]) return;
-  // 更新最近一条 pending 邀请
   var msgs = state.chats[chatId].messages || [];
   for (var i = msgs.length - 1; i >= 0; i--) {
-    if (msgs[i] && msgs[i].type === 'dateInvite' && msgs[i].status === 'pending') {
-      msgs[i].status = status;
+    if (msgs[i] && msgs[i].type === 'dateInvite' && (msgs[i].status === 'pending' || !msgs[i].status)) {
       place = place || msgs[i].place;
       note = note || msgs[i].note;
+      // 原卡片也更新状态
+      msgs[i].status = status;
       break;
     }
   }
-  // 再推一条角色文本说明
+  // 角色再发一张同款卡片，显示已接受/已拒绝
   msgs.push({
     from: 'char',
-    type: 'text',
-    content: status === 'accepted'
-      ? ('好，那就按你说的' + (place ? ('去' + place) : '') + (note ? ('，' + note) : '') + '～')
-      : ('这次可能不太方便' + (place ? ('去' + place) : '') + '，下次再约好不好'),
+    type: 'dateInvite',
+    place: place || '',
+    note: note || '',
+    status: status,
     ts: Date.now()
   });
   if (status === 'accepted') {
@@ -4788,6 +4901,23 @@ function pushDateInviteResponse(chatId, status, place, note) {
   }
   save();
 }
+/** 从角色回复文本中识别是否同意/拒绝约会，并更新卡片 */
+function tryApplyDateInviteFromReply(chatId, text) {
+  try {
+    if (!chatId || !text) return;
+    var chat = state.chats[chatId];
+    if (!chat || !chat.messages) return;
+    var hasPending = chat.messages.some(function(m) {
+      return m && m.type === 'dateInvite' && m.from === 'user' && (m.status === 'pending' || !m.status);
+    });
+    if (!hasPending) return;
+    var t = String(text);
+    var accept = /接受|同意|好啊|好呀|可以啊|没问题|当然|赴约|不见不散|等你|走起|约起来|수락|좋아|当然好|当然/.test(t);
+    var decline = /拒绝|不去|不方便|下次吧|改天|有事|来不了|算了|거절|다음에/.test(t);
+    if (accept && !decline) pushDateInviteResponse(chatId, 'accepted');
+    else if (decline) pushDateInviteResponse(chatId, 'declined');
+  } catch(e) {}
+}
 function doForward(chatId) {
   var list = (state._forwardMsgs && state._forwardMsgs.length) ? state._forwardMsgs : (state._forwardMsg ? [state._forwardMsg] : []);
   if (!list.length) return;
@@ -4796,20 +4926,20 @@ function doForward(chatId) {
   list.forEach(function(msg, i) {
     if (!msg) return;
     var copy = Object.assign({}, msg);
-    // 保留原发送方：角色消息仍 from=char，user 仍 from=user
-    if (msg.from === 'user' || msg.from === 'char' || msg.from === 'system') copy.from = msg.from;
-    else if (msg.from) copy.from = msg.from; // fromId 等
-    else copy.from = 'user';
+    // 转发一律视为 user 发出（微信真实行为：转发内容由当前用户发送）
+    copy.from = 'user';
+    if (copy.fromId) delete copy.fromId;
+    if (copy.fromName) delete copy.fromName;
     copy.ts = base + i;
     copy.forwarded = true;
     if (copy.id) delete copy.id;
-    // 深拷贝卡片类字段，避免引用污染
     if (msg.place != null) copy.place = msg.place;
     if (msg.note != null) copy.note = msg.note;
     if (msg.amount != null) copy.amount = msg.amount;
     if (msg.desc != null) copy.desc = msg.desc;
     if (msg.content != null) copy.content = msg.content;
     if (msg.type) copy.type = msg.type;
+    if (msg.status != null) copy.status = msg.status;
     state.chats[chatId].messages.push(copy);
   });
   state._forwardMsgs = null;
@@ -5515,9 +5645,16 @@ async function pushSentences(chat, sentences, fromMeta) {
       if (away) showMsgBanner(bannerName, cleaned[i], bannerAv);
     }
     try { scrollMsgBottom(); } catch(e) {}
+    // 约会邀请：根据角色回复文字自动更新卡片并回发同款状态卡
+    try {
+      if (cleaned && cleaned.length && state.currentChatId) {
+        tryApplyDateInviteFromReply(state.currentChatId, cleaned.join('\n'));
+      }
+    } catch(e) {}
   } finally {
     setTyping(false);
     hideTypingBubble();
+    try { hideGenBanner(); } catch(e) {}
     try { scrollMsgBottom(); } catch(e) {}
   }
 }
@@ -5983,7 +6120,7 @@ function getOnlineChatRules(extra) {
   else if (h < 14) slot = '中午'; else if (h < 18) slot = '下午'; else if (h < 21) slot = '晚上';
   else if (h < 23) slot = '夜里'; else slot = '深夜';
   // 完整格式锁定 + 防重复 + 上下文/记忆（来自《线上聊天仿掉格式和重复内容》全文精简并入内置规则，勿再在自定义提示词里重复粘贴）
-  var proactiveExtra = (state._proactiveHint ? ('\n【上线触发】'+state._proactiveHint) : '') + '\n【约会邀请】若历史中出现[约会邀请]，必须阅读地点与说明并明确回应（同意/改期/拒绝），同意时可自然表示期待。';
+  var proactiveExtra = (state._proactiveHint ? ('\n【上线触发】'+state._proactiveHint) : '') + '\n【约会邀请】若历史中出现[约会邀请]且状态为待回应，必须阅读地点与说明并用自然语言明确同意或拒绝（如「好啊去公园」「这次不方便」）。系统会根据你的用词自动更新约会卡片，无需自己输出卡片代码。';
   // 约会邀请说明已在历史消息文本中，此处再强调可读卡片
   return `你是正在用聊天软件跟 User 聊天的真人，不是 AI、旁白或剧情生成器。${proactiveExtra}
 【优先级】角色人设＞User设定＞世界书＞长期记忆＞短期记忆＞上下文。禁止无理由 OOC。
@@ -8788,6 +8925,7 @@ function openBeautify() {
         <button type="button" class="btn ${cur==='wechat'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('wechat')">微信经典</button>
         <button type="button" class="btn ${cur==='ios26'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('ios26')">iOS 气泡</button>
         <button type="button" class="btn ${cur==='kakao'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('kakao')">KakaoTalk</button>
+        <button type="button" class="btn ${cur==='bubble'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('bubble')">Bubble</button>
         <button type="button" class="btn btn-secondary" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('')">清除内置</button>
       </div>
     </div>
@@ -8897,7 +9035,7 @@ function applyBuiltinTheme(name) {
   const chat = state.chats[id];
   if (!chat) { showToast('请先进入聊天'); return; }
   // 内置主题只记 themeName，样式走 stylesheet 的 data-chat-theme（避免被覆盖）
-  if (name === 'qq' || name === 'wechat' || name === 'ios26' || name === 'kakao') {
+  if (name === 'qq' || name === 'wechat' || name === 'ios26' || name === 'kakao' || name === 'bubble') {
     chat.themeName = name;
     // 清空旧注入 CSS，避免和内置冲突；用户仍可在保存后手写自定义
     chat.css = '';
@@ -8924,7 +9062,7 @@ function applyBuiltinTheme(name) {
       if (ta) ta.value = chat.css || '';
     }
   } catch(e) {}
-  showToast(name === 'qq' ? '已应用 QQ 经典' : (name === 'wechat' ? '已应用微信经典' : (name === 'ios26' ? '已应用 iOS 气泡' : (name === 'kakao' ? '已应用 KakaoTalk' : '已清除内置主题'))));
+  showToast(name === 'qq' ? '已应用 QQ 经典' : (name === 'wechat' ? '已应用微信经典' : (name === 'ios26' ? '已应用 iOS 气泡' : (name === 'kakao' ? '已应用 KakaoTalk' : (name === 'bubble' ? '已应用 Bubble' : '已清除内置主题')))));
 }
 function saveBeautify() {
   state.chats[state.currentChatId].css = document.getElementById('fCss').value;
@@ -19168,18 +19306,41 @@ function openOfflineMeetHistory(charId) {
   if (!state.offline.meetHistory) state.offline.meetHistory = {};
   var list = state.offline.meetHistory[charId] || [];
   if (!list.length) { showToast('还没有总结过的见面'); return; }
-  var html = list.map(function(m, i) {
+  state._meetHistCharId = charId;
+  var html = '<div style="max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch">';
+  list.forEach(function(m, i) {
     var cid = String(charId).replace(/"/g, '');
-    return '<div style="padding:12px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px">'
+    html += '<div style="padding:12px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px">'
       + '<div style="font-size:13px;font-weight:600;margin-bottom:6px">' + escapeHtml(m.title || ('见面'+(i+1))) + '</div>'
       + '<div class="text-sub" style="font-size:11px;margin-bottom:8px">' + (m.ts ? new Date(m.ts).toLocaleString() : '') + '</div>'
-      + '<div style="font-size:13px;line-height:1.6;white-space:pre-wrap">' + escapeHtml((m.summary||'').slice(0, 500)) + '</div>'
-      + '<div style="margin-top:8px;display:flex;gap:10px">'
-      + '<span style="font-size:12px;color:#576b95;cursor:pointer" onclick="viewOfflineMeetDetail(&quot;' + cid + '&quot;,' + i + ')">查看详情</span>'
-      + '<span style="font-size:12px;color:#999;cursor:pointer" onclick="(state.offline.meetHistory[&quot;' + cid + '&quot;]||[]).splice(' + i + ',1);save();openOfflineMeetHistory(&quot;' + cid + '&quot;)">删除</span>'
+      + '<div style="font-size:13px;line-height:1.6;white-space:pre-wrap;max-height:120px;overflow:hidden">' + escapeHtml((m.summary||'').slice(0, 280)) + ((m.summary||'').length>280?'…':'') + '</div>'
+      + '<div style="margin-top:8px;display:flex;gap:14px">'
+      + '<span style="font-size:12px;color:#576b95;cursor:pointer" data-meet-act="detail" data-meet-i="'+i+'">查看详情</span>'
+      + '<span style="font-size:12px;color:#999;cursor:pointer" data-meet-act="del" data-meet-i="'+i+'">删除</span>'
       + '</div></div>';
-  }).join('');
-  openModal('过往见面', html, '<button class="btn btn-secondary" onclick="closeModal()">关闭</button>', { center: true });
+  });
+  html += '</div>';
+  openModal('过往见面', html, '<button class="btn btn-secondary" onclick="closeModal()">关闭</button>', { center: true, replace: true });
+  // 事件委托，避免 onclick 字符串转义导致跳转异常
+  setTimeout(function() {
+    var body = document.querySelector('.modal-body') || document.getElementById('modalBody');
+    if (!body) return;
+    body.onclick = function(ev) {
+      var t = ev.target;
+      if (!t || !t.getAttribute) return;
+      var act = t.getAttribute('data-meet-act');
+      if (!act) return;
+      var i = +t.getAttribute('data-meet-i');
+      var cid = state._meetHistCharId;
+      if (act === 'detail') viewOfflineMeetDetail(cid, i);
+      else if (act === 'del') {
+        if (!state.offline.meetHistory[cid]) return;
+        state.offline.meetHistory[cid].splice(i, 1);
+        save();
+        openOfflineMeetHistory(cid);
+      }
+    };
+  }, 30);
 }
 function viewOfflineMeetDetail(charId, i) {
   var list = (state.offline && state.offline.meetHistory && state.offline.meetHistory[charId]) || [];
@@ -19188,9 +19349,15 @@ function viewOfflineMeetDetail(charId, i) {
   var logHtml = (m.log || []).map(function(l) {
     return '<div style="margin-bottom:8px;font-size:13px"><b>' + escapeHtml(l.who === 'user' ? '我' : '角色') + '</b>：' + escapeHtml(l.text||'') + '</div>';
   }).join('') || '<div class="text-sub">无逐条记录</div>';
-  var cid = String(charId).replace(/"/g, '');
-  openModal(m.title || '见面详情', '<div style="font-size:13px;line-height:1.6;margin-bottom:12px;white-space:pre-wrap">' + escapeHtml(m.summary||'') + '</div><div style="border-top:1px solid var(--line);padding-top:10px">' + logHtml + '</div>',
-    '<button class="btn btn-secondary" onclick="openOfflineMeetHistory(&quot;' + cid + '&quot;)">返回</button>', { center: true, replace: true });
+  var body = '<div style="max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch">'
+    + '<div style="font-size:13px;line-height:1.6;margin-bottom:12px;white-space:pre-wrap">' + escapeHtml(m.summary||'') + '</div>'
+    + '<div style="border-top:1px solid var(--line);padding-top:10px">' + logHtml + '</div></div>';
+  openModal(m.title || '见面详情', body,
+    '<button class="btn btn-secondary" id="meetDetailBack">返回</button>', { center: true, replace: true });
+  setTimeout(function() {
+    var btn = document.getElementById('meetDetailBack');
+    if (btn) btn.onclick = function() { openOfflineMeetHistory(charId); };
+  }, 30);
 }
 async function offlineSummarize(charId) {
   const c = state.chars.find(x => x.id === charId);
