@@ -668,7 +668,7 @@ body {
 
 
 
-/* ========== Bubble 风格（对齐官方 bubble 截图） ========== */
+/* ========== Bubble 风格（贴合文字 + 图二风格） ========== */
 #page-chat[data-chat-theme="bubble"] {
   background: #f5f5f7 !important;
 }
@@ -677,81 +677,72 @@ body {
   border-bottom: 0.5px solid #ececf0 !important;
   height: 56px !important;
 }
-#page-chat[data-chat-theme="bubble"] .chat-header .name-area {
-  text-align: center !important;
-}
+#page-chat[data-chat-theme="bubble"] .chat-header .name-area { text-align: center !important; }
 #page-chat[data-chat-theme="bubble"] .chat-header .name {
-  color: #111 !important;
-  font-weight: 700 !important;
-  font-size: 17px !important;
+  color: #111 !important; font-weight: 700 !important; font-size: 17px !important;
 }
-#page-chat[data-chat-theme="bubble"] .chat-header .status {
-  display: none !important;
-}
+#page-chat[data-chat-theme="bubble"] .chat-header .status { display: none !important; }
 #page-chat[data-chat-theme="bubble"] .bubble-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-right: 4px;
+  display: flex; align-items: center; gap: 14px; margin-right: 4px;
 }
 #page-chat[data-chat-theme="bubble"] #msgArea {
-  background: #f5f5f7 !important;
-  padding: 8px 12px 14px !important;
+  background: #f5f5f7 !important; padding: 8px 12px 14px !important;
 }
-/* 气泡容器：可自然撑开，避免单字竖排与空白过大 */
 #page-chat[data-chat-theme="bubble"] .msg-row {
-  align-items: flex-start !important;
-  margin-bottom: 10px !important;
+  align-items: flex-start !important; margin-bottom: 8px !important;
 }
+/* 容器只占内容宽度，不拉满 */
 #page-chat[data-chat-theme="bubble"] .msg-bubble-wrap {
   flex: 0 1 auto !important;
-  flex-shrink: 1 !important;
-  min-width: 56px !important;
-  max-width: 70% !important;
-  width: max-content !important;
+  max-width: 72% !important;
+  width: auto !important;
+  min-width: 0 !important;
 }
+/*
+  关键点：用 table 做 shrink-wrap，
+  避免内部 block 翻译把气泡撑到父级 70% 宽
+*/
 #page-chat[data-chat-theme="bubble"] .msg-bubble:not(.bare),
 #page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare) {
-  border-radius: 16px !important;
-  padding: 10px 14px !important;
-  font-size: 15px !important;
-  line-height: 1.45 !important;
-  box-shadow: none !important;
-  border: none !important;
-  max-width: 100% !important;
-  width: max-content !important;
-  min-width: 40px !important;
+  display: table !important;
+  width: auto !important;
+  max-width: min(72vw, 280px) !important;
+  min-width: 0 !important;
   min-height: 0 !important;
   height: auto !important;
+  border-radius: 14px !important;
+  padding: 8px 12px !important;
+  font-size: 15px !important;
+  line-height: 1.4 !important;
+  box-shadow: none !important;
+  border: none !important;
   white-space: pre-wrap !important;
   word-break: break-word !important;
   overflow-wrap: anywhere !important;
   writing-mode: horizontal-tb !important;
-  display: inline-block !important;
-  vertical-align: top !important;
   box-sizing: border-box !important;
   color: #111 !important;
-  -webkit-text-fill-color: currentColor !important;
+  -webkit-text-fill-color: #111 !important;
+  vertical-align: top !important;
 }
-/* 我：淡紫，无头像环 */
 #page-chat[data-chat-theme="bubble"] .msg-row.me .msg-bubble:not(.bare) {
   background: #c2b0f2 !important;
   color: #111 !important;
-  border-radius: 16px 16px 4px 16px !important;
+  -webkit-text-fill-color: #111 !important;
+  border-radius: 14px 14px 4px 14px !important;
   text-align: left !important;
 }
-/* 对方：白底 */
 #page-chat[data-chat-theme="bubble"] .msg-row.other .msg-bubble:not(.bare) {
   background: #ffffff !important;
   color: #111 !important;
+  -webkit-text-fill-color: #111 !important;
   border: 0.5px solid #ebeaf0 !important;
-  border-radius: 16px 16px 16px 4px !important;
+  border-radius: 14px 14px 14px 4px !important;
   text-align: left !important;
 }
 #page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare)::before,
 #page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare)::after {
-  display: none !important;
-  content: none !important;
+  display: none !important; content: none !important;
 }
 #page-chat[data-chat-theme="bubble"] .msg-bubble.redpacket,
 #page-chat[data-chat-theme="bubble"] .msg-bubble.transfer,
@@ -765,94 +756,65 @@ body {
   max-width: none !important;
   display: block !important;
 }
-/* 对方头像：渐变紫环；user 头像：普通圆，无环 */
+/* 对方头像紫环；user 无环 */
 #page-chat[data-chat-theme="bubble"] .msg-row.other .msg-avatar {
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 50% !important;
+  width: 40px !important; height: 40px !important; border-radius: 50% !important;
   padding: 2px !important;
   background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 40%, #7c3aed 100%) !important;
-  box-sizing: border-box !important;
-  object-fit: cover !important;
-  flex-shrink: 0 !important;
-  border: none !important;
+  box-sizing: border-box !important; object-fit: cover !important; flex-shrink: 0 !important; border: none !important;
 }
 #page-chat[data-chat-theme="bubble"] .msg-row.me .msg-avatar {
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 50% !important;
-  padding: 0 !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  object-fit: cover !important;
-  flex-shrink: 0 !important;
+  width: 40px !important; height: 40px !important; border-radius: 50% !important;
+  padding: 0 !important; background: transparent !important; border: none !important;
+  box-shadow: none !important; object-fit: cover !important; flex-shrink: 0 !important;
 }
-/* ARTIST：实心紫标（对齐图二） */
+/* ARTIST 渐变紫标 */
 #page-chat[data-chat-theme="bubble"] .bubble-artist-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 4px;
-  font-size: 11px;
-  line-height: 1.2;
+  display: inline-flex; align-items: center; gap: 5px; margin-bottom: 4px; font-size: 11px; line-height: 1.2;
 }
 #page-chat[data-chat-theme="bubble"] .bubble-artist-badge .tag {
-  background: #5b5fc7;
-  color: #fff;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  padding: 2px 6px;
-  border-radius: 3px;
-  line-height: 1.35;
-  -webkit-text-fill-color: #fff;
+  background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 45%, #7c3aed 100%);
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  font-size: 9px; font-weight: 700; letter-spacing: .04em;
+  padding: 2px 6px; border-radius: 4px; line-height: 1.35;
 }
 #page-chat[data-chat-theme="bubble"] .bubble-artist-badge .aname {
-  font-weight: 600;
-  color: #4b5563;
-  font-size: 11px;
-  text-transform: uppercase;
-  -webkit-text-fill-color: #4b5563;
-  background: none;
+  font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase;
+  -webkit-text-fill-color: #6b7280; background: none;
 }
-/* 翻译：实心淡紫，在气泡内虚线分隔 */
+/* 翻译：淡紫，不撑宽 */
 #page-chat[data-chat-theme="bubble"] .msg-translation,
 #page-chat[data-chat-theme="bubble"] .msg-row .msg-translation,
 #page-chat[data-chat-theme="bubble"] .msg-bubble .msg-translation {
+  display: block !important;
+  width: auto !important;
+  max-width: 100% !important;
   color: #9b87c9 !important;
   -webkit-text-fill-color: #9b87c9 !important;
   background: none !important;
   font-size: 12.5px !important;
-  margin-top: 6px !important;
+  margin-top: 5px !important;
   border-top: 0.5px dashed #d8d0f0 !important;
-  padding-top: 6px !important;
+  padding-top: 5px !important;
   font-weight: 400 !important;
-  line-height: 1.4 !important;
+  line-height: 1.35 !important;
 }
-/* 时间戳 */
 #page-chat[data-chat-theme="bubble"] .msg-bubble-wrap > div[style*="font-size:10px"] {
   color: #b0b0b5 !important;
 }
 #page-chat[data-chat-theme="bubble"] .wx-input-bar,
 #page-chat[data-chat-theme="bubble"] .input-bar {
-  background: #fff !important;
-  border-top: 0.5px solid #eee !important;
+  background: #fff !important; border-top: 0.5px solid #eee !important;
 }
 #page-chat[data-chat-theme="bubble"] .wx-input-pill {
-  background: #f0f0f3 !important;
-  border-radius: 22px !important;
-  border: none !important;
+  background: #f0f0f3 !important; border-radius: 22px !important; border: none !important;
 }
 #page-chat[data-chat-theme="bubble"] .bubble-rp-card,
 #page-chat[data-chat-theme="bubble"] .bubble-tf-card {
-  width: 200px;
-  border-radius: 14px;
-  padding: 14px 16px;
+  width: 200px; border-radius: 14px; padding: 14px 16px;
   background: linear-gradient(160deg, #ede9fe, #ddd6fe);
-  border: 0.5px solid #c4b5fd;
-  color: #4c1d95;
-  box-sizing: border-box;
+  border: 0.5px solid #c4b5fd; color: #4c1d95; box-sizing: border-box;
 }
 
 /* ========== KakaoTalk 风格 ========== */
@@ -2657,7 +2619,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22F';
+const EENOK_BUILD = '2026-08-22G';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -4450,6 +4412,10 @@ function renderMessages(opts) {
   }
   let html = '', lastTs = 0;
   (chat.messages || []).forEach((m, idx) => {
+    // 跳过空文本消息，避免空白大气泡
+    if ((!m.type || m.type === 'text') && !(String(m.content||'').trim()) && !(String(m.translation||'').trim()) && !m.quote) {
+      return;
+    }
     const gap = lastTs ? (m.ts - lastTs) : 0;
     if (!lastTs || gap > 2 * 3600 * 1000) {
       html += `<div class="msg-time">${formatTime(m.ts)}</div>`;
@@ -4473,6 +4439,7 @@ function renderMessages(opts) {
     if (m.type === 'text') {
       let q = m.quote ? `<div class="msg-quote">${escapeHtml(m.quote)}</div>` : '';
       let bodyText = (typeof cleanMsgContentForDisplay === 'function') ? cleanMsgContentForDisplay(m.content) : (m.content || '');
+      bodyText = String(bodyText || '').replace(/^\s+|\s+$/g, '').replace(/\n{3,}/g, '\n\n');
       // 历史脏数据：正文里残留 [[tr]] 时尝试再拆一次
       if (/\[\[\s*\/?\s*tr\s*\]\]|\|\|\|/.test(String(m.content || ''))) {
         try {
