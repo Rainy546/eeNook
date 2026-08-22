@@ -668,9 +668,9 @@ body {
 
 
 
-/* ========== Bubble 风格 ========== */
+/* ========== Bubble 风格（对齐官方 bubble 截图） ========== */
 #page-chat[data-chat-theme="bubble"] {
-  background: #f2f2f5 !important;
+  background: #f5f5f7 !important;
 }
 #page-chat[data-chat-theme="bubble"] .chat-header {
   background: #ffffff !important;
@@ -681,7 +681,7 @@ body {
   text-align: center !important;
 }
 #page-chat[data-chat-theme="bubble"] .chat-header .name {
-  color: #1c1c1e !important;
+  color: #111 !important;
   font-weight: 700 !important;
   font-size: 17px !important;
 }
@@ -695,47 +695,57 @@ body {
   margin-right: 4px;
 }
 #page-chat[data-chat-theme="bubble"] #msgArea {
-  background: #f2f2f5 !important;
-  padding: 10px 12px 16px !important;
+  background: #f5f5f7 !important;
+  padding: 8px 12px 14px !important;
 }
-/* 防竖排：气泡容器不要被 flex 压成单字宽 */
+/* 气泡容器：可自然撑开，避免单字竖排与空白过大 */
+#page-chat[data-chat-theme="bubble"] .msg-row {
+  align-items: flex-start !important;
+  margin-bottom: 10px !important;
+}
 #page-chat[data-chat-theme="bubble"] .msg-bubble-wrap {
-  flex-shrink: 0 !important;
-  min-width: 48px !important;
-  max-width: 72% !important;
-  width: auto !important;
+  flex: 0 1 auto !important;
+  flex-shrink: 1 !important;
+  min-width: 56px !important;
+  max-width: 70% !important;
+  width: max-content !important;
 }
 #page-chat[data-chat-theme="bubble"] .msg-bubble:not(.bare),
 #page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare) {
-  border-radius: 14px !important;
-  padding: 11px 14px !important;
+  border-radius: 16px !important;
+  padding: 10px 14px !important;
   font-size: 15px !important;
-  line-height: 1.5 !important;
+  line-height: 1.45 !important;
   box-shadow: none !important;
   border: none !important;
   max-width: 100% !important;
-  width: fit-content !important;
-  min-width: 36px !important;
+  width: max-content !important;
+  min-width: 40px !important;
+  min-height: 0 !important;
+  height: auto !important;
   white-space: pre-wrap !important;
   word-break: break-word !important;
-  overflow-wrap: break-word !important;
+  overflow-wrap: anywhere !important;
   writing-mode: horizontal-tb !important;
-  display: block !important;
+  display: inline-block !important;
+  vertical-align: top !important;
   box-sizing: border-box !important;
+  color: #111 !important;
+  -webkit-text-fill-color: currentColor !important;
 }
-/* 我：紫色，横向正常 */
+/* 我：淡紫，无头像环 */
 #page-chat[data-chat-theme="bubble"] .msg-row.me .msg-bubble:not(.bare) {
-  background: #b39dff !important;
-  color: #1c1c1e !important;
-  border-radius: 14px 14px 4px 14px !important;
+  background: #c2b0f2 !important;
+  color: #111 !important;
+  border-radius: 16px 16px 4px 16px !important;
   text-align: left !important;
 }
 /* 对方：白底 */
 #page-chat[data-chat-theme="bubble"] .msg-row.other .msg-bubble:not(.bare) {
   background: #ffffff !important;
-  color: #1c1c1e !important;
+  color: #111 !important;
   border: 0.5px solid #ebeaf0 !important;
-  border-radius: 14px 14px 14px 4px !important;
+  border-radius: 16px 16px 16px 4px !important;
   text-align: left !important;
 }
 #page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare)::before,
@@ -753,61 +763,76 @@ body {
   border: none !important;
   width: auto !important;
   max-width: none !important;
+  display: block !important;
 }
-/* 头像圆形 + 渐变紫环 */
-#page-chat[data-chat-theme="bubble"] .msg-row.other .msg-avatar,
-#page-chat[data-chat-theme="bubble"] .msg-row.me .msg-avatar {
+/* 对方头像：渐变紫环；user 头像：普通圆，无环 */
+#page-chat[data-chat-theme="bubble"] .msg-row.other .msg-avatar {
   width: 40px !important;
   height: 40px !important;
   border-radius: 50% !important;
   padding: 2px !important;
-  background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 45%, #7c3aed 100%) !important;
+  background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 40%, #7c3aed 100%) !important;
   box-sizing: border-box !important;
   object-fit: cover !important;
   flex-shrink: 0 !important;
+  border: none !important;
 }
-/* ARTIST 标识：渐变紫底 */
+#page-chat[data-chat-theme="bubble"] .msg-row.me .msg-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  object-fit: cover !important;
+  flex-shrink: 0 !important;
+}
+/* ARTIST：实心紫标（对齐图二） */
 #page-chat[data-chat-theme="bubble"] .bubble-artist-badge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   font-size: 11px;
-  color: #6b7280;
+  line-height: 1.2;
 }
 #page-chat[data-chat-theme="bubble"] .bubble-artist-badge .tag {
-  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 50%, #7c3aed 100%);
+  background: #5b5fc7;
   color: #fff;
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: .05em;
+  letter-spacing: .04em;
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 3px;
   line-height: 1.35;
+  -webkit-text-fill-color: #fff;
 }
 #page-chat[data-chat-theme="bubble"] .bubble-artist-badge .aname {
   font-weight: 600;
-  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: #8b5cf6;
+  color: #4b5563;
   font-size: 11px;
+  text-transform: uppercase;
+  -webkit-text-fill-color: #4b5563;
+  background: none;
 }
-/* 翻译：渐变紫文字 */
+/* 翻译：实心淡紫，在气泡内虚线分隔 */
 #page-chat[data-chat-theme="bubble"] .msg-translation,
 #page-chat[data-chat-theme="bubble"] .msg-row .msg-translation,
 #page-chat[data-chat-theme="bubble"] .msg-bubble .msg-translation {
-  background: linear-gradient(90deg, #8b5cf6, #a78bfa, #c4b5fd) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  color: #8b5cf6 !important;
-  font-size: 12px !important;
+  color: #9b87c9 !important;
+  -webkit-text-fill-color: #9b87c9 !important;
+  background: none !important;
+  font-size: 12.5px !important;
   margin-top: 6px !important;
-  border-top: 0.5px dashed #d4cfff !important;
+  border-top: 0.5px dashed #d8d0f0 !important;
   padding-top: 6px !important;
-  font-weight: 500 !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+}
+/* 时间戳 */
+#page-chat[data-chat-theme="bubble"] .msg-bubble-wrap > div[style*="font-size:10px"] {
+  color: #b0b0b5 !important;
 }
 #page-chat[data-chat-theme="bubble"] .wx-input-bar,
 #page-chat[data-chat-theme="bubble"] .input-bar {
@@ -2632,7 +2657,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22E';
+const EENOK_BUILD = '2026-08-22F';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -4456,8 +4481,14 @@ function renderMessages(opts) {
           if (ex.translations && ex.translations[0] && !m.translation) m.translation = ex.translations[0];
         } catch(e) {}
       }
-      content = q + escapeHtml(bodyText);
-      if (m.translation) content += `<div class="msg-translation">${escapeHtml(cleanMsgContentForDisplay(m.translation))}</div>`;
+      bodyText = (bodyText || '').trim() ? bodyText : '';
+      if (!bodyText && m.translation) {
+        // 仅有翻译时不当空白大气泡：把翻译当正文，避免空壳
+        content = q + escapeHtml(cleanMsgContentForDisplay(m.translation));
+      } else {
+        content = q + escapeHtml(bodyText);
+        if (m.translation) content += `<div class="msg-translation">${escapeHtml(cleanMsgContentForDisplay(m.translation))}</div>`;
+      }
     } else if (m.type === 'card' || m.cardType === 'mbti' || m.cardType === 'group_notice') {
       if (m.cardType === 'group_notice') {
         content = `<div style="width:240px;background:#fff;border-radius:12px;overflow:hidden;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 10px rgba(0,0,0,.06)">
