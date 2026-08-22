@@ -668,163 +668,6 @@ body {
 
 
 
-/* ========== Bubble 风格（气泡仅包裹文字） ========== */
-#page-chat[data-chat-theme="bubble"] {
-  background: #f5f5f7 !important;
-}
-#page-chat[data-chat-theme="bubble"] .chat-header {
-  background: #ffffff !important;
-  border-bottom: 0.5px solid #ececf0 !important;
-  height: 56px !important;
-}
-#page-chat[data-chat-theme="bubble"] .chat-header .name-area { text-align: center !important; }
-#page-chat[data-chat-theme="bubble"] .chat-header .name {
-  color: #111 !important; font-weight: 700 !important; font-size: 17px !important;
-}
-#page-chat[data-chat-theme="bubble"] .chat-header .status { display: none !important; }
-#page-chat[data-chat-theme="bubble"] .bubble-header-actions {
-  display: flex; align-items: center; gap: 14px; margin-right: 4px;
-}
-#page-chat[data-chat-theme="bubble"] #msgArea {
-  background: #f5f5f7 !important; padding: 8px 10px 14px !important;
-}
-#page-chat[data-chat-theme="bubble"] .msg-row {
-  align-items: flex-start !important;
-  margin-bottom: 6px !important;
-  gap: 6px !important;
-}
-/* wrap 本身不占满，子项左/右对齐 */
-#page-chat[data-chat-theme="bubble"] .msg-bubble-wrap {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: flex-start !important;
-  flex: 0 1 auto !important;
-  max-width: 68% !important;
-  width: fit-content !important;
-  min-width: 0 !important;
-  margin: 0 !important;
-}
-#page-chat[data-chat-theme="bubble"] .msg-row.me .msg-bubble-wrap {
-  align-items: flex-end !important;
-}
-/* 气泡：inline-block + fit-content，只包文字 */
-#page-chat[data-chat-theme="bubble"] .msg-bubble:not(.bare),
-#page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare),
-#page-chat[data-chat-theme="bubble"] .msg-row.me .msg-bubble:not(.bare),
-#page-chat[data-chat-theme="bubble"] .msg-row.other .msg-bubble:not(.bare) {
-  display: inline-block !important;
-  width: fit-content !important;
-  max-width: 100% !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  height: auto !important;
-  padding: 7px 11px !important;
-  border-radius: 14px !important;
-  font-size: 15px !important;
-  line-height: 1.35 !important;
-  box-shadow: none !important;
-  border: none !important;
-  white-space: pre-wrap !important;
-  word-break: break-word !important;
-  overflow-wrap: break-word !important;
-  writing-mode: horizontal-tb !important;
-  box-sizing: border-box !important;
-  color: #111 !important;
-  -webkit-text-fill-color: #111 !important;
-  text-align: left !important;
-  vertical-align: top !important;
-  float: none !important;
-}
-#page-chat[data-chat-theme="bubble"] .msg-row.me .msg-bubble:not(.bare) {
-  background: #c2b0f2 !important;
-  border-radius: 14px 14px 4px 14px !important;
-}
-#page-chat[data-chat-theme="bubble"] .msg-row.other .msg-bubble:not(.bare) {
-  background: #ffffff !important;
-  border: 0.5px solid #ebeaf0 !important;
-  border-radius: 14px 14px 14px 4px !important;
-}
-#page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare)::before,
-#page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare)::after {
-  display: none !important; content: none !important;
-}
-#page-chat[data-chat-theme="bubble"] .msg-bubble.redpacket,
-#page-chat[data-chat-theme="bubble"] .msg-bubble.transfer,
-#page-chat[data-chat-theme="bubble"] .msg-bubble.bare,
-#page-chat[data-chat-theme="bubble"] .msg-bubble.dateInvite {
-  background: transparent !important;
-  padding: 0 !important;
-  box-shadow: none !important;
-  border: none !important;
-  width: auto !important;
-  max-width: none !important;
-  display: block !important;
-}
-#page-chat[data-chat-theme="bubble"] .msg-row.other .msg-avatar {
-  width: 36px !important; height: 36px !important; border-radius: 50% !important;
-  padding: 2px !important;
-  background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 40%, #7c3aed 100%) !important;
-  box-sizing: border-box !important; object-fit: cover !important; flex-shrink: 0 !important; border: none !important;
-}
-#page-chat[data-chat-theme="bubble"] .msg-row.me .msg-avatar {
-  width: 36px !important; height: 36px !important; border-radius: 50% !important;
-  padding: 0 !important; background: transparent !important; border: none !important;
-  box-shadow: none !important; object-fit: cover !important; flex-shrink: 0 !important;
-}
-#page-chat[data-chat-theme="bubble"] .bubble-artist-badge {
-  display: inline-flex; align-items: center; gap: 4px; margin-bottom: 3px; font-size: 11px; line-height: 1.2;
-  width: fit-content !important; max-width: 100% !important;
-}
-#page-chat[data-chat-theme="bubble"] .bubble-artist-badge .tag {
-  background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 45%, #7c3aed 100%);
-  color: #fff !important; -webkit-text-fill-color: #fff !important;
-  font-size: 9px; font-weight: 700; letter-spacing: .04em;
-  padding: 2px 6px; border-radius: 4px; line-height: 1.35;
-}
-#page-chat[data-chat-theme="bubble"] .bubble-artist-badge .aname {
-  font-weight: 600; color: #6b7280; font-size: 11px; text-transform: uppercase;
-  -webkit-text-fill-color: #6b7280; background: none;
-}
-/* 翻译：跟随气泡宽度，不反向撑开 */
-#page-chat[data-chat-theme="bubble"] .msg-body {
-  display: inline !important;
-  color: inherit !important;
-  -webkit-text-fill-color: inherit !important;
-}
-#page-chat[data-chat-theme="bubble"] .msg-translation,
-#page-chat[data-chat-theme="bubble"] .msg-row .msg-translation,
-#page-chat[data-chat-theme="bubble"] .msg-bubble .msg-translation {
-  display: block !important;
-  width: auto !important;
-  max-width: 100% !important;
-  color: #9b87c9 !important;
-  -webkit-text-fill-color: #9b87c9 !important;
-  background: none !important;
-  font-size: 12px !important;
-  margin-top: 4px !important;
-  border-top: 0.5px dashed #d8d0f0 !important;
-  padding-top: 4px !important;
-  font-weight: 400 !important;
-  line-height: 1.35 !important;
-  white-space: pre-wrap !important;
-}
-#page-chat[data-chat-theme="bubble"] .msg-bubble-wrap > div[style*="font-size:10px"] {
-  color: #b0b0b5 !important; margin-top: 2px !important;
-}
-#page-chat[data-chat-theme="bubble"] .wx-input-bar,
-#page-chat[data-chat-theme="bubble"] .input-bar {
-  background: #fff !important; border-top: 0.5px solid #eee !important;
-}
-#page-chat[data-chat-theme="bubble"] .wx-input-pill {
-  background: #f0f0f3 !important; border-radius: 22px !important; border: none !important;
-}
-#page-chat[data-chat-theme="bubble"] .bubble-rp-card,
-#page-chat[data-chat-theme="bubble"] .bubble-tf-card {
-  width: 200px; border-radius: 14px; padding: 14px 16px;
-  background: linear-gradient(160deg, #ede9fe, #ddd6fe);
-  border: 0.5px solid #c4b5fd; color: #4c1d95; box-sizing: border-box;
-}
-
 /* ========== KakaoTalk 风格 ========== */
 #page-chat[data-chat-theme="kakao"] {
   background: #b2c7d9 !important;
@@ -2627,7 +2470,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22H';
+const EENOK_BUILD = '2026-08-22I';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -4134,12 +3977,17 @@ function openChat(id, isGroup) {
 
 function applyChatStyle(id) {
   const chat = state.chats[id] || {};
+  // 已下线的 Bubble 主题：自动清除，回退默认
+  if (chat.themeName === 'bubble') {
+    chat.themeName = '';
+    try { save(); } catch(e) {}
+  }
   const area = document.getElementById('msgArea');
   const page = document.getElementById('page-chat');
   // 内置主题用 data 属性（CSS 用 background-color，不抢 wallpaper）
   if (page) {
     const tn = chat.themeName || '';
-    if (tn === 'qq' || tn === 'wechat' || tn === 'ios26' || tn === 'kakao' || tn === 'bubble') {
+    if (tn === 'qq' || tn === 'wechat' || tn === 'ios26' || tn === 'kakao') {
       page.setAttribute('data-chat-theme', tn);
     } else {
       page.removeAttribute('data-chat-theme');
@@ -4223,7 +4071,6 @@ function refreshChatHeaderQQ() {
 
   try { syncQQInputBar(isQQ); } catch(e) {}
   try {
-    const isBubble = chat.themeName === 'bubble';
     if (isKakao && hdr) {
       var acts = hdr.querySelector('.kakao-header-actions');
       if (!acts) {
@@ -4239,19 +4086,6 @@ function refreshChatHeaderQQ() {
       }
       var ba = hdr.querySelector('.bubble-header-actions');
       if (ba) ba.remove();
-    } else if (isBubble && hdr) {
-      var ka2 = hdr.querySelector('.kakao-header-actions');
-      if (ka2) ka2.remove();
-      var bacts = hdr.querySelector('.bubble-header-actions');
-      if (!bacts) {
-        bacts = document.createElement('div');
-        bacts.className = 'bubble-header-actions';
-        bacts.innerHTML = '<span title="搜索" style="opacity:.7;pointer-events:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>'
-          + '<span title="聊天设置" onclick="openChatSettings()" style="cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></span>';
-        var rightB = hdr.querySelector('.nav-btn:last-child') || hdr.lastElementChild;
-        if (rightB) { hdr.insertBefore(bacts, rightB); rightB.style.display = 'none'; }
-        else hdr.appendChild(bacts);
-      }
     } else if (hdr) {
       var ka = hdr.querySelector('.kakao-header-actions');
       if (ka) ka.remove();
@@ -4516,13 +4350,7 @@ function renderMessages(opts) {
       }
     } else if (m.type === 'redpacket') {
       const tn = (chat && chat.themeName) || '';
-      if (tn === 'bubble') {
-        content = `<div class="bubble-rp-card" style="width:200px;border-radius:14px;padding:14px 16px;background:linear-gradient(160deg,#ede9fe,#ddd6fe);border:0.5px solid #c4b5fd;color:#4c1d95;box-sizing:border-box">
-          <div style="font-size:11px;opacity:.8">红包</div>
-          <div style="font-size:24px;font-weight:700;margin-top:8px">¥${m.amount||''}</div>
-          <div style="font-size:13px;margin-top:4px">${escapeHtml(m.desc||'恭喜发财')}</div>
-        </div>`;
-      } else if (tn === 'kakao') {
+      if (tn === 'kakao') {
         content = `<div class="kakao-rp-card" style="width:200px;border-radius:12px;padding:14px 16px;background:linear-gradient(160deg,#fff8dc,#f5e6b8);border:0.5px solid #e8d9a0;color:#5c4a1e;box-sizing:border-box">
           <div style="font-size:11px;opacity:.8;letter-spacing:.04em">红包</div>
           <div style="font-size:24px;font-weight:700;margin-top:8px">¥${m.amount||''}</div>
@@ -4571,13 +4399,7 @@ function renderMessages(opts) {
       </div>`;
     } else if (m.type === 'transfer') {
       const tn2 = (chat && chat.themeName) || '';
-      if (tn2 === 'bubble') {
-        content = `<div class="bubble-tf-card" style="width:200px;border-radius:14px;padding:14px 16px;background:linear-gradient(160deg,#ede9fe,#ddd6fe);border:0.5px solid #c4b5fd;color:#4c1d95;box-sizing:border-box">
-          <div style="font-size:11px;opacity:.8">转账</div>
-          <div style="font-size:24px;font-weight:700;margin-top:8px">¥${m.amount||''}</div>
-          <div style="font-size:13px;margin-top:4px">${escapeHtml(m.desc||'转账')}</div>
-        </div>`;
-      } else if (tn2 === 'kakao') {
+      if (tn2 === 'kakao') {
         content = `<div class="kakao-tf-card" style="width:200px;border-radius:12px;padding:14px 16px;background:linear-gradient(160deg,#fff8dc,#f5e6b8);border:0.5px solid #e8d9a0;color:#5c4a1e;box-sizing:border-box">
           <div style="font-size:11px;opacity:.8">转账</div>
           <div style="font-size:24px;font-weight:700;margin-top:8px">¥${m.amount||''}</div>
@@ -4733,7 +4555,6 @@ function renderMessages(opts) {
         ${sel}
         <img class="msg-avatar" src="${av}" style="cursor:pointer" onclick="event.stopPropagation();showMsgThought(${idx})">
         <div class="msg-bubble-wrap">
-          ${(!isMe && chat && chat.themeName==='bubble') ? `<div class="bubble-artist-badge"><span class="tag">ARTIST</span><span class="aname">${escapeHtml((other && (other.realName || other.nick)) || (m.fromName) || '')}</span></div>` : ''}
           <div class="msg-bubble ${cls}"
                onclick="onBubbleClick(event, ${idx})"
                oncontextmenu="showBubbleMenu(event, ${idx});return false;"
@@ -9038,7 +8859,6 @@ function openBeautify() {
         <button type="button" class="btn ${cur==='wechat'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('wechat')">微信经典</button>
         <button type="button" class="btn ${cur==='ios26'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('ios26')">iOS 气泡</button>
         <button type="button" class="btn ${cur==='kakao'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('kakao')">KakaoTalk</button>
-        <button type="button" class="btn ${cur==='bubble'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('bubble')">Bubble</button>
         <button type="button" class="btn btn-secondary" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('')">清除内置</button>
       </div>
     </div>
@@ -9148,7 +8968,7 @@ function applyBuiltinTheme(name) {
   const chat = state.chats[id];
   if (!chat) { showToast('请先进入聊天'); return; }
   // 内置主题只记 themeName，样式走 stylesheet 的 data-chat-theme（避免被覆盖）
-  if (name === 'qq' || name === 'wechat' || name === 'ios26' || name === 'kakao' || name === 'bubble') {
+  if (name === 'qq' || name === 'wechat' || name === 'ios26' || name === 'kakao') {
     chat.themeName = name;
     // 清空旧注入 CSS，避免和内置冲突；用户仍可在保存后手写自定义
     chat.css = '';
@@ -9175,7 +8995,7 @@ function applyBuiltinTheme(name) {
       if (ta) ta.value = chat.css || '';
     }
   } catch(e) {}
-  showToast(name === 'qq' ? '已应用 QQ 经典' : (name === 'wechat' ? '已应用微信经典' : (name === 'ios26' ? '已应用 iOS 气泡' : (name === 'kakao' ? '已应用 KakaoTalk' : (name === 'bubble' ? '已应用 Bubble' : '已清除内置主题')))));
+  showToast(name === 'qq' ? '已应用 QQ 经典' : (name === 'wechat' ? '已应用微信经典' : (name === 'ios26' ? '已应用 iOS 气泡' : (name === 'kakao' ? '已应用 KakaoTalk' : '已清除内置主题'))));
 }
 function saveBeautify() {
   state.chats[state.currentChatId].css = document.getElementById('fCss').value;
