@@ -2367,7 +2367,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-21D';
+const EENOK_BUILD = '2026-08-22A';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -3152,8 +3152,17 @@ function mergeHomeState(primary, fallback) {
   // 图标：合并两边
   out.appIcons = Object.assign({}, b.appIcons || {}, a.appIcons || {});
   Object.keys(out.appIcons).forEach(function(k) {
-    if (out.appIcons[k] === '__IDB__') delete out.appIcons[k];
+    if (out.appIcons[k] === '__IDB__') {
+      // 占位则回退另一侧真实图
+      var fb = (a.appIcons && a.appIcons[k] && a.appIcons[k] !== '__IDB__') ? a.appIcons[k]
+        : ((b.appIcons && b.appIcons[k] && b.appIcons[k] !== '__IDB__') ? b.appIcons[k] : '');
+      if (fb) out.appIcons[k] = fb; else delete out.appIcons[k];
+    }
   });
+  // 若主包图标为空而备份有，整包用备份
+  if ((!out.appIcons || !Object.keys(out.appIcons).length) && b.appIcons && Object.keys(b.appIcons).length) {
+    out.appIcons = Object.assign({}, b.appIcons);
+  }
   // pageWidgets：按页合并，谁内容更多用谁，避免空数组覆盖
   (function(){
     var pa = (a.pageWidgets && typeof a.pageWidgets === 'object') ? a.pageWidgets : {};
@@ -4613,12 +4622,23 @@ function openForward(msg) {
   `).join(''), `<button class="btn btn-secondary" onclick="closeModal()">取消</button>`);
 }
 function doForward(chatId) {
-  const msg = state._forwardMsg;
-  if (!msg) return;
+  var list = (state._forwardMsgs && state._forwardMsgs.length) ? state._forwardMsgs : (state._forwardMsg ? [state._forwardMsg] : []);
+  if (!list.length) return;
   if (!state.chats[chatId]) state.chats[chatId] = { messages:[], pinned:false, blockedByMe:false, blockedByChar:false, worldBookIds:[], timeAware:true, css:'', bg:'' };
-  const copy = { ...msg, ts: Date.now(), forwarded: true };
-  state.chats[chatId].messages.push(copy);
-  save(); closeModal(); alert('已转发');
+  var base = Date.now();
+  list.forEach(function(msg, i) {
+    if (!msg) return;
+    var copy = Object.assign({}, msg, { ts: base + i, forwarded: true });
+    // 避免污染原消息引用
+    if (copy.id) delete copy.id;
+    state.chats[chatId].messages.push(copy);
+  });
+  state._forwardMsgs = null;
+  state._forwardMsg = null;
+  save();
+  closeModal();
+  try { exitMultiSelect(); } catch(e) {}
+  showToast('已转发 ' + list.length + ' 条');
 }
 function enterMultiSelect(startIdx) {
   state.multiSelect = true;
@@ -4697,7 +4717,10 @@ function multiAction(act) {
   } else if (act === 'favorite') {
     idxs.forEach(i => { if (chat.messages[i]) addToFavorites(chat.messages[i]); });
   } else if (act === 'forward') {
-    state._forwardMsg = chat.messages[idxs[0]];
+    // 多选按时间正序全部转发
+    var sorted = idxs.slice().sort(function(a,b){ return a-b; });
+    state._forwardMsgs = sorted.map(function(i){ return chat.messages[i]; }).filter(Boolean);
+    state._forwardMsg = state._forwardMsgs[0] || null;
     openForward(state._forwardMsg);
     return;
   }
@@ -4941,6 +4964,37 @@ function doPanelReroll() {
     showToast('重roll 失败：' + (e && e.message ? e.message : e));
   }
 }
+
+function showGenBanner(label) {
+  try {
+    var page = document.getElementById('page-chat') || document.querySelector('.page.active');
+    var bar = document.getElementById('eenookGenBanner');
+    if (!bar) {
+      bar = document.createElement('div');
+      bar.id = 'eenookGenBanner';
+      bar.style.cssText = 'position:absolute;left:50%;transform:translateX(-50%);bottom:72px;z-index:80;padding:8px 14px;border-radius:16px;background:rgba(28,28,30,.78);color:#fff;font-size:12px;display:flex;align-items:center;gap:8px;backdrop-filter:blur(8px);pointer-events:none;max-width:80%';
+      bar.innerHTML = '<span class="eenook-gen-dot" style="width:6px;height:6px;border-radius:50%;background:#7dd3fc;animation:eenookPulse 1s infinite"></span><span id="eenookGenBannerTxt">生成中…</span>';
+      if (page) page.appendChild(bar);
+      else document.body.appendChild(bar);
+      if (!document.getElementById('eenookGenStyle')) {
+        var st = document.createElement('style');
+        st.id = 'eenookGenStyle';
+        st.textContent = '@keyframes eenookPulse{0%{opacity:.3}50%{opacity:1}100%{opacity:.3}}';
+        document.head.appendChild(st);
+      }
+    }
+    var t = document.getElementById('eenookGenBannerTxt');
+    if (t) t.textContent = label || 'SYNTHESIZING…';
+    bar.style.display = 'flex';
+  } catch(e) {}
+}
+function hideGenBanner() {
+  try {
+    var bar = document.getElementById('eenookGenBanner');
+    if (bar) bar.style.display = 'none';
+  } catch(e) {}
+}
+
 function setTyping(on) {
   const el = document.getElementById('chatStatus');
   if (!el) return;
@@ -5284,6 +5338,60 @@ async function pushSentences(chat, sentences, fromMeta) {
     try { scrollMsgBottom(); } catch(e) {}
   }
 }
+
+/** user 上线时：开启自主活动且勾选主动发信息的角色发一条微信 */
+function runOnlineProactiveMessages() {
+  try {
+    if (state._proactiveOnlineDone && (Date.now() - state._proactiveOnlineDone) < 60000) return; // 1 分钟内不重复
+    state._proactiveOnlineDone = Date.now();
+    var chars = state.chars || [];
+    chars.forEach(function(ch) {
+      try {
+        var chat = state.chats[ch.id];
+        if (!chat || !chat.autonomy || !chat.autonomy.enabled) return;
+        if (!chat.autonomy.wechatMsg) return;
+        // 忙线时段跳过
+        if (chat.autonomy.linkWorldSchedule && typeof ensureCharWorld === 'function') {
+          var w = ensureCharWorld(ch.id);
+          var sch = (w && w.schedule) || '';
+          if (sch) {
+            var hh = new Date().getHours();
+            if (/上课|工作|上班|会议|加班|考试|自习|值班/.test(sch) && hh >= 9 && hh < 18) return;
+          }
+        }
+        // 轻量：标记待发，异步生成一句上线招呼
+        if (!state._pendingProactive) state._pendingProactive = [];
+        if (state._pendingProactive.indexOf(ch.id) < 0) state._pendingProactive.push(ch.id);
+      } catch(e) {}
+    });
+    if (state._pendingProactive && state._pendingProactive.length) {
+      setTimeout(flushProactiveMessages, 1200);
+    }
+  } catch(e) { console.warn('proactive', e); }
+}
+async function flushProactiveMessages() {
+  var list = (state._pendingProactive || []).slice();
+  state._pendingProactive = [];
+  for (var i = 0; i < list.length; i++) {
+    var cid = list[i];
+    try {
+      if (!state.chats[cid]) continue;
+      // 若最近 30 分钟已有角色主动消息则跳过
+      var msgs = state.chats[cid].messages || [];
+      var recent = msgs.filter(function(m){ return m && m.from !== 'user' && (Date.now() - (m.ts||0)) < 30*60*1000; });
+      if (recent.length >= 2) continue;
+      state.currentChatId = cid;
+      // 用系统提示触发一句“发现 user 上线”的自然消息
+      state._proactiveHint = 'user 刚刚上线，请用符合人设的一句或两句自然打招呼/分享近况，不要解释设定，不要提“自主活动”。';
+      if (typeof generateReply === 'function') {
+        await Promise.resolve(generateReply());
+      }
+      state._proactiveHint = null;
+    } catch(e) { console.warn('flush proactive', cid, e); }
+    await new Promise(function(r){ setTimeout(r, 800); });
+  }
+}
+
 function generateReply() {
   const id = state.currentChatId;
   const chat = state.chats[id];
@@ -5295,12 +5403,14 @@ function generateReply() {
   }
   setTyping(true);
   showTypingBubble('wx');
+  showGenBanner('SYNTHESIZING…');
   if (state.currentIsGroup) {
     state._genLocks[id] = true;
     generateGroupReply(id).finally(function() {
       try { delete state._genLocks[id]; } catch(e) {}
-      setTyping(false);
-      hideTypingBubble();
+      setTyping(false); hideGenBanner();
+      hideTypingBubble(); hideGenBanner();
+      hideGenBanner();
     });
     return;
   }
@@ -5311,7 +5421,7 @@ function generateReply() {
   }
   if (state.api.baseUrl && state.api.key) {
     if (!ch) {
-      setTyping(false);
+      setTyping(false); hideGenBanner();
       pushSentences(chat, ['（找不到角色资料，请检查角色是否存在）']);
       return;
     }
@@ -5326,7 +5436,7 @@ function generateReply() {
       await pushSentences(chat, ['……我不想再和你说话了。']);
       document.getElementById('chatStatus').textContent = '已被对方拉黑';
       state._prevStatus = '已被对方拉黑';
-      setTyping(false);
+      setTyping(false); hideGenBanner();
       if (btn) btn.disabled = false;
       return;
     }
@@ -5339,7 +5449,7 @@ function generateReply() {
       else if (h >= 22) text = '夜深了，' + text;
     }
     await pushSentences(chat, splitSentences(text));
-    setTyping(false);
+    setTyping(false); hideGenBanner();
     if (btn) btn.disabled = false;
     checkMemory(id);
   }, 400);
@@ -5652,14 +5762,23 @@ function fillDistSelect() {
 }
 
 function showTypingBubble(where) {
-  // 只保留顶栏「对方正在输入中…」一处，不再叠加悬浮条/消息区提示
-  hideTypingBubble();
+  // 顶栏「对方正在输入」+ 底部 SYNTHESIZING 条
+  try {
+    var lab = (where === 'ig') ? 'SYNTHESIZING…' : ((where === 'sms' || where === 'sk') ? '生成中…' : 'SYNTHESIZING…');
+    showGenBanner(lab);
+  } catch(e) {}
+  // 清掉旧的悬浮气泡，避免重复
+  try {
+    var a = document.getElementById('typingBubbleHint'); if (a) a.remove();
+    var b = document.getElementById('typingBubbleIn'); if (b) b.remove();
+  } catch(e) {}
 }
 function hideTypingBubble() {
-  const a = document.getElementById('typingBubbleHint');
-  if (a) a.remove();
-  const b = document.getElementById('typingBubbleIn');
-  if (b) b.remove();
+  try { hideGenBanner(); } catch(e) {}
+  try {
+    var a = document.getElementById('typingBubbleHint'); if (a) a.remove();
+    var b = document.getElementById('typingBubbleIn'); if (b) b.remove();
+  } catch(e) {}
 }
 function getOnlineChatRules(extra) {
   const now = new Date();
@@ -5672,7 +5791,8 @@ function getOnlineChatRules(extra) {
   else if (h < 14) slot = '中午'; else if (h < 18) slot = '下午'; else if (h < 21) slot = '晚上';
   else if (h < 23) slot = '夜里'; else slot = '深夜';
   // 完整格式锁定 + 防重复 + 上下文/记忆（来自《线上聊天仿掉格式和重复内容》全文精简并入内置规则，勿再在自定义提示词里重复粘贴）
-  return `你是正在用聊天软件跟 User 聊天的真人，不是 AI、旁白或剧情生成器。
+  var proactiveExtra = state._proactiveHint ? ('\n【上线触发】'+state._proactiveHint) : '';
+  return `你是正在用聊天软件跟 User 聊天的真人，不是 AI、旁白或剧情生成器。${proactiveExtra}
 【优先级】角色人设＞User设定＞世界书＞长期记忆＞短期记忆＞上下文。禁止无理由 OOC。
 【聊天形态】一句一句发，默认每轮 1～2 句短句；少用句号，可用空格/换行；禁止小说旁白、括号动作、客服腔、总结报告腔。
 【边界】不替 User 说话/行动/做决定；不抢话；不弱化也不神化任何一方；去油腻霸总爹味（除非人设明确且健康边界内）；不辱女、不侮辱国家种族；不人身攻击。
@@ -7233,7 +7353,7 @@ function onFileSelected(e) {
       state.home.page = pageIdx;
       // 空白照片墙等：尺寸不随图片改变
       var _wt = state.home.pageWidgets[pageIdx][wIdx].type;
-var fixed = state._widgetFixedSize || (_wt === 'pw_blank' || _wt === 'photowall3' || _wt === 'airdrop_card' || _wt === 'music_player' || _wt === 'dual_orbit' || _wt === 'about_me' || _wt === 'heart_badge' || _wt === 'heart_standee' || _wt === 'badge3d' || _wt === 'standee' || _wt === 'standee_l');
+var fixed = state._widgetFixedSize || (_wt === 'polaroid_l' || _wt === 'polaroid_m' || _wt === 'polaroid' || _wt === 'pw_blank' || _wt === 'photowall3' || _wt === 'airdrop_card' || _wt === 'music_player' || _wt === 'dual_orbit' || _wt === 'about_me' || _wt === 'heart_badge' || _wt === 'heart_standee' || _wt === 'badge3d' || _wt === 'standee' || _wt === 'standee_l');
       state._widgetFixedSize = false;
       if (!fixed) {
         try {
@@ -7394,7 +7514,14 @@ function saveChar() {
     id, realName: document.getElementById('fRealName').value.trim(), nick,
     gender: (document.getElementById('fGender') || {}).value || '',
     nation: ((document.getElementById('fNation') || {}).value || '').trim(),
-    lang: ((document.getElementById('fLang') || {}).value || '').trim(),
+    lang: ((document.getElementById('fLang') || {}).value || ''),
+    timezone: (function(){
+      var sel = document.getElementById('fTimezone');
+      var custom = document.getElementById('fTimezoneCustom');
+      if (!sel) return '';
+      if (sel.value === 'custom') return ((custom && custom.value) || '').trim();
+      return sel.value || '';
+    })().trim(),
     avatar: state._tempAvatar || '', signature: document.getElementById('fSign').value.trim(),
     persona: document.getElementById('fPersona').value.trim(),
     relation: (document.getElementById('fRelation') && document.getElementById('fRelation').value || '').trim(),
@@ -8180,6 +8307,35 @@ function editCharInChat() {
           return '<option value="'+l+'" '+( (c.lang||'')===l ? 'selected' : '' )+'>'+lab+'</option>';
         }).join('')}
       </select>
+    </div>
+    <div class="form-group"><label>时区</label>
+      <select id="fTimezone" onchange="var o=document.getElementById('fTimezoneCustom');if(o)o.style.display=this.value==='custom'?'block':'none'">
+        ${[
+          ['', '跟随系统'],
+          ['Asia/Shanghai', '北京 / 上海 (UTC+8)'],
+          ['Asia/Hong_Kong', '香港 (UTC+8)'],
+          ['Asia/Taipei', '台北 (UTC+8)'],
+          ['Asia/Tokyo', '东京 (UTC+9)'],
+          ['Asia/Seoul', '首尔 (UTC+9)'],
+          ['Asia/Singapore', '新加坡 (UTC+8)'],
+          ['Europe/London', '伦敦 (UTC+0/+1)'],
+          ['Europe/Paris', '巴黎 (UTC+1/+2)'],
+          ['Europe/Berlin', '柏林 (UTC+1/+2)'],
+          ['Europe/Moscow', '莫斯科 (UTC+3)'],
+          ['America/New_York', '纽约 (UTC-5/-4)'],
+          ['America/Los_Angeles', '洛杉矶 (UTC-8/-7)'],
+          ['America/Chicago', '芝加哥 (UTC-6/-5)'],
+          ['Australia/Sydney', '悉尼 (UTC+10/+11)'],
+          ['UTC', 'UTC'],
+          ['custom', '自定义…']
+        ].map(function(pair){
+          var v=pair[0], lab=pair[1];
+          var cur = c.timezone || '';
+          var sel = (cur === v) || (v==='custom' && cur && !['Asia/Shanghai','Asia/Hong_Kong','Asia/Taipei','Asia/Tokyo','Asia/Seoul','Asia/Singapore','Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow','America/New_York','America/Los_Angeles','America/Chicago','Australia/Sydney','UTC',''].includes(cur));
+          return '<option value="'+v+'" '+(sel?'selected':'')+'>'+lab+'</option>';
+        }).join('')}
+      </select>
+      <input id="fTimezoneCustom" value="${escapeHtml((c.timezone && !['Asia/Shanghai','Asia/Hong_Kong','Asia/Taipei','Asia/Tokyo','Asia/Seoul','Asia/Singapore','Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow','America/New_York','America/Los_Angeles','America/Chicago','Australia/Sydney','UTC',''].includes(c.timezone)) ? c.timezone : '')}" placeholder="例如 Asia/Bangkok 或 UTC+7" style="margin-top:6px;display:${(c.timezone && !['Asia/Shanghai','Asia/Hong_Kong','Asia/Taipei','Asia/Tokyo','Asia/Seoul','Asia/Singapore','Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow','America/New_York','America/Los_Angeles','America/Chicago','Australia/Sydney','UTC',''].includes(c.timezone))?'block':'none'}">
     </div>
     <div class="form-group"><label>签名</label><input id="fSign" value="${c.signature || ''}"></div>
     <div class="form-group"><label>与 user 的关系</label><input id="fRelation" value="${c.relation || c.relationship || ''}" placeholder="例如：恋人 / 好友 / 前桌 / 师妹"></div>
@@ -13889,6 +14045,16 @@ function spaceTab(tab, i) {
 // ===== 书城 =====
 
 // ===== 番茄钟 =====
+function pickPomoCompanion() {
+  if (!state.pomodoro) state.pomodoro = { tasks: [], projects: [], logs: [], plans: [] };
+  var chars = state.chars || [];
+  if (!chars.length) { showToast('还没有角色'); return; }
+  var list = '<div class="setting-item" onclick="state.pomodoro.companionId=null;save();closeModal();openPomodoro(\'record\');showToast(\'已取消陪伴\')"><div>不陪伴</div></div>'
+    + chars.map(function(c){
+      return '<div class="setting-item" onclick="state.pomodoro.companionId=\''+c.id+'\';save();closeModal();openPomodoro(\'record\');showToast(\'已选择 '+escapeHtml(c.nick||c.realName||'')+'\')"><div>'+escapeHtml(c.nick||c.realName||'角色')+'</div></div>';
+    }).join('');
+  openModal('番茄钟 · 选择陪伴', list, '<button class="btn btn-secondary" onclick="closeModal()">取消</button>', { center:true });
+}
 function openPomodoro(tab) {
   state._homeRoot = 'pomodoro';
   state._subKind = 'tomato';
@@ -13900,9 +14066,12 @@ function openPomodoro(tab) {
     const tasks = state.pomodoro.tasks || [];
     const order = state._pomoOrder === 'desc' ? -1 : 1;
     const sorted = [...tasks].sort((a,b)=>(a.minutes-b.minutes)*order);
+    const companion = state.pomodoro.companionId ? (state.chars.find(function(c){ return c.id === state.pomodoro.companionId; }) || null) : null;
+    const companionLab = companion ? ('陪伴：'+(companion.nick||companion.realName||'角色')) : '选择角色陪伴';
     main = `<div style="padding:12px">
-      <div style="display:flex;gap:8px;margin-bottom:10px">
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center;flex-wrap:wrap">
         <button class="btn btn-secondary" style="font-size:12px;padding:4px 10px" onclick="state._pomoOrder=state._pomoOrder==='desc'?'asc':'desc';openPomodoro('record')">排序: ${state._pomoOrder==='desc'?'倒序':'正序'}</button>
+        <button class="btn btn-secondary" style="font-size:12px;padding:4px 10px" onclick="pickPomoCompanion()">${escapeHtml(companionLab)}</button>
         <button type="button" style="margin-left:auto;border:none;background:#1c1c1e;color:#fff;width:28px;height:28px;border-radius:50%;font-size:18px;line-height:28px;cursor:pointer" onclick="editPomoTask()">+</button>
       </div>
       ${sorted.map((t,i)=>`<div class="setting-item" style="border-radius:12px;margin-bottom:8px;border:1px solid var(--line)" onclick="startPomoTimer('${t.id}')">
@@ -14022,9 +14191,12 @@ function startPomoTimer(id) {
   const t = (state.pomodoro.tasks||[]).find(x=>x.id===id);
   if (!t) return;
   let left = (t.minutes||25) * 60;
+  var comp = state.pomodoro.companionId ? (state.chars.find(function(c){ return c.id === state.pomodoro.companionId; })||null) : null;
+  var compHtml = comp ? ('<div style="margin-top:10px;font-size:13px;color:var(--sub)">'+escapeHtml(comp.nick||comp.realName||'')+' 陪伴中</div>') : '';
   openModal('专注中', `<div style="text-align:center;padding:20px">
     <div style="font-size:18px;margin-bottom:12px">${escapeHtml(t.name)}</div>
     <div id="pomoCount" style="font-size:40px;font-variant-numeric:tabular-nums">--:--</div>
+    ${compHtml}
   </div>`, `<button class="btn btn-danger" onclick="clearInterval(state._pomoTimer);closeModal()">停止</button>`);
   const tick = () => {
     const m = Math.floor(left/60), s = left%60;
@@ -14794,11 +14966,12 @@ function openReaderWallpaper() {
 }
 function cycleReaderTurn() {
   if (!state._readerPref) state._readerPref = {};
-  state._readerPref.turn = state._readerPref.turn === 'slide' ? 'scroll' : 'slide';
+  // 仅保留上下滑动，不再提供左右翻页
+  state._readerPref.turn = 'scroll';
   const lab = document.getElementById('rdTurnLab');
-  if (lab) lab.textContent = state._readerPref.turn === 'slide' ? '左右' : '上下';
+  if (lab) lab.textContent = '上下';
   applyReaderTurn();
-  alert(state._readerPref.turn === 'slide' ? '已切换为左右翻页' : '已切换为上下滑动');
+  showToast('阅读仅支持上下滑动');
 }
 function exitBookReader() {
   try {
@@ -15223,6 +15396,8 @@ function readerHighlight() {
   if (menu) menu.remove();
 }
 function applyReaderTurn() {
+  if (!state._readerPref) state._readerPref = {};
+  state._readerPref.turn = 'scroll'; // 强制上下滑
   const body = document.getElementById('readerBody');
   if (!body) return;
   const turn = (state._readerPref || {}).turn || 'scroll';
@@ -18653,22 +18828,47 @@ function openOfflineStyleManage() {
 function editOfflineStyle(i) {
   if (!state.offlineStyles) state.offlineStyles = [];
   const s = i >= 0 ? state.offlineStyles[i] : { name:'', content:'' };
+  state._ofsEditIdx = i;
   openModal(i>=0?'编辑文风':'添加文风', `
-    <div class="form-group"><label>名称</label><input id="ofsName" value="${escapeHtml(s.name||'')}"></div>
-    <div class="form-group"><label>文风内容（完整描述，可很长）</label><textarea id="ofsContent" style="min-height:160px">${escapeHtml(s.content||'')}</textarea></div>
-  `, `<button class="btn btn-secondary" onclick="openOfflineStyleManage()">取消</button>
-      <button class="btn btn-primary" onclick="saveOfflineStyle(${i})">保存</button>`, { center: true });
+    <div class="form-group"><label>名称</label><input id="ofsName" value="${escapeHtml(s.name||'')}" oninput="state._ofsDraftName=this.value"></div>
+    <div class="form-group"><label>文风内容（完整描述，可很长）</label><textarea id="ofsContent" style="min-height:160px" oninput="state._ofsDraftContent=this.value">${escapeHtml(s.content||'')}</textarea></div>
+  `, `<button class="btn btn-secondary" onclick="state._ofsDraftName=null;state._ofsDraftContent=null;openOfflineStyleManage()">取消</button>
+      <button class="btn btn-primary" onclick="saveOfflineStyle(${i})">保存</button>`, { center: true, replace: true });
+  state._ofsDraftName = s.name || '';
+  state._ofsDraftContent = s.content || '';
+  setTimeout(function(){
+    try {
+      var n = document.getElementById('ofsName');
+      var c = document.getElementById('ofsContent');
+      if (n) { n.value = state._ofsDraftName || ''; n.focus(); }
+      if (c) c.value = state._ofsDraftContent || '';
+    } catch(e) {}
+  }, 50);
 }
 function saveOfflineStyle(i) {
   if (!state.offlineStyles) state.offlineStyles = [];
-  const row = {
-    id: i >= 0 && state.offlineStyles[i] ? state.offlineStyles[i].id : ('ofs'+Date.now()),
-    name: document.getElementById('ofsName').value.trim() || '未命名文风',
-    content: document.getElementById('ofsContent').value.trim()
+  if (i == null) i = state._ofsEditIdx;
+  if (i == null) i = -1;
+  var nameEl = document.getElementById('ofsName');
+  var contEl = document.getElementById('ofsContent');
+  var name = '';
+  var content = '';
+  try { if (nameEl) name = (nameEl.value || '').trim(); } catch(e) {}
+  try { if (contEl) content = (contEl.value || '').trim(); } catch(e) {}
+  if (!name && state._ofsDraftName) name = String(state._ofsDraftName).trim();
+  if (!content && state._ofsDraftContent) content = String(state._ofsDraftContent).trim();
+  if (!name) name = '未命名文风';
+  var row = {
+    id: (i >= 0 && state.offlineStyles[i]) ? state.offlineStyles[i].id : ('ofs'+Date.now()),
+    name: name,
+    content: content
   };
-  if (i >= 0) state.offlineStyles[i] = row;
+  if (i >= 0 && state.offlineStyles[i]) state.offlineStyles[i] = row;
   else state.offlineStyles.push(row);
-  save();
+  state._ofsDraftName = null;
+  state._ofsDraftContent = null;
+  try { save(); if (typeof saveAsync === 'function') saveAsync(); } catch(e) {}
+  showToast('文风已保存');
   openOfflineStyleManage();
 }
 function openOfflineSettings(charId) {
@@ -24355,6 +24555,107 @@ function confirmSynPick(side, id, name) {
   else { state._synB = { id, name }; document.getElementById('synB').innerHTML = '<b>'+escapeHtml(name)+'</b>'; }
   closeModal();
 }
+
+/** 合盘星盘示意：马盘 / 比较盘 / 组合盘 */
+function renderSynChartView(kind, a, b, dims) {
+  a = a || {}; b = b || {}; dims = dims || {};
+  var seed = divHash((a.id||'') + (b.id||'') + (kind||''));
+  var planets = ['日','月','水','金','火','木','土','天','海','冥'];
+  var signs = ['白羊','金牛','双子','巨蟹','狮子','处女','天秤','天蝎','射手','摩羯','水瓶','双鱼'];
+  function houseOf(i, off) { return ((seed + i * 7 + (off||0)) % 12) + 1; }
+  function signOf(i, off) { return signs[(seed + i * 5 + (off||0)) % 12]; }
+  function degOf(i) { return (seed * (i+3) * 13) % 30; }
+  // SVG 十二宫圆环
+  function wheelSvg(title, points, color) {
+    var R = 110, cx = 130, cy = 130;
+    var rings = '';
+    for (var r = 40; r <= R; r += 35) {
+      rings += '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1"/>';
+    }
+    var spokes = '';
+    for (var i = 0; i < 12; i++) {
+      var ang = (i * 30 - 90) * Math.PI / 180;
+      var x2 = cx + R * Math.cos(ang), y2 = cy + R * Math.sin(ang);
+      spokes += '<line x1="'+cx+'" y1="'+cy+'" x2="'+x2+'" y2="'+y2+'" stroke="rgba(255,255,255,.1)" stroke-width="1"/>';
+      var lx = cx + (R+14) * Math.cos(ang), ly = cy + (R+14) * Math.sin(ang);
+      spokes += '<text x="'+lx+'" y="'+ly+'" fill="rgba(200,180,220,.7)" font-size="9" text-anchor="middle" dominant-baseline="middle">'+(i+1)+'</text>';
+    }
+    var dots = '';
+    (points||[]).forEach(function(p, idx) {
+      var ang = ((p.house - 1) * 30 + p.deg - 90) * Math.PI / 180;
+      var rr = 55 + (idx % 3) * 18;
+      var x = cx + rr * Math.cos(ang), y = cy + rr * Math.sin(ang);
+      dots += '<circle cx="'+x+'" cy="'+y+'" r="9" fill="'+color+'" opacity=".85"/>';
+      dots += '<text x="'+x+'" y="'+y+'" fill="#1a1028" font-size="9" font-weight="700" text-anchor="middle" dominant-baseline="middle">'+p.name+'</text>';
+    });
+    return '<div style="text-align:center;margin-bottom:8px"><div style="font-size:13px;opacity:.85;margin-bottom:6px">'+title+'</div>'
+      + '<svg viewBox="0 0 260 260" width="100%" style="max-width:280px;margin:0 auto;display:block;background:radial-gradient(circle at 50% 50%,rgba(80,60,120,.35),rgba(20,12,40,.9));border-radius:50%">'
+      + rings + spokes + dots + '</svg></div>';
+  }
+  function planetList(points, labelA, labelB) {
+    return '<div style="margin-top:10px">'+points.map(function(p){
+      return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:12px">'
+        + '<span>'+p.name+' · '+p.sign+' '+p.deg+'°</span><span style="opacity:.7">'+p.house+' 宫'+(p.note?(' · '+p.note):'')+'</span></div>';
+    }).join('')+'</div>';
+  }
+  var labelA = escapeHtml(a.name||'A'), labelB = escapeHtml(b.name||'B');
+  var ptsA = planets.map(function(n,i){ return { name:n, sign:signOf(i,0), deg:degOf(i), house:houseOf(i,0), note:labelA }; });
+  var ptsB = planets.map(function(n,i){ return { name:n, sign:signOf(i,3), deg:degOf(i+2), house:houseOf(i,4), note:labelB }; });
+  var term = (typeof getCurrentSolarTerm === 'function') ? getCurrentSolarTerm() : null;
+  var termLine = term ? ('<div style="font-size:11px;opacity:.65;text-align:center;margin-bottom:8px">当前节气：'+term.name+(term.beijing?(' · '+term.beijing.slice(0,16)):'')+'</div>') : '';
+
+  if (kind === 'horseA') {
+    return termLine + wheelSvg('马盘 A：'+labelA+' 看 '+labelB, ptsB, '#c4a8e0')
+      + '<div style="font-size:12px;line-height:1.6;opacity:.8;padding:0 4px">以 '+labelA+' 的宫位为盘，看 '+labelB+' 行星落入。侧重 A 对 B 的主观感受与投射。</div>'
+      + planetList(ptsB);
+  }
+  if (kind === 'horseB') {
+    return termLine + wheelSvg('马盘 B：'+labelB+' 看 '+labelA, ptsA, '#a8c4e0')
+      + '<div style="font-size:12px;line-height:1.6;opacity:.8;padding:0 4px">以 '+labelB+' 的宫位为盘，看 '+labelA+' 行星落入。侧重 B 对 A 的主观感受与投射。</div>'
+      + planetList(ptsA);
+  }
+  if (kind === 'composite') {
+    var ptsC = planets.map(function(n,i){
+      return { name:n, sign:signOf(i,1), deg:Math.floor((degOf(i)+degOf(i+2))/2), house:houseOf(i,2), note:'组合' };
+    });
+    return termLine + wheelSvg('组合盘 · 关系第三体', ptsC, '#e0c4a8')
+      + '<div style="font-size:12px;line-height:1.6;opacity:.8;padding:0 4px">组合盘把双方行星中点视为“这段关系本身”的命运走势。羁绊 '+ (dims.bond||'-') +' · 承诺 '+(dims.commit||'-')+'。</div>'
+      + planetList(ptsC);
+  }
+  // compare default
+  return termLine + wheelSvg('比较盘 · 双人叠加', ptsA.concat(ptsB).slice(0,12), '#b8a0d0')
+    + '<div style="font-size:12px;line-height:1.6;opacity:.8;padding:0 4px;margin-bottom:8px">比较盘看双方行星落宫与相位：吸引、摩擦、互补。激情 '+(dims.passion||'-')+' · 默契 '+(dims.sync||'-')+'。</div>'
+    + '<div style="font-size:12px;font-weight:600;margin:8px 0 4px">'+labelA+'</div>'+planetList(ptsA.slice(0,6))
+    + '<div style="font-size:12px;font-weight:600;margin:12px 0 4px">'+labelB+'</div>'+planetList(ptsB.slice(0,6));
+}
+/** 节气：内置近年表（北京时间），供占卜/季节感知 */
+var SOLAR_TERMS_COMPACT = {
+  "2024":[["小寒","2024-01-06 04:49"],["大寒","2024-01-20 22:07"],["立春","2024-02-04 16:27"],["雨水","2024-02-19 12:13"],["惊蛰","2024-03-05 10:23"],["春分","2024-03-20 11:06"],["清明","2024-04-04 15:02"],["谷雨","2024-04-19 21:59"],["立夏","2024-05-05 08:10"],["小满","2024-05-20 20:59"],["芒种","2024-06-05 12:10"],["夏至","2024-06-21 04:51"],["小暑","2024-07-06 22:20"],["大暑","2024-07-22 15:44"],["立秋","2024-08-07 08:09"],["处暑","2024-08-22 22:55"],["白露","2024-09-07 11:11"],["秋分","2024-09-22 20:43"],["寒露","2024-10-08 02:00"],["霜降","2024-10-23 05:15"],["立冬","2024-11-07 06:20"],["小雪","2024-11-22 03:56"],["大雪","2024-12-06 23:17"],["冬至","2024-12-21 17:20"]],
+  "2025":[["小寒","2025-01-05 10:33"],["大寒","2025-01-20 03:51"],["立春","2025-02-03 22:10"],["雨水","2025-02-18 17:52"],["惊蛰","2025-03-05 16:07"],["春分","2025-03-20 17:01"],["清明","2025-04-04 20:48"],["谷雨","2025-04-20 03:56"],["立夏","2025-05-05 13:57"],["小满","2025-05-21 02:54"],["芒种","2025-06-05 18:07"],["夏至","2025-06-21 10:42"],["小暑","2025-07-07 04:05"],["大暑","2025-07-22 21:29"],["立秋","2025-08-07 13:52"],["处暑","2025-08-23 04:34"],["白露","2025-09-07 16:52"],["秋分","2025-09-23 02:19"],["寒露","2025-10-08 07:41"],["霜降","2025-10-23 10:51"],["立冬","2025-11-07 12:04"],["小雪","2025-11-22 09:35"],["大雪","2025-12-07 05:05"],["冬至","2025-12-21 23:03"]],
+  "2026":[["小寒","2026-01-05 16:23"],["大寒","2026-01-20 09:44"],["立春","2026-02-04 04:02"],["雨水","2026-02-18 23:51"],["惊蛰","2026-03-05 21:58"],["春分","2026-03-20 22:46"],["清明","2026-04-05 02:40"],["谷雨","2026-04-20 09:39"],["立夏","2026-05-05 19:48"],["小满","2026-05-21 08:36"],["芒种","2026-06-05 23:48"],["夏至","2026-06-21 16:24"],["小暑","2026-07-07 09:57"],["大暑","2026-07-23 03:12"],["立秋","2026-08-07 19:43"],["处暑","2026-08-23 10:19"],["白露","2026-09-07 22:41"],["秋分","2026-09-23 08:05"],["寒露","2026-10-08 13:29"],["霜降","2026-10-23 16:38"],["立冬","2026-11-07 17:52"],["小雪","2026-11-22 15:23"],["大雪","2026-12-07 10:52"],["冬至","2026-12-22 04:50"]]
+};
+function getCurrentSolarTerm(date) {
+  try {
+    var d = date ? new Date(date) : new Date();
+    var y = String(d.getFullYear());
+    var list = SOLAR_TERMS_COMPACT[y];
+    if (!list) {
+      // 回退到相邻年
+      list = SOLAR_TERMS_COMPACT[String(+y-1)] || SOLAR_TERMS_COMPACT['2026'];
+    }
+    if (!list) return null;
+    var ts = d.getTime();
+    var cur = list[0], next = null;
+    for (var i = 0; i < list.length; i++) {
+      var t = new Date(list[i][1].replace(/-/g,'/')).getTime();
+      if (t <= ts) cur = { name: list[i][0], beijing: list[i][1] };
+      if (t > ts) { next = { name: list[i][0], beijing: list[i][1] }; break; }
+    }
+    return cur;
+  } catch(e) { return null; }
+}
+
+
 function runSynastry() {
   if (!state._synA || !state._synB) { alert('请选择双方'); return; }
   const h = divHash(state._synA.id + state._synB.id);
@@ -24390,15 +24691,15 @@ function openSynResult(tab) {
       <div style="text-align:center;margin-top:20px;font-size:15px">长久发展可能性 <b style="font-size:22px">${state._synLong||0}%</b></div>
     </div>`;
   } else if (tab === 'charts') {
-    body = `<div style="padding:16px">
-      <div style="display:flex;gap:6px;margin-bottom:12px">
-        <button class="btn btn-secondary" style="flex:1;font-size:12px" onclick="alert('马盘A：${escapeHtml(a.name)} 看 ${escapeHtml(b.name)} 的投射（示意）')">马盘A</button>
-        <button class="btn btn-secondary" style="flex:1;font-size:12px" onclick="alert('马盘B：${escapeHtml(b.name)} 看 ${escapeHtml(a.name)} 的投射（示意）')">马盘B</button>
+    const sub = state._synChartSub || 'compare';
+    const subBtn = (id, lab) => `<button type="button" onclick="state._synChartSub='${id}';openSynResult('charts')" style="flex:1;border:none;padding:8px;border-radius:10px;font-size:12px;cursor:pointer;background:${sub===id?'rgba(255,255,255,.14)':'transparent'};color:${sub===id?'#fff':'#c8b8d8'}">${lab}</button>`;
+    body = `<div style="padding:12px 16px 20px">
+      <div style="display:flex;gap:4px;margin-bottom:12px;background:rgba(0,0,0,.2);border-radius:12px;padding:3px">
+        ${subBtn('horseA','马盘A')}${subBtn('horseB','马盘B')}${subBtn('compare','比较盘')}${subBtn('composite','组合盘')}
       </div>
-      <div style="padding:12px;background:rgba(255,255,255,.05);border-radius:12px;line-height:1.7;font-size:13px;margin-bottom:8px"><b>比较盘</b>：双方行星落宫与相位，看吸引力与摩擦点。</div>
-      <div style="padding:12px;background:rgba(255,255,255,.05);border-radius:12px;line-height:1.7;font-size:13px"><b>组合盘</b>：关系本身的“第三个体”命运走势。</div>
+      ${renderSynChartView(sub, a, b, dims)}
     </div>`;
-  } else {
+    } else {
     body = `<div style="padding:16px;line-height:1.8;font-size:14px">
       <div style="margin-bottom:10px"><b>${escapeHtml(a.name)}</b> 与 <b>${escapeHtml(b.name)}</b></div>
       <div style="padding:12px;background:rgba(255,255,255,.05);border-radius:12px;margin-bottom:10px">羁绊与承诺维度${(dims.bond||0)>60?'偏高，长期潜力可期':'中等，需共同经营'}。激情 ${(dims.passion||0)>60?'充沛':'偏稳'}。</div>
