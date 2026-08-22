@@ -698,7 +698,13 @@ body {
   background: #f2f2f5 !important;
   padding: 10px 12px 16px !important;
 }
-/* 气泡：略扁圆角，非完全胶囊 */
+/* 防竖排：气泡容器不要被 flex 压成单字宽 */
+#page-chat[data-chat-theme="bubble"] .msg-bubble-wrap {
+  flex-shrink: 0 !important;
+  min-width: 48px !important;
+  max-width: 72% !important;
+  width: auto !important;
+}
 #page-chat[data-chat-theme="bubble"] .msg-bubble:not(.bare),
 #page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare) {
   border-radius: 14px !important;
@@ -707,13 +713,22 @@ body {
   line-height: 1.5 !important;
   box-shadow: none !important;
   border: none !important;
-  max-width: 78% !important;
+  max-width: 100% !important;
+  width: fit-content !important;
+  min-width: 36px !important;
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
+  writing-mode: horizontal-tb !important;
+  display: block !important;
+  box-sizing: border-box !important;
 }
-/* 我：紫色 */
+/* 我：紫色，横向正常 */
 #page-chat[data-chat-theme="bubble"] .msg-row.me .msg-bubble:not(.bare) {
   background: #b39dff !important;
   color: #1c1c1e !important;
   border-radius: 14px 14px 4px 14px !important;
+  text-align: left !important;
 }
 /* 对方：白底 */
 #page-chat[data-chat-theme="bubble"] .msg-row.other .msg-bubble:not(.bare) {
@@ -721,6 +736,7 @@ body {
   color: #1c1c1e !important;
   border: 0.5px solid #ebeaf0 !important;
   border-radius: 14px 14px 14px 4px !important;
+  text-align: left !important;
 }
 #page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare)::before,
 #page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare)::after {
@@ -735,56 +751,63 @@ body {
   padding: 0 !important;
   box-shadow: none !important;
   border: none !important;
+  width: auto !important;
+  max-width: none !important;
 }
-/* 头像圆形 + 渐变紫环（对方） */
-#page-chat[data-chat-theme="bubble"] .msg-row.other .msg-avatar {
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 50% !important;
-  padding: 2px !important;
-  background: linear-gradient(135deg, #a78bfa, #c4b5fd 40%, #8b5cf6 100%) !important;
-  box-sizing: border-box !important;
-  object-fit: cover !important;
-}
+/* 头像圆形 + 渐变紫环 */
+#page-chat[data-chat-theme="bubble"] .msg-row.other .msg-avatar,
 #page-chat[data-chat-theme="bubble"] .msg-row.me .msg-avatar {
   width: 40px !important;
   height: 40px !important;
   border-radius: 50% !important;
+  padding: 2px !important;
+  background: linear-gradient(135deg, #c4b5fd 0%, #a78bfa 45%, #7c3aed 100%) !important;
+  box-sizing: border-box !important;
   object-fit: cover !important;
+  flex-shrink: 0 !important;
 }
-/* ARTIST 标识 */
+/* ARTIST 标识：渐变紫底 */
 #page-chat[data-chat-theme="bubble"] .bubble-artist-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin-bottom: 4px;
+  gap: 5px;
+  margin-bottom: 5px;
   font-size: 11px;
   color: #6b7280;
 }
 #page-chat[data-chat-theme="bubble"] .bubble-artist-badge .tag {
-  background: #5b5fc7;
+  background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 50%, #7c3aed 100%);
   color: #fff;
   font-size: 9px;
   font-weight: 700;
-  letter-spacing: .04em;
-  padding: 1px 5px;
-  border-radius: 3px;
-  line-height: 1.4;
+  letter-spacing: .05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1.35;
 }
 #page-chat[data-chat-theme="bubble"] .bubble-artist-badge .aname {
   font-weight: 600;
-  color: #374151;
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #8b5cf6;
   font-size: 11px;
-  text-transform: uppercase;
 }
-/* 翻译淡紫 */
+/* 翻译：渐变紫文字 */
 #page-chat[data-chat-theme="bubble"] .msg-translation,
-#page-chat[data-chat-theme="bubble"] .msg-row .msg-translation {
-  color: #8b7cc9 !important;
+#page-chat[data-chat-theme="bubble"] .msg-row .msg-translation,
+#page-chat[data-chat-theme="bubble"] .msg-bubble .msg-translation {
+  background: linear-gradient(90deg, #8b5cf6, #a78bfa, #c4b5fd) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: #8b5cf6 !important;
   font-size: 12px !important;
   margin-top: 6px !important;
   border-top: 0.5px dashed #d4cfff !important;
   padding-top: 6px !important;
+  font-weight: 500 !important;
 }
 #page-chat[data-chat-theme="bubble"] .wx-input-bar,
 #page-chat[data-chat-theme="bubble"] .input-bar {
@@ -2609,7 +2632,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22D';
+const EENOK_BUILD = '2026-08-22E';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
