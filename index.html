@@ -670,12 +670,15 @@ body {
 
 /* ========== Bubble 风格 ========== */
 #page-chat[data-chat-theme="bubble"] {
-  background: #f5f5f7 !important;
+  background: #f2f2f5 !important;
 }
 #page-chat[data-chat-theme="bubble"] .chat-header {
   background: #ffffff !important;
-  border-bottom: 0.5px solid #eee !important;
+  border-bottom: 0.5px solid #ececf0 !important;
   height: 56px !important;
+}
+#page-chat[data-chat-theme="bubble"] .chat-header .name-area {
+  text-align: center !important;
 }
 #page-chat[data-chat-theme="bubble"] .chat-header .name {
   color: #1c1c1e !important;
@@ -685,26 +688,39 @@ body {
 #page-chat[data-chat-theme="bubble"] .chat-header .status {
   display: none !important;
 }
-#page-chat[data-chat-theme="bubble"] #msgArea {
-  background: #f5f5f7 !important;
+#page-chat[data-chat-theme="bubble"] .bubble-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-right: 4px;
 }
+#page-chat[data-chat-theme="bubble"] #msgArea {
+  background: #f2f2f5 !important;
+  padding: 10px 12px 16px !important;
+}
+/* 气泡：略扁圆角，非完全胶囊 */
 #page-chat[data-chat-theme="bubble"] .msg-bubble:not(.bare),
 #page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare) {
-  border-radius: 16px !important;
-  padding: 10px 14px !important;
+  border-radius: 14px !important;
+  padding: 11px 14px !important;
   font-size: 15px !important;
-  line-height: 1.45 !important;
+  line-height: 1.5 !important;
   box-shadow: none !important;
   border: none !important;
+  max-width: 78% !important;
 }
+/* 我：紫色 */
 #page-chat[data-chat-theme="bubble"] .msg-row.me .msg-bubble:not(.bare) {
-  background: #c4b5fd !important;
+  background: #b39dff !important;
   color: #1c1c1e !important;
+  border-radius: 14px 14px 4px 14px !important;
 }
+/* 对方：白底 */
 #page-chat[data-chat-theme="bubble"] .msg-row.other .msg-bubble:not(.bare) {
   background: #ffffff !important;
   color: #1c1c1e !important;
-  border: 0.5px solid #ececf0 !important;
+  border: 0.5px solid #ebeaf0 !important;
+  border-radius: 14px 14px 14px 4px !important;
 }
 #page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare)::before,
 #page-chat[data-chat-theme="bubble"] .msg-row .msg-bubble:not(.bare)::after {
@@ -713,15 +729,62 @@ body {
 }
 #page-chat[data-chat-theme="bubble"] .msg-bubble.redpacket,
 #page-chat[data-chat-theme="bubble"] .msg-bubble.transfer,
-#page-chat[data-chat-theme="bubble"] .msg-bubble.bare {
+#page-chat[data-chat-theme="bubble"] .msg-bubble.bare,
+#page-chat[data-chat-theme="bubble"] .msg-bubble.dateInvite {
   background: transparent !important;
   padding: 0 !important;
   box-shadow: none !important;
   border: none !important;
 }
-#page-chat[data-chat-theme="bubble"] .msg-row .msg-translation,
-#page-chat[data-chat-theme="bubble"] .msg-row [style*="translation"] {
-  color: #7c6bc4 !important;
+/* 头像圆形 + 渐变紫环（对方） */
+#page-chat[data-chat-theme="bubble"] .msg-row.other .msg-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  padding: 2px !important;
+  background: linear-gradient(135deg, #a78bfa, #c4b5fd 40%, #8b5cf6 100%) !important;
+  box-sizing: border-box !important;
+  object-fit: cover !important;
+}
+#page-chat[data-chat-theme="bubble"] .msg-row.me .msg-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+}
+/* ARTIST 标识 */
+#page-chat[data-chat-theme="bubble"] .bubble-artist-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: #6b7280;
+}
+#page-chat[data-chat-theme="bubble"] .bubble-artist-badge .tag {
+  background: #5b5fc7;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  padding: 1px 5px;
+  border-radius: 3px;
+  line-height: 1.4;
+}
+#page-chat[data-chat-theme="bubble"] .bubble-artist-badge .aname {
+  font-weight: 600;
+  color: #374151;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+/* 翻译淡紫 */
+#page-chat[data-chat-theme="bubble"] .msg-translation,
+#page-chat[data-chat-theme="bubble"] .msg-row .msg-translation {
+  color: #8b7cc9 !important;
+  font-size: 12px !important;
+  margin-top: 6px !important;
+  border-top: 0.5px dashed #d4cfff !important;
+  padding-top: 6px !important;
 }
 #page-chat[data-chat-theme="bubble"] .wx-input-bar,
 #page-chat[data-chat-theme="bubble"] .input-bar {
@@ -2546,7 +2609,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22C';
+const EENOK_BUILD = '2026-08-22D';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -2871,7 +2934,7 @@ function compressDataUrl(dataUrl, maxW, quality, keepAlpha) {
       // 立牌 / 图标 / 通话壁纸等需要透明底：强制 PNG，禁止压成 JPEG
       var ft = String(state.fileTarget || '');
       var isWidgetUpload = ft.indexOf('homeWidget') === 0 || ft.indexOf('homeWidgetImg') === 0;
-      var forcePng = !!keepAlpha || isWidgetUpload || ft === 'standee' || ft === 'standee_l' || ft === 'heart_standee' || ft === 'heart_badge' || ft.indexOf('homeAppIcon') === 0 || ft === 'callBg' || ft.indexOf('pw3Cell') === 0 || (dataUrl.indexOf('image/png') >= 0 && (ft === 'homeWallpaper' || ft.indexOf('dock') >= 0));
+      var forcePng = !!keepAlpha || isWidgetUpload || ft === 'standee' || ft === 'standee_l' || ft === 'heart_standee' || ft === 'heart_badge' || ft === 'heart_badge_xl' || ft.indexOf('homeAppIcon') === 0 || ft === 'callBg' || ft.indexOf('pw3Cell') === 0 || (dataUrl.indexOf('image/png') >= 0 && (ft === 'homeWallpaper' || ft.indexOf('dock') >= 0));
       const img = new Image();
       img.onload = () => {
         let w = img.width, h = img.height;
@@ -4142,6 +4205,7 @@ function refreshChatHeaderQQ() {
 
   try { syncQQInputBar(isQQ); } catch(e) {}
   try {
+    const isBubble = chat.themeName === 'bubble';
     if (isKakao && hdr) {
       var acts = hdr.querySelector('.kakao-header-actions');
       if (!acts) {
@@ -4155,9 +4219,26 @@ function refreshChatHeaderQQ() {
         else hdr.appendChild(acts);
         if (right) right.style.display = 'none';
       }
+      var ba = hdr.querySelector('.bubble-header-actions');
+      if (ba) ba.remove();
+    } else if (isBubble && hdr) {
+      var ka2 = hdr.querySelector('.kakao-header-actions');
+      if (ka2) ka2.remove();
+      var bacts = hdr.querySelector('.bubble-header-actions');
+      if (!bacts) {
+        bacts = document.createElement('div');
+        bacts.className = 'bubble-header-actions';
+        bacts.innerHTML = '<span title="搜索" style="opacity:.7;pointer-events:none"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span>'
+          + '<span title="聊天设置" onclick="openChatSettings()" style="cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="1.8"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></span>';
+        var rightB = hdr.querySelector('.nav-btn:last-child') || hdr.lastElementChild;
+        if (rightB) { hdr.insertBefore(bacts, rightB); rightB.style.display = 'none'; }
+        else hdr.appendChild(bacts);
+      }
     } else if (hdr) {
       var ka = hdr.querySelector('.kakao-header-actions');
       if (ka) ka.remove();
+      var ba0 = hdr.querySelector('.bubble-header-actions');
+      if (ba0) ba0.remove();
       var right2 = hdr.querySelector('.nav-btn:last-child');
       if (right2) right2.style.display = '';
     }
@@ -4621,6 +4702,7 @@ function renderMessages(opts) {
         ${sel}
         <img class="msg-avatar" src="${av}" style="cursor:pointer" onclick="event.stopPropagation();showMsgThought(${idx})">
         <div class="msg-bubble-wrap">
+          ${(!isMe && chat && chat.themeName==='bubble') ? `<div class="bubble-artist-badge"><span class="tag">ARTIST</span><span class="aname">${escapeHtml((other && (other.realName || other.nick)) || (m.fromName) || '')}</span></div>` : ''}
           <div class="msg-bubble ${cls}"
                onclick="onBubbleClick(event, ${idx})"
                oncontextmenu="showBubbleMenu(event, ${idx});return false;"
@@ -7685,7 +7767,7 @@ function onFileSelected(e) {
       state.home.page = pageIdx;
       // 空白照片墙等：尺寸不随图片改变
       var _wt = state.home.pageWidgets[pageIdx][wIdx].type;
-var fixed = state._widgetFixedSize || (_wt === 'polaroid_l' || _wt === 'polaroid_m' || _wt === 'polaroid' || _wt === 'pw_blank' || _wt === 'photowall3' || _wt === 'airdrop_card' || _wt === 'music_player' || _wt === 'dual_orbit' || _wt === 'about_me' || _wt === 'heart_badge' || _wt === 'heart_standee' || _wt === 'badge3d' || _wt === 'standee' || _wt === 'standee_l');
+var fixed = state._widgetFixedSize || (_wt === 'polaroid_l' || _wt === 'polaroid_m' || _wt === 'polaroid' || _wt === 'pw_blank' || _wt === 'photowall3' || _wt === 'airdrop_card' || _wt === 'music_player' || _wt === 'dual_orbit' || _wt === 'about_me' || _wt === 'heart_badge' || _wt === 'heart_badge_xl' || _wt === 'heart_standee' || _wt === 'badge3d' || _wt === 'standee' || _wt === 'standee_l');
       state._widgetFixedSize = false;
       if (!fixed) {
         try {
@@ -15653,10 +15735,7 @@ function openReaderSettings() {
         oninput="state._readerPref.letter=+this.value;document.getElementById('rdLetterLab').textContent=this.value;renderReaderPage()">
     </div>
     <div class="form-group"><label>翻页方式</label>
-      <div style="display:flex;gap:8px">
-        <button type="button" class="btn btn-secondary" style="flex:1;${p.turn==='scroll'?'outline:2px solid #3b82f6':''}" onclick="state._readerPref.turn='scroll';applyReaderTurn();closeModal();openReaderSettings()">上下滑动</button>
-        <button type="button" class="btn btn-secondary" style="flex:1;${p.turn==='slide'?'outline:2px solid #3b82f6':''}" onclick="state._readerPref.turn='slide';applyReaderTurn();closeModal();openReaderSettings()">左右翻页</button>
-      </div>
+      <div class="text-sub" style="font-size:13px;padding:8px 0">仅支持上下滑动</div>
     </div>
   `, `<button class="btn btn-primary" onclick="closeModal()">完成</button>`);
 }
@@ -15731,7 +15810,7 @@ function readerHighlight() {
 }
 function applyReaderTurn() {
   if (!state._readerPref) state._readerPref = {};
-  state._readerPref.turn = 'scroll'; // 强制上下滑
+  state._readerPref.turn = 'scroll'; // 强制上下滑（已移除左右翻页）
   const body = document.getElementById('readerBody');
   if (!body) return;
   const turn = (state._readerPref || {}).turn || 'scroll';
@@ -17890,6 +17969,7 @@ function addHomeWidget(itemOrType) {
     polaroid: { type: 'polaroid_m', w: 120, h: 150, caption: '', content: '' },
     badge3d: { type: 'badge3d', w: 110, h: 110, img: '', rot: 0 },
     heart_badge: { type: 'heart_badge', w: 148, h: 140, img: '', rot: 0 },
+    heart_badge_xl: { type: 'heart_badge_xl', w: 240, h: 230, img: '', rot: 0 },
     heart_standee: {
       type: 'heart_standee', w: 200, h: 280,
       img: 'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png'
@@ -27855,23 +27935,32 @@ if (t === 'badge3d') {
           + '</div>';
         return '<div class="home-widget" data-widx="'+wi+'" data-wtype="badge3d" style="'+base+'overflow:visible;background:transparent;box-shadow:none">'+inner+del+'</div>';
       }
-      if (t === 'heart_badge') {
+      if (t === 'heart_badge' || t === 'heart_badge_xl') {
         var src = w.img || '';
         var rot = w.rot || 0;
-        if (!w.w || w.w < 120) w.w = 148;
-        if (!w.h || w.h < 120) w.h = 140;
-        var hp = 'M50 90 C20 68,4 48,12 30 C18 16,34 14,50 32 C66 14,82 16,88 30 C96 48,80 68,50 90 Z';
-        // 圆润饱满心形，无粉色光晕
+        var isXl = (t === 'heart_badge_xl');
+        if (isXl) {
+          if (!w.w || w.w < 200) w.w = 240;
+          if (!w.h || w.h < 200) w.h = 230;
+        } else {
+          if (!w.w || w.w < 120) w.w = 148;
+          if (!w.h || w.h < 120) w.h = 140;
+        }
+        var hp = 'M50 92 C18 70,2 48,12 28 C18 14,34 12,50 30 C66 12,82 14,88 28 C98 48,82 70,50 92 Z';
+        var shadow = isXl ? 'drop-shadow(0 10px 22px rgba(0,0,0,.22))' : 'drop-shadow(0 4px 8px rgba(0,0,0,.18))';
+        // 圆润饱满心形，无粉色光晕；XL 更大立体
         inner = '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:transparent;transform:rotate('+rot+'deg)">'
-          + '<svg viewBox="0 0 100 100" width="100%" height="100%" style="overflow:visible;filter:drop-shadow(0 4px 8px rgba(0,0,0,.18))">'
+          + '<svg viewBox="0 0 100 100" width="100%" height="100%" style="overflow:visible;filter:'+shadow+'">'
           + '<defs><clipPath id="hbClip'+wi+'"><path d="'+hp+'"/></clipPath>'
-          + '<linearGradient id="hbGrad'+wi+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff8fab"/><stop offset="100%" stop-color="#ff4d6d"/></linearGradient></defs>'
+          + '<linearGradient id="hbGrad'+wi+'" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff8fab"/><stop offset="100%" stop-color="#ff4d6d"/></linearGradient>'
+          + '<linearGradient id="hbShine'+wi+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,.35)"/><stop offset="40%" stop-color="rgba(255,255,255,0)"/></linearGradient></defs>'
           + (src
             ? '<image href="'+src+'" x="0" y="0" width="100" height="100" preserveAspectRatio="xMidYMid slice" clip-path="url(#hbClip'+wi+')"/>'
             : '<path d="'+hp+'" fill="url(#hbGrad'+wi+')"/>')
-          + '<path d="'+hp+'" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5"/>'
+          + (isXl ? '<path d="'+hp+'" fill="url(#hbShine'+wi+')" opacity=".5"/>' : '')
+          + '<path d="'+hp+'" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="'+(isXl?'2':'1.5')+'"/>'
           + '</svg></div>';
-        return '<div class="home-widget" data-widx="'+wi+'" data-wtype="heart_badge" style="'+base+'overflow:visible;background:transparent;box-shadow:none;border:none">'+inner+del+'</div>';
+        return '<div class="home-widget" data-widx="'+wi+'" data-wtype="'+t+'" style="'+base+'overflow:visible;background:transparent;box-shadow:none;border:none">'+inner+del+'</div>';
       }
       if (t === 'heart_standee') {
         var himg = w.img || 'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png';
@@ -28284,7 +28373,7 @@ if (t === 'clock_sm') {
               '<button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="(function(){var L=state.home.pageWidgets['+page+'];if(L&&L['+wi+']){L['+wi+'].content=document.getElementById(\'bannerTxt\').value;}save();closeModal();renderHome();})()">保存</button>');
             return;
           }
-          if (ww.type === 'badge3d' || ww.type === 'heart_badge') {
+          if (ww.type === 'badge3d' || ww.type === 'heart_badge' || ww.type === 'heart_badge_xl') {
             if (ww.img && !editMode) {
               ww.rot = ((ww.rot||0) + 45) % 360;
               save(); renderHome();
@@ -28645,7 +28734,8 @@ if (t === 'clock_sm') {
         {id:'polaroid_l',name:'大拍立得',size:'大型 · 可换图可编辑',img:'',w:160,h:200,page:0,type:'polaroid_l'},
         {id:'polaroid_m',name:'小拍立得',size:'中型 · 可换图可编辑',img:'',w:120,h:150,page:0,type:'polaroid_m'},
         {id:'badge3d',name:'立体吧唧',size:'中型 · 圆形 · 点击旋转',img:'',w:110,h:110,page:0,type:'badge3d'},
-        {id:'heart_badge',name:'爱心吧唧',size:'大型 · 爱心形 · 可换图',img:'',w:108,h:100,page:0,type:'heart_badge'},
+        {id:'heart_badge',name:'爱心吧唧',size:'大型 · 爱心形 · 可换图',img:'',w:148,h:140,page:0,type:'heart_badge'},
+        {id:'heart_badge_xl',name:'超大型立体爱心吧唧',size:'超大型 · 照片墙级 · 可换图',img:'',w:240,h:230,page:0,type:'heart_badge_xl'},
         {id:'standee',name:'立体立牌',size:'中型 · 可换图',img:'',w:100,h:160,page:0,type:'standee'},
         {id:'standee_l',name:'大型立体立牌',size:'大型 · 可换图 · 透明底',img:'',w:140,h:220,page:0,type:'standee_l'},
         {id:'heart_standee',name:'立体爱心摆件',size:'大型 · 默认爱心图 · 可换图',img:'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png',w:130,h:150,page:0,type:'heart_standee'},
@@ -28766,7 +28856,8 @@ if (t === 'clock_sm') {
         {id:'polaroid_l',name:'大拍立得',size:'大型 · 可换图可编辑',img:'',w:160,h:200,page:0,type:'polaroid_l'},
         {id:'polaroid_m',name:'小拍立得',size:'中型 · 可换图可编辑',img:'',w:120,h:150,page:0,type:'polaroid_m'},
         {id:'badge3d',name:'立体吧唧',size:'中型 · 圆形 · 点击旋转',img:'',w:110,h:110,page:0,type:'badge3d'},
-        {id:'heart_badge',name:'爱心吧唧',size:'大型 · 爱心形 · 可换图',img:'',w:108,h:100,page:0,type:'heart_badge'},
+        {id:'heart_badge',name:'爱心吧唧',size:'大型 · 爱心形 · 可换图',img:'',w:148,h:140,page:0,type:'heart_badge'},
+        {id:'heart_badge_xl',name:'超大型立体爱心吧唧',size:'超大型 · 照片墙级 · 可换图',img:'',w:240,h:230,page:0,type:'heart_badge_xl'},
         {id:'standee',name:'立体立牌',size:'中型 · 可换图',img:'',w:100,h:160,page:0,type:'standee'},
         {id:'standee_l',name:'大型立体立牌',size:'大型 · 可换图 · 透明底',img:'',w:140,h:220,page:0,type:'standee_l'},
         {id:'heart_standee',name:'立体爱心摆件',size:'大型 · 默认爱心图 · 可换图',img:'https://nos.netease.com/ysf/45a6a753afa717d8cf7da2002d14cc33.png',w:130,h:150,page:0,type:'heart_standee'},
