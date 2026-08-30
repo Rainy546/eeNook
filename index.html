@@ -2470,7 +2470,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22O';
+const EENOK_BUILD = '2026-08-22P';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -19137,98 +19137,211 @@ function ensureJiaChar(charId) {
   if (!state.jiaApp.byChar[charId]) {
     var n = Object.keys(state.jiaApp.byChar).length;
     state.jiaApp.byChar[charId] = {
-      mapX: 12 + (n % 8) * 10 + Math.floor(Math.random() * 4),
-      mapY: 14 + Math.floor(n / 8) * 12 + Math.floor(Math.random() * 3),
-      house: {
-        wall: '#c8e6e8',
-        roof: '#7eb8c4',
-        door: '#5a9aaa',
-        trim: '#e8f6f8',
-        scale: 1
-      },
+      mapX: 14 + (n % 7) * 11 + (n % 3),
+      mapY: 16 + Math.floor(n / 7) * 14 + (n % 2) * 2,
+      house: { wall: '#b8dce4', roof: '#6a9eae', door: '#4a7a8a', trim: '#e0f2f4', scale: 1 },
       furniture: [
-        { id: 'f_bed', type: 'bed', x: 12, y: 48, rot: 0 },
-        { id: 'f_table', type: 'table', x: 48, y: 40, rot: 0 },
-        { id: 'f_plant', type: 'plant', x: 72, y: 20, rot: 0 }
+        { id: 'f_bed', type: 'bed', x: 22, y: 58 },
+        { id: 'f_table', type: 'table', x: 55, y: 42 },
+        { id: 'f_plant', type: 'plant', x: 78, y: 28 }
       ],
       avatar: {
-        skin: '#f2c4a8',
-        hair: '#3d2a2a',
-        shirt: '#7eb8c4',
-        pants: '#5a7a88',
-        accent: '#e8f6f8'
+        skin: '#f0c8a8',
+        hair: '#3a2820',
+        eyes: '#2a4a5a',
+        shirt: '#7eb0b8',
+        pants: '#4a6870',
+        shoes: '#3a3830',
+        hairStyle: 0,
+        bodyStyle: 0
       },
-      charX: 40,
-      charY: 55
+      charX: 48,
+      charY: 62
     };
   }
   var d = state.jiaApp.byChar[charId];
-  if (!d.house) d.house = { wall: '#c8e6e8', roof: '#7eb8c4', door: '#5a9aaa', trim: '#e8f6f8', scale: 1 };
+  if (!d.house) d.house = { wall: '#b8dce4', roof: '#6a9eae', door: '#4a7a8a', trim: '#e0f2f4', scale: 1 };
   if (!Array.isArray(d.furniture)) d.furniture = [];
-  if (!d.avatar) d.avatar = { skin: '#f2c4a8', hair: '#3d2a2a', shirt: '#7eb8c4', pants: '#5a7a88', accent: '#e8f6f8' };
-  if (d.charX == null) d.charX = 40;
-  if (d.charY == null) d.charY = 55;
+  if (!d.avatar) d.avatar = {};
+  var av = d.avatar;
+  if (!av.skin) av.skin = '#f0c8a8';
+  if (!av.hair) av.hair = '#3a2820';
+  if (!av.eyes) av.eyes = '#2a4a5a';
+  if (!av.shirt) av.shirt = '#7eb0b8';
+  if (!av.pants) av.pants = '#4a6870';
+  if (!av.shoes) av.shoes = '#3a3830';
+  if (av.hairStyle == null) av.hairStyle = 0;
+  if (av.bodyStyle == null) av.bodyStyle = 0;
+  if (d.charX == null) d.charX = 48;
+  if (d.charY == null) d.charY = 62;
   if (d.mapX == null) d.mapX = 20;
   if (d.mapY == null) d.mapY = 20;
   return d;
 }
+
 function jiaFurnitureMeta(type) {
+  // 像素家具：更大尺寸，无文字，靠色块表现立体
   var M = {
-    bed: { name: '床', w: 28, h: 18, color: '#a8d4dc' },
-    table: { name: '桌子', w: 18, h: 14, color: '#c4a882' },
-    chair: { name: '椅子', w: 12, h: 12, color: '#b8956a' },
-    plant: { name: '盆栽', w: 12, h: 16, color: '#6aaa7a' },
-    shelf: { name: '书架', w: 16, h: 24, color: '#8b7355' },
-    lamp: { name: '灯', w: 10, h: 16, color: '#f0e0a0' },
-    chest: { name: '箱子', w: 16, h: 12, color: '#9a7b4f' },
-    carpet: { name: '地毯', w: 32, h: 20, color: '#d4a0b0' },
-    window: { name: '窗饰', w: 14, h: 14, color: '#9fd0d8' },
-    sofa: { name: '沙发', w: 28, h: 16, color: '#8ab4c0' }
+    bed: { name: '床', w: 52, h: 36 },
+    table: { name: '桌', w: 40, h: 28 },
+    chair: { name: '椅', w: 24, h: 28 },
+    plant: { name: '盆栽', w: 22, h: 32 },
+    shelf: { name: '柜', w: 28, h: 44 },
+    lamp: { name: '灯', w: 18, h: 34 },
+    chest: { name: '箱', w: 32, h: 24 },
+    carpet: { name: '毯', w: 56, h: 36 },
+    sofa: { name: '沙发', w: 52, h: 30 },
+    window: { name: '窗', w: 28, h: 28 }
   };
-  return M[type] || { name: type, w: 14, h: 14, color: '#aaa' };
+  return M[type] || { name: type, w: 28, h: 28 };
 }
+
+/** 星露谷感像素家具 HTML */
+function jiaFurnPixelHtml(type) {
+  var t = type || 'table';
+  if (t === 'bed') {
+    return '<div style="width:100%;height:100%;image-rendering:pixelated;position:relative;box-sizing:border-box">'
+      + '<div style="position:absolute;inset:0;background:#6a8a92"></div>'
+      + '<div style="position:absolute;left:4%;top:8%;width:92%;height:55%;background:#c8e4e8"></div>'
+      + '<div style="position:absolute;left:4%;top:8%;width:92%;height:12%;background:#a8d0d8"></div>'
+      + '<div style="position:absolute;left:8%;top:55%;width:30%;height:28%;background:#e8f4f6"></div>'
+      + '<div style="position:absolute;left:0;right:0;bottom:0;height:18%;background:#5a7078"></div></div>';
+  }
+  if (t === 'table') {
+    return '<div style="width:100%;height:100%;position:relative;image-rendering:pixelated">'
+      + '<div style="position:absolute;left:5%;top:20%;width:90%;height:28%;background:#c4a06a"></div>'
+      + '<div style="position:absolute;left:5%;top:20%;width:90%;height:8%;background:#d4b888"></div>'
+      + '<div style="position:absolute;left:18%;top:48%;width:12%;height:42%;background:#8a6a40"></div>'
+      + '<div style="position:absolute;right:18%;top:48%;width:12%;height:42%;background:#8a6a40"></div></div>';
+  }
+  if (t === 'chair') {
+    return '<div style="width:100%;height:100%;position:relative;image-rendering:pixelated">'
+      + '<div style="position:absolute;left:20%;top:5%;width:60%;height:40%;background:#a88858"></div>'
+      + '<div style="position:absolute;left:15%;top:42%;width:70%;height:22%;background:#c4a06a"></div>'
+      + '<div style="position:absolute;left:22%;top:64%;width:14%;height:30%;background:#7a5a38"></div>'
+      + '<div style="position:absolute;right:22%;top:64%;width:14%;height:30%;background:#7a5a38"></div></div>';
+  }
+  if (t === 'plant') {
+    return '<div style="width:100%;height:100%;position:relative;image-rendering:pixelated">'
+      + '<div style="position:absolute;left:30%;bottom:0;width:40%;height:28%;background:#b08060"></div>'
+      + '<div style="position:absolute;left:22%;bottom:24%;width:56%;height:12%;background:#9a6a48"></div>'
+      + '<div style="position:absolute;left:28%;top:8%;width:44%;height:48%;background:#4a9a5a"></div>'
+      + '<div style="position:absolute;left:18%;top:22%;width:28%;height:28%;background:#3a8a4a"></div>'
+      + '<div style="position:absolute;right:18%;top:18%;width:24%;height:30%;background:#5aaa68"></div></div>';
+  }
+  if (t === 'shelf') {
+    return '<div style="width:100%;height:100%;position:relative;image-rendering:pixelated;background:#8a6a48">'
+      + '<div style="position:absolute;left:8%;top:12%;width:84%;height:8%;background:#c4a06a"></div>'
+      + '<div style="position:absolute;left:8%;top:38%;width:84%;height:8%;background:#c4a06a"></div>'
+      + '<div style="position:absolute;left:8%;top:64%;width:84%;height:8%;background:#c4a06a"></div>'
+      + '<div style="position:absolute;left:14%;top:18%;width:20%;height:16%;background:#6a9aaa"></div>'
+      + '<div style="position:absolute;left:42%;top:44%;width:24%;height:16%;background:#c47a7a"></div></div>';
+  }
+  if (t === 'lamp') {
+    return '<div style="width:100%;height:100%;position:relative;image-rendering:pixelated">'
+      + '<div style="position:absolute;left:35%;top:0;width:30%;height:28%;background:#f0e0a0;box-shadow:0 0 8px #f0e080"></div>'
+      + '<div style="position:absolute;left:42%;top:28%;width:16%;height:48%;background:#8a8a90"></div>'
+      + '<div style="position:absolute;left:28%;bottom:0;width:44%;height:14%;background:#5a5a60"></div></div>';
+  }
+  if (t === 'chest') {
+    return '<div style="width:100%;height:100%;position:relative;image-rendering:pixelated;background:#a07840">'
+      + '<div style="position:absolute;left:0;top:0;right:0;height:28%;background:#b88850"></div>'
+      + '<div style="position:absolute;left:0;top:28%;right:0;height:6%;background:#6a5028"></div>'
+      + '<div style="position:absolute;left:42%;top:42%;width:16%;height:22%;background:#d4b060"></div></div>';
+  }
+  if (t === 'carpet') {
+    return '<div style="width:100%;height:100%;image-rendering:pixelated;background:#c4909a;box-shadow:inset 0 0 0 4px #a07080">'
+      + '<div style="position:absolute;inset:18%;border:3px solid #d8b0b8"></div></div>';
+  }
+  if (t === 'sofa') {
+    return '<div style="width:100%;height:100%;position:relative;image-rendering:pixelated">'
+      + '<div style="position:absolute;left:4%;top:28%;width:92%;height:48%;background:#7aa8b0"></div>'
+      + '<div style="position:absolute;left:4%;top:8%;width:18%;height:55%;background:#6a98a0"></div>'
+      + '<div style="position:absolute;right:4%;top:8%;width:18%;height:55%;background:#6a98a0"></div>'
+      + '<div style="position:absolute;left:8%;bottom:0;width:12%;height:22%;background:#4a6870"></div>'
+      + '<div style="position:absolute;right:8%;bottom:0;width:12%;height:22%;background:#4a6870"></div></div>';
+  }
+  return '<div style="width:100%;height:100%;background:#8ab"></div>';
+}
+
+/** 星露谷感像素小人 */
 function jiaPixelCharHtml(av, size) {
-  size = size || 32;
+  size = size || 48;
   av = av || {};
+  var skin = av.skin || '#f0c8a8';
+  var hair = av.hair || '#3a2820';
+  var eyes = av.eyes || '#2a4a5a';
+  var shirt = av.shirt || '#7eb0b8';
+  var pants = av.pants || '#4a6870';
+  var shoes = av.shoes || '#3a3830';
+  var hs = Number(av.hairStyle) || 0;
   var s = size;
-  return '<div class="jia-px-char" style="width:'+s+'px;height:'+s+'px;image-rendering:pixelated;position:relative">'
-    + '<div style="position:absolute;left:28%;top:8%;width:44%;height:28%;background:'+(av.hair||'#3d2a2a')+';border-radius:2px"></div>'
-    + '<div style="position:absolute;left:32%;top:22%;width:36%;height:28%;background:'+(av.skin||'#f2c4a8')+';border-radius:1px"></div>'
-    + '<div style="position:absolute;left:36%;top:30%;width:6%;height:6%;background:#222"></div>'
-    + '<div style="position:absolute;left:58%;top:30%;width:6%;height:6%;background:#222"></div>'
-    + '<div style="position:absolute;left:26%;top:48%;width:48%;height:28%;background:'+(av.shirt||'#7eb8c4')+'"></div>'
-    + '<div style="position:absolute;left:28%;top:74%;width:20%;height:22%;background:'+(av.pants||'#5a7a88')+'"></div>'
-    + '<div style="position:absolute;left:52%;top:74%;width:20%;height:22%;background:'+(av.pants||'#5a7a88')+'"></div>'
+  // 用百分比色块拼像素人
+  var hairExtra = '';
+  if (hs === 1) {
+    hairExtra = '<div style="position:absolute;left:8%;top:18%;width:18%;height:36%;background:'+hair+'"></div>'
+      + '<div style="position:absolute;right:8%;top:18%;width:18%;height:36%;background:'+hair+'"></div>';
+  } else if (hs === 2) {
+    hairExtra = '<div style="position:absolute;left:22%;top:2%;width:56%;height:14%;background:'+hair+'"></div>';
+  } else if (hs === 3) {
+    hairExtra = '<div style="position:absolute;left:12%;top:40%;width:76%;height:22%;background:'+hair+'"></div>';
+  }
+  return '<div class="jia-px-char" style="width:'+s+'px;height:'+s+'px;image-rendering:pixelated;position:relative;flex-shrink:0">'
+    + '<div style="position:absolute;left:22%;top:6%;width:56%;height:34%;background:'+hair+'"></div>'
+    + hairExtra
+    + '<div style="position:absolute;left:28%;top:22%;width:44%;height:30%;background:'+skin+'"></div>'
+    + '<div style="position:absolute;left:34%;top:32%;width:8%;height:8%;background:'+eyes+'"></div>'
+    + '<div style="position:absolute;left:58%;top:32%;width:8%;height:8%;background:'+eyes+'"></div>'
+    + '<div style="position:absolute;left:24%;top:50%;width:52%;height:26%;background:'+shirt+'"></div>'
+    + '<div style="position:absolute;left:18%;top:54%;width:12%;height:18%;background:'+skin+'"></div>'
+    + '<div style="position:absolute;right:18%;top:54%;width:12%;height:18%;background:'+skin+'"></div>'
+    + '<div style="position:absolute;left:28%;top:74%;width:18%;height:16%;background:'+pants+'"></div>'
+    + '<div style="position:absolute;left:54%;top:74%;width:18%;height:16%;background:'+pants+'"></div>'
+    + '<div style="position:absolute;left:28%;top:88%;width:18%;height:10%;background:'+shoes+'"></div>'
+    + '<div style="position:absolute;left:54%;top:88%;width:18%;height:10%;background:'+shoes+'"></div>'
     + '</div>';
 }
+
 function jiaHouseSvg(house, w) {
   house = house || {};
-  w = w || 120;
-  var h = Math.round(w * 0.95);
-  var wall = house.wall || '#c8e6e8';
-  var roof = house.roof || '#7eb8c4';
-  var door = house.door || '#5a9aaa';
-  var trim = house.trim || '#e8f6f8';
-  return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 120 114" style="image-rendering:pixelated">'
-    + '<rect x="0" y="78" width="120" height="36" fill="#8fbc8f"/>'
-    + '<rect x="4" y="82" width="8" height="8" fill="#6aaa6a"/><rect x="20" y="90" width="8" height="8" fill="#6aaa6a"/>'
-    + '<polygon points="8,52 60,12 112,52" fill="'+roof+'"/>'
-    + '<polygon points="16,52 60,22 104,52" fill="'+trim+'" opacity=".35"/>'
-    + '<rect x="22" y="52" width="76" height="48" fill="'+wall+'"/>'
-    + '<rect x="22" y="52" width="76" height="4" fill="'+trim+'"/>'
-    + '<rect x="50" y="70" width="20" height="30" fill="'+door+'"/>'
-    + '<rect x="64" y="82" width="4" height="4" fill="'+trim+'"/>'
-    + '<rect x="30" y="62" width="14" height="12" fill="#b8e0e8" stroke="'+trim+'" stroke-width="2"/>'
-    + '<rect x="76" y="62" width="14" height="12" fill="#b8e0e8" stroke="'+trim+'" stroke-width="2"/>'
+  w = w || 160;
+  var h = Math.round(w * 1.05);
+  var wall = house.wall || '#b8dce4';
+  var roof = house.roof || '#6a9eae';
+  var door = house.door || '#4a7a8a';
+  var trim = house.trim || '#e0f2f4';
+  // 像素块房子：矩形堆叠，无圆滑
+  return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 80 84" shape-rendering="crispEdges" style="image-rendering:pixelated">'
+    + '<rect x="0" y="58" width="80" height="26" fill="#7aaa8a"/>'
+    + '<rect x="2" y="60" width="6" height="6" fill="#5a9a6a"/><rect x="12" y="66" width="6" height="6" fill="#5a9a6a"/>'
+    + '<rect x="64" y="62" width="6" height="6" fill="#5a9a6a"/>'
+    + '<rect x="8" y="30" width="64" height="8" fill="'+roof+'"/>'
+    + '<rect x="14" y="22" width="52" height="8" fill="'+roof+'"/>'
+    + '<rect x="20" y="14" width="40" height="8" fill="'+roof+'"/>'
+    + '<rect x="28" y="6" width="24" height="8" fill="'+roof+'"/>'
+    + '<rect x="16" y="38" width="48" height="32" fill="'+wall+'"/>'
+    + '<rect x="16" y="38" width="48" height="4" fill="'+trim+'"/>'
+    + '<rect x="34" y="50" width="12" height="20" fill="'+door+'"/>'
+    + '<rect x="42" y="58" width="3" height="3" fill="'+trim+'"/>'
+    + '<rect x="20" y="44" width="10" height="10" fill="#9ec8d0"/>'
+    + '<rect x="50" y="44" width="10" height="10" fill="#9ec8d0"/>'
+    + '<rect x="20" y="48" width="10" height="2" fill="'+trim+'"/><rect x="24" y="44" width="2" height="10" fill="'+trim+'"/>'
+    + '<rect x="50" y="48" width="10" height="2" fill="'+trim+'"/><rect x="54" y="44" width="2" height="10" fill="'+trim+'"/>'
     + '</svg>';
 }
+
+var JIA_LINES = [
+  '今天天气不错。', '要不要在院子里走走？', '这间屋子我很喜欢。', '……嗯。',
+  '肚子有点饿了。', '外面的草好绿。', '你来啦。', '我再整理一下房间。',
+  '呼——', '在想事情。', '要喝茶吗？', '地板要扫了呢。'
+];
 
 function openJiaApp() {
   ensureJiaState();
   state._homeRoot = 'jia';
   state._subKind = 'jia';
   state._homeDepth = 0;
-  state._jiaEditMap = false;
+  state._jiaEditMap = !!state._jiaEditMap;
   state._subBackFn = function(){ goHome(); };
   armClickGuard(480);
   var chars = state.chars || [];
@@ -19249,34 +19362,41 @@ function openJiaApp() {
 
   var html = '<div class="jia-root">'
     + '<style>'
-    + '.jia-root{position:absolute;inset:0;display:flex;flex-direction:column;background:#1a2a22;color:#e8f0ea;overflow:hidden}'
-    + '.jia-top{flex-shrink:0;padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.25);z-index:5}'
-    + '.jia-top h2{font-size:17px;font-weight:700;letter-spacing:.06em;margin:0}'
-    + '.jia-top .sub{font-size:11px;opacity:.65;margin-top:2px}'
-    + '.jia-btn{border:none;background:rgba(255,255,255,.12);color:#e8f0ea;border-radius:10px;padding:6px 12px;font-size:12px;cursor:pointer}'
-    + '.jia-btn.on{background:#5eb8b0;color:#062428}'
+    + '.jia-root{position:absolute;inset:0;display:flex;flex-direction:column;background:#1a3038;color:#e0f0f2;overflow:hidden;font-family:monospace,sans-serif}'
+    + '.jia-top{flex-shrink:0;padding:12px 14px 8px;display:flex;align-items:center;justify-content:space-between;background:rgba(20,40,48,.85);z-index:5;border-bottom:2px solid #3a6068}'
+    + '.jia-top h2{font-size:17px;font-weight:700;letter-spacing:.08em;margin:0}'
+    + '.jia-top .sub{font-size:11px;opacity:.7;margin-top:2px}'
+    + '.jia-btn{border:2px solid #5a8890;background:#2a4850;color:#d0e8ec;border-radius:0;padding:6px 12px;font-size:12px;cursor:pointer;image-rendering:pixelated}'
+    + '.jia-btn.on{background:#5eb0b8;color:#0a2024;border-color:#8ad0d8}'
     + '.jia-map{flex:1;position:relative;overflow:auto;min-height:0;'
-    + 'background-color:#5a9a5a;'
-    + 'background-image:linear-gradient(rgba(0,0,0,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.08) 1px,transparent 1px),linear-gradient(#62a862 50%,#5a9a5a 50%),linear-gradient(90deg,#62a862 50%,#5a9a5a 50%);'
-    + 'background-size:16px 16px,16px 16px,32px 32px,32px 32px;'
+    + 'background-color:#6a9aaa;'
+    + 'background-image:'
+    + 'linear-gradient(rgba(40,70,80,.35) 2px,transparent 2px),'
+    + 'linear-gradient(90deg,rgba(40,70,80,.35) 2px,transparent 2px),'
+    + 'linear-gradient(#7aadb8 50%,#6a9aaa 50%),'
+    + 'linear-gradient(90deg,#7aadb8 50%,#6a9aaa 50%);'
+    + 'background-size:12px 12px,12px 12px,24px 24px,24px 24px;'
     + 'image-rendering:pixelated}'
-    + '.jia-map-inner{position:relative;width:200%;min-width:640px;height:200%;min-height:640px}'
-    + '.jia-path{position:absolute;background:#c2a06a;box-shadow:inset 0 0 0 2px #a08050;image-rendering:pixelated}'
-    + '.jia-disc{position:absolute;transform:translate(-50%,-50%);text-align:center;cursor:pointer;z-index:3;width:64px}'
-    + '.jia-disc-ring{width:48px;height:48px;margin:0 auto;border-radius:50%;border:3px solid #e8f6f8;box-shadow:0 0 0 2px #5eb8b0,0 4px 12px rgba(0,0,0,.35);overflow:hidden;background:#2a4a50;animation:jiaSpin 12s linear infinite}'
-    + '.jia-disc-ring img{width:100%;height:100%;object-fit:cover}'
-    + '.jia-disc-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#c8e6e8}'
-    + '.jia-disc-name{margin-top:4px;font-size:11px;font-weight:600;text-shadow:0 1px 2px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72px;margin-left:auto;margin-right:auto}'
+    + '.jia-map-inner{position:relative;width:220%;min-width:720px;height:220%;min-height:720px}'
+    + '.jia-path{position:absolute;background:#a8c8d0;box-shadow:inset 0 0 0 2px #7898a0;image-rendering:pixelated}'
+    + '.jia-water{position:absolute;background:#4a8a9a;box-shadow:inset 0 0 0 2px #3a7080;opacity:.9}'
+    + '.jia-disc{position:absolute;transform:translate(-50%,-50%);text-align:center;cursor:pointer;z-index:3;width:88px}'
+    + '.jia-disc-ring{width:72px;height:72px;margin:0 auto;border-radius:50%;border:4px solid #e0f4f6;box-shadow:0 0 0 3px #5a9aa8,0 4px 0 #2a4850;overflow:hidden;background:#2a4850;animation:jiaSpin 14s linear infinite;image-rendering:pixelated}'
+    + '.jia-disc-ring img{width:100%;height:100%;object-fit:cover;image-rendering:auto}'
+    + '.jia-disc-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#c0e0e4}'
+    + '.jia-disc-name{margin-top:6px;font-size:12px;font-weight:700;text-shadow:0 1px 0 #0a2024,1px 0 0 #0a2024;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:88px;margin-left:auto;margin-right:auto;color:#e8f6f8}'
     + '@keyframes jiaSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}'
-    + '.jia-hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:11px;opacity:.75;background:rgba(0,0,0,.45);padding:6px 12px;border-radius:999px;z-index:4;pointer-events:none}'
+    + '.jia-hint{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-size:11px;background:rgba(20,40,48,.8);padding:6px 14px;border:2px solid #5a8890;z-index:4;pointer-events:none}'
     + '</style>'
-    + '<div class="jia-top"><div><h2>家</h2><div class="sub">像素世界 · 点圆盘进入家园</div></div>'
+    + '<div class="jia-top"><div><h2>家</h2><div class="sub">像素世界 · 水色地图</div></div>'
     + '<div style="display:flex;gap:8px">'
     + '<button type="button" class="jia-btn'+(state._jiaEditMap?' on':'')+'" onclick="state._jiaEditMap=!state._jiaEditMap;openJiaApp()">'+ (state._jiaEditMap?'完成排布':'排布位置') +'</button>'
     + '<button type="button" class="jia-btn" onclick="goHome()">退出</button></div></div>'
     + '<div class="jia-map" id="jiaMapScroll"><div class="jia-map-inner" id="jiaMapInner">'
-    + '<div class="jia-path" style="left:8%;top:40%;width:84%;height:14px"></div>'
-    + '<div class="jia-path" style="left:48%;top:10%;width:14px;height:80%"></div>'
+    + '<div class="jia-water" style="left:10%;top:12%;width:28%;height:18%"></div>'
+    + '<div class="jia-water" style="left:62%;top:58%;width:22%;height:14%"></div>'
+    + '<div class="jia-path" style="left:6%;top:42%;width:88%;height:16px"></div>'
+    + '<div class="jia-path" style="left:46%;top:8%;width:16px;height:84%"></div>'
     + discs
     + '</div><div class="jia-hint">'+(chars.length? (state._jiaEditMap?'拖动圆盘调整位置':'点击角色圆盘进入家园') : '请先在角色库添加角色')+'</div></div></div>';
 
@@ -19358,36 +19478,35 @@ function openJiaHomestead(charId) {
 
   var html = '<div class="jia-root">'
     + '<style>'
-    + '.jia-root{position:absolute;inset:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#c8e8f0 0%,#b8dce4 40%,#9ec9a8 40%,#8fbc8f 100%);color:#2a4a55;overflow:hidden}'
-    + '.jia-top{flex-shrink:0;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.55);backdrop-filter:blur(8px)}'
+    + '.jia-root{position:absolute;inset:0;display:flex;flex-direction:column;background:#b8d8e0;color:#2a4850;overflow:hidden}'
+    + '.jia-top{flex-shrink:0;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.55);border-bottom:2px solid #8ab8c0}'
     + '.jia-top h2{font-size:16px;margin:0}'
-    + '.jia-btn{border:none;background:rgba(94,184,176,.2);color:#2a4a55;border-radius:10px;padding:6px 12px;font-size:12px;cursor:pointer}'
-    + '.jia-yard{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;min-height:0}'
-    + '.jia-house-wrap{cursor:pointer;transition:transform .15s}'
-    + '.jia-house-wrap:active{transform:scale(.98)}'
-    + '.jia-yard-label{margin-top:12px;font-size:13px;opacity:.8}'
-    + '.jia-edit-panel{flex-shrink:0;padding:12px 14px 20px;background:rgba(255,255,255,.75);border-top:1px solid rgba(94,184,176,.3)}'
+    + '.jia-btn{border:2px solid #6a9aa8;background:#e0f0f4;color:#2a4850;border-radius:0;padding:6px 12px;font-size:12px;cursor:pointer}'
+    + '.jia-yard{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;min-height:0;'
+    + 'background-color:#8aba9a;background-image:linear-gradient(rgba(40,80,60,.2) 2px,transparent 2px),linear-gradient(90deg,rgba(40,80,60,.2) 2px,transparent 2px);background-size:12px 12px;image-rendering:pixelated}'
+    + '.jia-house-wrap{cursor:pointer;image-rendering:pixelated}'
+    + '.jia-yard-label{margin-top:14px;font-size:12px;background:rgba(255,255,255,.7);padding:4px 10px;border:2px solid #6a9aa8}'
+    + '.jia-edit-panel{flex-shrink:0;padding:12px 14px 20px;background:rgba(255,255,255,.82);border-top:2px solid #8ab8c0}'
     + '.jia-colors{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}'
-    + '.jia-swatch{width:28px;height:28px;border-radius:8px;border:2px solid transparent;cursor:pointer}'
-    + '.jia-swatch.on{border-color:#2a4a55}'
-    + '.jia-row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}'
+    + '.jia-swatch{width:28px;height:28px;border:2px solid #8ab8c0;cursor:pointer;image-rendering:pixelated}'
+    + '.jia-swatch.on{border-color:#2a4850;box-shadow:inset 0 0 0 2px #fff}'
     + '</style>'
-    + '<div class="jia-top"><div><h2>'+name+' 的家园</h2><div style="font-size:11px;opacity:.65">水色小房子 · 点房子进入内部</div></div>'
+    + '<div class="jia-top"><div><h2>'+name+' 的家园</h2><div style="font-size:11px;opacity:.7">像素小屋 · 点房子进入内部</div></div>'
     + '<div style="display:flex;gap:8px"><button type="button" class="jia-btn" onclick="openJiaApp()">地图</button>'
     + '<button type="button" class="jia-btn" onclick="state._jiaEditHouse=!state._jiaEditHouse;openJiaHomestead(\''+charId+'\')">'+(state._jiaEditHouse?'完成外观':'外观设计')+'</button></div></div>'
     + '<div class="jia-yard"><div class="jia-house-wrap" onclick="if(!state._jiaEditHouse)openJiaInterior(\''+charId+'\')">'
-    + jiaHouseSvg(house, 168)
+    + jiaHouseSvg(house, 180)
     + '</div><div class="jia-yard-label">点小房子进入室内</div></div>';
 
   if (state._jiaEditHouse) {
-    var walls = ['#c8e6e8','#f5e6d3','#e8d4e8','#d4e8d4','#e8e4d4','#d0d8e8'];
-    var roofs = ['#7eb8c4','#c47e8a','#8a9a7e','#b08a6a','#6a8ab0','#9a7eb0'];
-    var doors = ['#5a9aaa','#8a6a5a','#6a8a6a','#5a6a8a','#aa7a5a'];
-    html += '<div class="jia-edit-panel"><div style="font-size:12px;font-weight:600">墙体</div><div class="jia-colors">'
+    var walls = ['#b8dce4','#c8e0d8','#d0d8e0','#e0d8d0','#d8d0e0','#c0d8d0'];
+    var roofs = ['#6a9eae','#8a7a9a','#7a9a7a','#9a7a6a','#5a8aaa','#8a8a7a'];
+    var doors = ['#4a7a8a','#6a5a4a','#5a7a5a','#4a5a7a','#8a6a4a'];
+    html += '<div class="jia-edit-panel"><div style="font-size:12px;font-weight:700">墙体</div><div class="jia-colors">'
       + walls.map(function(col){ return '<div class="jia-swatch'+(house.wall===col?' on':'')+'" style="background:'+col+'" onclick="jiaSetHouse(\''+charId+'\',\'wall\',\''+col+'\')"></div>'; }).join('')
-      + '</div><div style="font-size:12px;font-weight:600;margin-top:10px">屋顶</div><div class="jia-colors">'
+      + '</div><div style="font-size:12px;font-weight:700;margin-top:10px">屋顶</div><div class="jia-colors">'
       + roofs.map(function(col){ return '<div class="jia-swatch'+(house.roof===col?' on':'')+'" style="background:'+col+'" onclick="jiaSetHouse(\''+charId+'\',\'roof\',\''+col+'\')"></div>'; }).join('')
-      + '</div><div style="font-size:12px;font-weight:600;margin-top:10px">门</div><div class="jia-colors">'
+      + '</div><div style="font-size:12px;font-weight:700;margin-top:10px">门</div><div class="jia-colors">'
       + doors.map(function(col){ return '<div class="jia-swatch'+(house.door===col?' on':'')+'" style="background:'+col+'" onclick="jiaSetHouse(\''+charId+'\',\'door\',\''+col+'\')"></div>'; }).join('')
       + '</div></div>';
   }
@@ -19410,43 +19529,48 @@ function openJiaInterior(charId) {
   var d = ensureJiaChar(charId);
   state._jiaCharId = charId;
   state._jiaEditFurn = !!state._jiaEditFurn;
-  state._jiaEditAvatar = false;
+  state._jiaEditAvatar = !!state._jiaEditAvatar;
   state._homeRoot = 'jia';
   state._homeDepth = 2;
-  state._subBackFn = function(){ state._jiaEditFurn=false; openJiaHomestead(charId); };
+  state._subBackFn = function(){ state._jiaEditFurn=false; state._jiaEditAvatar=false; openJiaHomestead(charId); };
   armClickGuard(400);
   var name = escapeHtml(c.nick || c.realName || '角色');
   var types = ['bed','table','chair','plant','shelf','lamp','chest','carpet','sofa'];
 
   var furnHtml = (d.furniture || []).map(function(f) {
     var meta = jiaFurnitureMeta(f.type);
-    return '<div class="jia-furn" data-fid="'+f.id+'" style="left:'+f.x+'%;top:'+f.y+'%;width:'+meta.w+'px;height:'+meta.h+'px;background:'+meta.color+';'
-      + 'border:2px solid rgba(0,0,0,.15);border-radius:3px;box-sizing:border-box" title="'+meta.name+'">'
-      + '<span style="font-size:9px;color:rgba(0,0,0,.45)">'+meta.name+'</span></div>';
+    return '<div class="jia-furn" data-fid="'+f.id+'" style="left:'+f.x+'%;top:'+f.y+'%;width:'+meta.w+'px;height:'+meta.h+'px">'
+      + jiaFurnPixelHtml(f.type) + '</div>';
   }).join('');
+
+  var bubble = state._jiaBubble ? '<div class="jia-bubble" id="jiaBubble">'+escapeHtml(state._jiaBubble)+'</div>' : '<div class="jia-bubble" id="jiaBubble" style="display:none"></div>';
 
   var html = '<div class="jia-root">'
     + '<style>'
-    + '.jia-root{position:absolute;inset:0;display:flex;flex-direction:column;background:#2a3a40;color:#e8f0f2;overflow:hidden}'
-    + '.jia-top{flex-shrink:0;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.35);z-index:6}'
-    + '.jia-btn{border:none;background:rgba(255,255,255,.12);color:#e8f0f2;border-radius:10px;padding:6px 10px;font-size:12px;cursor:pointer}'
-    + '.jia-btn.on{background:#5eb8b0;color:#062428}'
-    + '.jia-room{flex:1;position:relative;margin:10px;border-radius:12px;overflow:hidden;min-height:0;'
-    + 'background-color:#d4c4a8;'
-    + 'background-image:linear-gradient(rgba(0,0,0,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.06) 1px,transparent 1px);'
-    + 'background-size:20px 20px;image-rendering:pixelated;border:3px solid #8a7a5a}'
-    + '.jia-furn{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;cursor:grab;z-index:2}'
-    + '.jia-char-sprite{position:absolute;transform:translate(-50%,-50%);z-index:4;cursor:pointer;filter:drop-shadow(0 2px 0 rgba(0,0,0,.2))}'
-    + '.jia-palette{flex-shrink:0;padding:10px 12px 16px;background:rgba(0,0,0,.4);display:none}'
+    + '.jia-root{position:absolute;inset:0;display:flex;flex-direction:column;background:#1e3038;color:#e0f0f2;overflow:hidden}'
+    + '.jia-top{flex-shrink:0;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.4);z-index:6;border-bottom:2px solid #3a5860}'
+    + '.jia-btn{border:2px solid #5a8890;background:#2a4850;color:#e0f0f2;border-radius:0;padding:6px 10px;font-size:12px;cursor:pointer}'
+    + '.jia-btn.on{background:#5eb0b8;color:#0a2024;border-color:#8ad0d8}'
+    + '.jia-room{flex:1;position:relative;margin:10px;overflow:hidden;min-height:0;'
+    + 'background-color:#c8b898;'
+    + 'background-image:linear-gradient(rgba(60,50,30,.2) 2px,transparent 2px),linear-gradient(90deg,rgba(60,50,30,.2) 2px,transparent 2px);'
+    + 'background-size:16px 16px;image-rendering:pixelated;border:4px solid #6a5a40}'
+    + '.jia-furn{position:absolute;transform:translate(-50%,-50%);cursor:grab;z-index:2;image-rendering:pixelated}'
+    + '.jia-char-sprite{position:absolute;transform:translate(-50%,-50%);z-index:5;cursor:pointer;filter:drop-shadow(0 2px 0 rgba(0,0,0,.25))}'
+    + '.jia-bubble{position:absolute;z-index:8;left:50%;bottom:22%;transform:translateX(-50%);'
+    + 'max-width:78%;padding:10px 12px;background:#f4f0e4;color:#2a2820;border:3px solid #2a2820;'
+    + 'font-size:13px;line-height:1.4;image-rendering:pixelated;box-shadow:3px 3px 0 #000;pointer-events:none}'
+    + '.jia-bubble::after{content:"";position:absolute;left:20px;bottom:-10px;width:12px;height:10px;background:#f4f0e4;border-right:3px solid #2a2820;border-bottom:3px solid #2a2820;transform:skewX(-20deg)}'
+    + '.jia-palette{flex-shrink:0;padding:10px 12px 16px;background:rgba(0,0,0,.5);display:none;max-height:42%;overflow-y:auto}'
     + '.jia-palette.show{display:block}'
-    + '.jia-pal-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}'
-    + '.jia-pal-item{flex:0 0 auto;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.1);font-size:11px;cursor:pointer;text-align:center}'
-    + '.jia-move{position:absolute;bottom:12px;right:12px;display:grid;grid-template-columns:repeat(3,36px);gap:4px;z-index:5}'
-    + '.jia-move button{width:36px;height:36px;border:none;border-radius:8px;background:rgba(0,0,0,.4);color:#fff;font-size:14px;cursor:pointer}'
+    + '.jia-pal-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;flex-wrap:wrap}'
+    + '.jia-pal-item{flex:0 0 auto;padding:8px;border:2px solid #5a8890;background:#2a4850;font-size:11px;cursor:pointer;text-align:center;min-width:52px}'
+    + '.jia-move{position:absolute;bottom:12px;right:12px;display:grid;grid-template-columns:repeat(3,40px);gap:4px;z-index:6}'
+    + '.jia-move button{width:40px;height:40px;border:2px solid #5a8890;border-radius:0;background:rgba(20,40,48,.85);color:#fff;font-size:16px;cursor:pointer}'
     + '.jia-move .sp{visibility:hidden}'
     + '</style>'
     + '<div class="jia-top"><div><div style="font-size:15px;font-weight:700">'+name+' 的小屋</div>'
-    + '<div style="font-size:11px;opacity:.65">点角色编辑形象 · 可添加家具</div></div>'
+    + '<div style="font-size:11px;opacity:.7">点小人改形象 · 方向键走动会说话</div></div>'
     + '<div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">'
     + '<button type="button" class="jia-btn" onclick="openJiaHomestead(\''+charId+'\')">院外</button>'
     + '<button type="button" class="jia-btn'+(state._jiaEditFurn?' on':'')+'" onclick="state._jiaEditFurn=!state._jiaEditFurn;state._jiaEditAvatar=false;openJiaInterior(\''+charId+'\')">家具</button>'
@@ -19454,55 +19578,95 @@ function openJiaInterior(charId) {
     + '</div></div>'
     + '<div class="jia-room" id="jiaRoom">'
     + furnHtml
-    + '<div class="jia-char-sprite" id="jiaCharSprite" style="left:'+d.charX+'%;top:'+d.charY+'%" onclick="state._jiaEditAvatar=true;state._jiaEditFurn=false;openJiaInterior(\''+charId+'\')">'
-    + jiaPixelCharHtml(d.avatar, 40)
+    + '<div class="jia-char-sprite" id="jiaCharSprite" style="left:'+d.charX+'%;top:'+d.charY+'%" '
+    + 'onclick="event.stopPropagation();state._jiaEditAvatar=true;state._jiaEditFurn=false;openJiaInterior(\''+charId+'\')">'
+    + jiaPixelCharHtml(d.avatar, 52)
     + '</div>'
+    + bubble
     + '<div class="jia-move">'
-    + '<span class="sp"></span><button type="button" onclick="jiaMoveChar(\''+charId+'\',0,-6)">↑</button><span class="sp"></span>'
-    + '<button type="button" onclick="jiaMoveChar(\''+charId+'\',-6,0)">←</button>'
-    + '<button type="button" onclick="jiaMoveChar(\''+charId+'\',0,6)">↓</button>'
-    + '<button type="button" onclick="jiaMoveChar(\''+charId+'\',6,0)">→</button>'
+    + '<span class="sp"></span><button type="button" onclick="jiaMoveChar(\''+charId+'\',0,-7)">↑</button><span class="sp"></span>'
+    + '<button type="button" onclick="jiaMoveChar(\''+charId+'\',-7,0)">←</button>'
+    + '<button type="button" onclick="jiaMoveChar(\''+charId+'\',0,7)">↓</button>'
+    + '<button type="button" onclick="jiaMoveChar(\''+charId+'\',7,0)">→</button>'
     + '</div></div>';
 
   if (state._jiaEditFurn) {
-    html += '<div class="jia-palette show"><div style="font-size:12px;margin-bottom:8px;opacity:.8">点击添加 · 拖动房间内家具可移动 · 长按家具删除</div><div class="jia-pal-row">'
+    html += '<div class="jia-palette show"><div style="font-size:12px;margin-bottom:8px;opacity:.85">点选添加 · 拖动移动 · 长按删除</div><div class="jia-pal-row">'
       + types.map(function(t) {
         var m = jiaFurnitureMeta(t);
-        return '<div class="jia-pal-item" onclick="jiaAddFurniture(\''+charId+'\',\''+t+'\')"><div style="width:24px;height:18px;background:'+m.color+';margin:0 auto 4px;border-radius:2px"></div>'+m.name+'</div>';
+        return '<div class="jia-pal-item" onclick="jiaAddFurniture(\''+charId+'\',\''+t+'\')">'
+          + '<div style="width:36px;height:28px;margin:0 auto 4px;position:relative">'+jiaFurnPixelHtml(t)+'</div>'
+          + m.name + '</div>';
       }).join('')
       + '</div></div>';
   }
   if (state._jiaEditAvatar) {
     var av = d.avatar;
-    var skins = ['#f2c4a8','#e8b898','#c6865a','#8d5524','#f5d0c0'];
-    var hairs = ['#3d2a2a','#1a1a1a','#6b4423','#c4a035','#e8e0d0','#5a3a6a'];
-    var shirts = ['#7eb8c4','#e891a6','#8abf88','#c4a070','#9a8fd0','#f0e8e0'];
-    var pants = ['#5a7a88','#4a4a5a','#6a5a4a','#3a5a4a','#5a4a6a'];
-    html += '<div class="jia-palette show"><div style="font-size:12px;margin-bottom:6px">肤色</div><div class="jia-pal-row">'
-      + skins.map(function(col){ return '<div class="jia-pal-item" style="background:'+col+';width:28px;height:28px;padding:0;border-radius:8px" onclick="jiaSetAvatar(\''+charId+'\',\'skin\',\''+col+'\')"></div>'; }).join('')
-      + '</div><div style="font-size:12px;margin:8px 0 6px">头发</div><div class="jia-pal-row">'
-      + hairs.map(function(col){ return '<div class="jia-pal-item" style="background:'+col+';width:28px;height:28px;padding:0;border-radius:8px" onclick="jiaSetAvatar(\''+charId+'\',\'hair\',\''+col+'\')"></div>'; }).join('')
+    var skins = ['#f0c8a8','#e8b898','#c6865a','#8d5524','#f5d0c0'];
+    var hairs = ['#3a2820','#1a1a1a','#6b4423','#c4a035','#e8e0d0','#5a3a6a','#2a4a6a'];
+    var eyes = ['#2a4a5a','#3a5a3a','#5a3a2a','#2a2a4a','#4a6a8a','#1a1a1a'];
+    var shirts = ['#7eb0b8','#e891a6','#8abf88','#c4a070','#9a8fd0','#f0e8e0','#5a7a9a'];
+    var pants = ['#4a6870','#4a4a5a','#6a5a4a','#3a5a4a','#5a4a6a'];
+    var shoes = ['#3a3830','#5a4030','#2a2a2a','#6a5050','#4a5a60'];
+    html += '<div class="jia-palette show">'
+      + '<div style="display:flex;justify-content:center;margin-bottom:10px">'+jiaPixelCharHtml(av, 56)+'</div>'
+      + '<div style="font-size:12px;margin-bottom:6px">发型</div><div class="jia-pal-row">'
+      + [0,1,2,3].map(function(hs){
+        return '<div class="jia-pal-item'+(Number(av.hairStyle)===hs?' on':'')+'" style="'+(Number(av.hairStyle)===hs?'border-color:#8ad0d8':'')+'" onclick="jiaSetAvatar(\''+charId+'\',\'hairStyle\','+hs+')">样式'+(hs+1)+'</div>';
+      }).join('')
+      + '</div><div style="font-size:12px;margin:8px 0 6px">头发颜色</div><div class="jia-pal-row">'
+      + hairs.map(function(col){ return '<div class="jia-pal-item" style="background:'+col+';width:28px;height:28px;padding:0;min-width:28px" onclick="jiaSetAvatar(\''+charId+'\',\'hair\',\''+col+'\')"></div>'; }).join('')
+      + '</div><div style="font-size:12px;margin:8px 0 6px">瞳色</div><div class="jia-pal-row">'
+      + eyes.map(function(col){ return '<div class="jia-pal-item" style="background:'+col+';width:28px;height:28px;padding:0;min-width:28px" onclick="jiaSetAvatar(\''+charId+'\',\'eyes\',\''+col+'\')"></div>'; }).join('')
+      + '</div><div style="font-size:12px;margin:8px 0 6px">肤色</div><div class="jia-pal-row">'
+      + skins.map(function(col){ return '<div class="jia-pal-item" style="background:'+col+';width:28px;height:28px;padding:0;min-width:28px" onclick="jiaSetAvatar(\''+charId+'\',\'skin\',\''+col+'\')"></div>'; }).join('')
       + '</div><div style="font-size:12px;margin:8px 0 6px">上衣</div><div class="jia-pal-row">'
-      + shirts.map(function(col){ return '<div class="jia-pal-item" style="background:'+col+';width:28px;height:28px;padding:0;border-radius:8px" onclick="jiaSetAvatar(\''+charId+'\',\'shirt\',\''+col+'\')"></div>'; }).join('')
+      + shirts.map(function(col){ return '<div class="jia-pal-item" style="background:'+col+';width:28px;height:28px;padding:0;min-width:28px" onclick="jiaSetAvatar(\''+charId+'\',\'shirt\',\''+col+'\')"></div>'; }).join('')
       + '</div><div style="font-size:12px;margin:8px 0 6px">下装</div><div class="jia-pal-row">'
-      + pants.map(function(col){ return '<div class="jia-pal-item" style="background:'+col+';width:28px;height:28px;padding:0;border-radius:8px" onclick="jiaSetAvatar(\''+charId+'\',\'pants\',\''+col+'\')"></div>'; }).join('')
+      + pants.map(function(col){ return '<div class="jia-pal-item" style="background:'+col+';width:28px;height:28px;padding:0;min-width:28px" onclick="jiaSetAvatar(\''+charId+'\',\'pants\',\''+col+'\')"></div>'; }).join('')
+      + '</div><div style="font-size:12px;margin:8px 0 6px">鞋子</div><div class="jia-pal-row">'
+      + shoes.map(function(col){ return '<div class="jia-pal-item" style="background:'+col+';width:28px;height:28px;padding:0;min-width:28px" onclick="jiaSetAvatar(\''+charId+'\',\'shoes\',\''+col+'\')"></div>'; }).join('')
       + '</div></div>';
   }
   html += '</div>';
   openSubPage('', html, '', { replace: true });
   try { var sn=document.getElementById('subNav'); if(sn) sn.style.display='none'; } catch(e) {}
   if (state._jiaEditFurn) jiaBindFurnitureDrag(charId);
+  if (state._jiaBubble) {
+    setTimeout(function(){
+      state._jiaBubble = '';
+      var b = document.getElementById('jiaBubble');
+      if (b) { b.style.opacity = '0'; setTimeout(function(){ if(b) b.style.display='none'; }, 400); }
+    }, 2200);
+  }
 }
 
+function jiaShowBubble(text) {
+  state._jiaBubble = text || '';
+  var b = document.getElementById('jiaBubble');
+  if (b) {
+    b.textContent = text;
+    b.style.display = 'block';
+    b.style.opacity = '1';
+  }
+}
 function jiaMoveChar(charId, dx, dy) {
   var d = ensureJiaChar(charId);
   if (!d) return;
-  d.charX = Math.max(8, Math.min(92, (d.charX || 40) + dx));
-  d.charY = Math.max(12, Math.min(88, (d.charY || 55) + dy));
+  d.charX = Math.max(10, Math.min(90, (d.charX || 48) + dx));
+  d.charY = Math.max(14, Math.min(86, (d.charY || 62) + dy));
   try { save(); } catch(e) {}
   var el = document.getElementById('jiaCharSprite');
   if (el) { el.style.left = d.charX + '%'; el.style.top = d.charY + '%'; }
-  else openJiaInterior(charId);
+  // 移动时弹出像素对话框
+  var line = JIA_LINES[Math.floor(Math.random() * JIA_LINES.length)];
+  jiaShowBubble(line);
+  clearTimeout(state._jiaBubbleTimer);
+  state._jiaBubbleTimer = setTimeout(function(){
+    state._jiaBubble = '';
+    var b = document.getElementById('jiaBubble');
+    if (b) b.style.display = 'none';
+  }, 2400);
 }
 function jiaSetAvatar(charId, key, val) {
   var d = ensureJiaChar(charId);
@@ -19510,6 +19674,8 @@ function jiaSetAvatar(charId, key, val) {
   if (!d.avatar) d.avatar = {};
   d.avatar[key] = val;
   try { save(); } catch(e) {}
+  state._jiaEditAvatar = true;
+  state._jiaEditFurn = false;
   openJiaInterior(charId);
 }
 function jiaAddFurniture(charId, type) {
@@ -19519,11 +19685,11 @@ function jiaAddFurniture(charId, type) {
   d.furniture.push({
     id: 'f_' + Date.now() + '_' + Math.floor(Math.random()*999),
     type: type,
-    x: 30 + Math.random() * 40,
-    y: 30 + Math.random() * 40,
-    rot: 0
+    x: 28 + Math.random() * 44,
+    y: 28 + Math.random() * 44
   });
   try { save(); } catch(e) {}
+  state._jiaEditFurn = true;
   openJiaInterior(charId);
 }
 function jiaBindFurnitureDrag(charId) {
@@ -19546,6 +19712,7 @@ function jiaBindFurnitureDrag(charId) {
           if (d) {
             d.furniture = (d.furniture || []).filter(function(f){ return f.id !== fid; });
             try { save(); } catch(e) {}
+            state._jiaEditFurn = true;
             openJiaInterior(charId);
           }
         }
@@ -19590,6 +19757,7 @@ function jiaBindFurnitureDrag(charId) {
     el.addEventListener('touchstart', onStart, { passive: false });
   });
 }
+
 
 function openOfflineApp() {
   resetHomeNav('offline');
