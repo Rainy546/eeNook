@@ -368,51 +368,7 @@ body.glass-ui #page-sub, body.glass-ui #subBody {
   backdrop-filter: blur(var(--glass-blur, 0px));
 }
 
-#bootSplash {
-  position: fixed; inset: 0; z-index: 100000;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  background: linear-gradient(165deg, #e8f6f8 0%, #d4eef2 40%, #b8dce8 100%);
-  transition: opacity .55s ease, visibility .55s ease;
-}
-#bootSplash.hide {
-  opacity: 0; visibility: hidden; pointer-events: none;
-}
-#bootSplash .bs-logo {
-  width: 72px; height: 72px; border-radius: 20px;
-  background: linear-gradient(145deg, #7eb8c4, #5a9aaa);
-  box-shadow: 0 12px 32px rgba(90, 154, 170, .35);
-  display: flex; align-items: center; justify-content: center;
-  animation: bsPop .7s cubic-bezier(.2,1.2,.4,1) both;
-}
-#bootSplash .bs-logo svg { width: 36px; height: 36px; stroke: #fff; fill: none; stroke-width: 1.8; }
-#bootSplash .bs-title {
-  margin-top: 18px; font-size: 22px; font-weight: 700; letter-spacing: .2em;
-  color: #2a4a52; animation: bsFade .8s ease .15s both;
-}
-#bootSplash .bs-sub {
-  margin-top: 8px; font-size: 12px; color: #6a8a92; letter-spacing: .12em;
-  animation: bsFade .8s ease .3s both;
-}
-#bootSplash .bs-bar {
-  margin-top: 28px; width: 96px; height: 3px; border-radius: 99px;
-  background: rgba(90,154,170,.2); overflow: hidden;
-}
-#bootSplash .bs-bar > i {
-  display: block; height: 100%; width: 40%; border-radius: 99px;
-  background: #5a9aaa;
-  animation: bsSlide 1.1s ease-in-out infinite;
-}
-@keyframes bsPop {
-  from { transform: scale(.6); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-@keyframes bsFade {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes bsSlide {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(280%); }
+
 }
 </style>
 <style>
@@ -540,7 +496,30 @@ body {
   backdrop-filter: none; -webkit-backdrop-filter: none;
 }
 @media (min-width: 400px) {
-  #phone:not(.fullscreen) { border-radius: 28px; border: 8px solid #1a1a1a; }
+  #phone:not(.fullscreen) {
+  border-radius: 18px 18px 22px 22px;
+  border: 10px solid #2c2c2e;
+  border-bottom-width: 28px;
+  box-shadow:
+    0 0 0 2px #8a8a8e,
+    0 0 0 4px #3a3a3c,
+    0 16px 40px rgba(0,0,0,.5),
+    inset 0 0 0 1px rgba(255,255,255,.12);
+  background: var(--bg);
+}
+/* 古早 BlackBerry 感：底部厚边暗示物理键盘区 */
+#phone:not(.fullscreen)::after {
+  content: '';
+  position: absolute;
+  left: 12%; right: 12%;
+  bottom: -20px;
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #4a4a4e, #2a2a2e);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.15);
+  pointer-events: none;
+  z-index: 5;
+}
 }
 #phone.fullscreen {
   max-width: 100%;
@@ -2134,9 +2113,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 </style>
 </head>
 <body>
-<div id="bootSplash" aria-hidden="true">
-  <div class="bs-logo"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div>
-  <div class="bs-title">EENOK</div>
+<div class="bs-title">EENOK</div>
   <div class="bs-sub">小手机 · 加载中</div>
   <div class="bs-bar"><i></i></div>
 </div>
@@ -2561,7 +2538,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22T';
+const EENOK_BUILD = '2026-08-22U';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -2851,7 +2828,7 @@ async function saveAsync() {
   const keys = ['user','chars','groups','chats','moments','momentsBg','worldBooks','wallet','api','stickerLib',
     'personas','wbCategories','emojiCategories','customEmojis','favorites','theme','contactGroups',
     'officials','spaces','bookstore','pomodoro','scriptKill','melo','shop','takeout','altAccounts',
-    'home','icity','gal','phoneApp','sms','divProfile','divRecords','forumIG','countdown','world','memoryApp','prompts','loveApp','jiaApp','storeApp','vecMem'];
+    'home','icity','gal','phoneApp','sms','divProfile','divRecords','forumIG','countdown','world','memoryApp','prompts','loveApp','jiaApp','storeApp','vecMem','withApp'];
   try {
     for (const k of keys) {
       let v = state[k];
@@ -2989,6 +2966,7 @@ function save() {
     ['jiaApp', () => state.jiaApp || { byChar: {} }],
     ['storeApp', () => state.storeApp || { apps: [] }],
     ['vecMem', () => state.vecMem || { items: [] }],
+    ['withApp', () => state.withApp || { posts: [], chats: {} }],
   ];
   // 后台 IDB（不阻塞 UI）
   if (typeof idbSet === 'function') {
@@ -3392,7 +3370,7 @@ async function loadFromIDB() {
     const keys = ['user','chars','groups','chats','moments','momentsBg','worldBooks','wallet','api','stickerLib',
       'personas','wbCategories','emojiCategories','customEmojis','favorites','theme','contactGroups',
       'officials','spaces','bookstore','pomodoro','scriptKill','melo','shop','takeout','altAccounts',
-      'home','icity','gal','phoneApp','sms','divProfile','divRecords','forumIG','countdown','world','lock','offlineStyles','memoryApp','prompts','loveApp','jiaApp','storeApp','vecMem'];
+      'home','icity','gal','phoneApp','sms','divProfile','divRecords','forumIG','countdown','world','lock','offlineStyles','memoryApp','prompts','loveApp','jiaApp','storeApp','vecMem','withApp'];
     for (const k of keys) {
       const v = await idbGet(k, undefined);
       if (v !== undefined) {
@@ -3748,6 +3726,8 @@ function closeSubPage() {
         if (root === 'jia') { openJiaApp(); return; }
         if (root === 'store') { openStoreApp(); return; }
         if (root === 'vecmem') { openVecMemApp(); return; }
+        if (root === 'with') { openWithApp(); return; }
+        if (root === 'games') { openMiniGames(); return; }
         if (root === 'countdown') { openCountdownApp(state._cdTab||'all'); return; }
         if (root === 'sk' || kind === 'scriptkill') {
           state._skId = null;
@@ -3784,6 +3764,8 @@ function closeSubPage() {
         if (root === 'jia') { openJiaApp(); return; }
         if (root === 'store') { openStoreApp(); return; }
         if (root === 'vecmem') { openVecMemApp(); return; }
+        if (root === 'with') { openWithApp(); return; }
+        if (root === 'games') { openMiniGames(); return; }
         if (root === 'countdown') { openCountdownApp('all'); return; }
         if (root === 'sk' || kind === 'scriptkill') { openScriptKill_HOME(); return; }
         if (root === 'divination') { openDivination(state._divTab || 'east'); return; }
@@ -4123,7 +4105,7 @@ function applyChatStyle(id) {
   }
   let styleEl = document.getElementById('chatCustomCss');
   if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'chatCustomCss'; document.head.appendChild(styleEl); }
-  styleEl.textContent = chat.css || '';
+  styleEl.textContent = ((chat.cssUi || '') + '\n' + (chat.css || '')).trim();
   try { refreshChatHeaderQQ(); } catch(e) {}
   // iOS 输入框占位
   try {
@@ -7999,7 +7981,6 @@ function saveGroup() {
 // ========== 聊天设置 ==========
 function openChatSettings() {
   const id = state.currentChatId;
-  // 公众号不进普通聊天设置
   if (state._official || (state.officials||[]).some(o => o.id === id)) {
     const idx = (state.officials||[]).findIndex(o => o.id === id);
     if (idx >= 0) openOfficialHome(idx);
@@ -8007,13 +7988,15 @@ function openChatSettings() {
   }
   const chat = state.chats[id];
   if (!chat) return;
-  // 群聊走独立设置页
   if (state.currentIsGroup) {
     openGroupChatSettings();
     return;
   }
-  openModal('聊天设置', `
-    <div class="setting-list">
+  state._subKind = 'chatSettings';
+  state._subBackFn = function(){ try { openChat(id); } catch(e) { try { closeSubPage(); } catch(e2) {} } };
+  openSubPage('聊天设置', `
+    <div class="setting-list" style="padding-bottom:40px;background:#f7f7f7;min-height:100%;box-sizing:border-box">
+      <div style="height:8px;background:#f7f7f7"></div>
       <div class="setting-item" onclick="editCharInChat()">人物编辑 <span class="right">›</span></div>
       <div class="setting-item" onclick="openUserMount()">User 身份挂载 <span class="right">›</span></div>
       <div class="setting-item" onclick="openSearchChat()">搜索聊天记录 <span class="right">›</span></div>
@@ -8043,7 +8026,7 @@ function openChatSettings() {
         <span class="right">›</span>
       </div>
     </div>
-  `, `<button class="btn btn-secondary" onclick="closeAllModals()">关闭</button>`);
+  `, '', { replace: true });
 }
 /** 群聊专用设置 */
 function openGroupChatSettings() {
@@ -9081,7 +9064,9 @@ function openBeautify() {
         <button type="button" class="btn btn-secondary" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('')">清除内置</button>
       </div>
     </div>
-    <div class="form-group"><label>自定义 CSS（可在内置主题上再改）</label><textarea id="fCss" placeholder=".msg-bubble { border-radius: 16px; }">${escapeHtml(chat.css || '')}</textarea></div>
+    <div class="form-group"><label>界面美化 CSS（背景/顶栏/底栏/列表）</label><textarea id="fCssUi" placeholder="#page-chat .chat-header { }&#10;#msgArea { }&#10;.input-bar { }" style="min-height:72px">${escapeHtml(chat.cssUi || '')}</textarea></div>
+    <div class="form-group"><label>气泡美化 CSS（气泡/时间/头像间距）</label><textarea id="fCss" placeholder=".msg-bubble { border-radius: 16px; }&#10;.msg.me .msg-bubble { }&#10;.msg.them .msg-bubble { }" style="min-height:72px">${escapeHtml(chat.css || '')}</textarea></div>
+    <div class="text-sub" style="font-size:11px;margin-top:-4px;margin-bottom:8px">界面与气泡分开写，保存时合并注入。也可导入下方本地文件。</div>
     <div class="form-group">
       <label>导入本地美化文件</label>
       <div class="text-sub" style="font-size:11px;margin-bottom:6px">支持 .css / .txt / .json（含 themeName、css、bg 字段）</div>
@@ -9226,7 +9211,9 @@ function saveBeautify() {
     var chat = state.chats[state.currentChatId];
     if (!chat) { state._beautySaving = false; return; }
     var ta = document.getElementById('fCss');
+    var tu = document.getElementById('fCssUi');
     if (ta) chat.css = ta.value;
+    if (tu) chat.cssUi = tu.value;
     save();
     applyChatStyle(state.currentChatId);
     try { closeModal(); } catch(e) {}
@@ -12136,10 +12123,6 @@ function renderContacts() {
       <span class="icon" style="width:22px;height:22px;margin-right:12px;flex-shrink:0"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 10h8M8 14h5"/></svg></span>
       公众号
     </div>
-    <div class="setting-item" onclick="openMiniGames()" style="border-radius:16px;margin:8px 12px;border:1px solid var(--line)">
-      <span class="icon" style="width:22px;height:22px;margin-right:12px;flex-shrink:0"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="7" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="11" cy="12" r="1" fill="currentColor" stroke="none"/></svg></span>
-      小游戏
-    </div>
     <div class="setting-item" onclick="openSpaces()" style="border-radius:16px;margin:8px 12px 12px;border:1px solid var(--line)">
       <span class="icon" style="width:22px;height:22px;margin-right:12px;flex-shrink:0"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>
       空间
@@ -12547,11 +12530,18 @@ function saveOfficial() {
 }
 function openMiniGames() {
   state._subStack = [];
-  state._subKind = 'homeApp';
-  state._homeRoot = 'settings';
+  state._subKind = 'games';
+  state._homeRoot = 'games';
+  state._subBackFn = function(){ goHome(); };
+  armClickGuard(400);
   openSubPage('小游戏', `
-    <div style="padding:8px 0">
-      <div class="setting-item" onclick="openMbtiApp('test')" style="margin:8px 12px;border-radius:14px;border:1px solid var(--line)">MBTI 人格测试 <span class="right">›</span></div>
+    <div style="padding:12px 14px 40px;background:linear-gradient(180deg,#f2f8fa,#eef2f4);min-height:100%;box-sizing:border-box">
+      <div style="font-size:12px;color:#7a9aa2;margin-bottom:10px">轻松玩一会儿</div>
+      <div class="setting-item" onclick="openMbtiApp('test')" style="margin:0 0 10px;border-radius:14px;border:1px solid rgba(120,180,190,.25);background:#fff">MBTI 人格测试 <span class="right">›</span></div>
+      <div class="setting-item" onclick="openGomokuGame()" style="margin:0 0 10px;border-radius:14px;border:1px solid rgba(120,180,190,.25);background:#fff">五子棋 <span class="right">›</span></div>
+      <div class="setting-item" onclick="openGame2048()" style="margin:0 0 10px;border-radius:14px;border:1px solid rgba(120,180,190,.25);background:#fff">2048 <span class="right">›</span></div>
+      <div class="setting-item" onclick="openTapGame()" style="margin:0 0 10px;border-radius:14px;border:1px solid rgba(120,180,190,.25);background:#fff">反应点点 <span class="right">›</span></div>
+      <div class="setting-item" onclick="openLudoGame()" style="margin:0 0 10px;border-radius:14px;border:1px solid rgba(120,180,190,.25);background:#fff">飞行棋 <span class="right">›</span></div>
     </div>
   `, '', { replace: true });
 }
@@ -17279,6 +17269,7 @@ function homeAllApps() {
     { id:'gal', name:'galgame', open:'openGalApp()' },
     { id:'sk', name:'剧本杀', open:'openScriptKill_HOME()' },
     { id:'sms', name:'短信', open:'openSmsApp()' },
+    { id:'games', name:'小游戏', open:'openMiniGames()' },
     { id:'melo', name:'Melo', open:'openMelo()' },
     { id:'divination', name:'占卜', open:'openDivination()' },
     { id:'worldbook', name:'世界书', open:'openWorldBook()' },
@@ -17288,6 +17279,7 @@ function homeAllApps() {
     { id:'love', name:'爱', open:'openLoveApp()' },
     { id:'jia', name:'家', open:'openJiaApp()' },
     { id:'store', name:'应用商店', open:'openStoreApp()' },
+    { id:'with', name:'with', open:'openWithApp()' },
     { id:'vecmem', name:'向量记忆', open:'openVecMemApp()' },
     { id:'settings', name:'设置', open:'openHomeSettingsPage()' },
     { id:'beauty', name:'美化', open:'openHomeBeauty()' },
@@ -17481,7 +17473,7 @@ function renderHome() {
   }
   // 新 App 若布局里还没有，自动补一个空位，避免叠在 (0,0)
   (function ensureNewAppsInLayout() {
-    const need = ['love','jia','store','vecmem'];
+    const need = ['love','jia','store','vecmem','games','with'];
     const lay0 = state.home.layout || {};
     const m = typeof homeLayoutMetrics === 'function' ? homeLayoutMetrics() : null;
     need.forEach(function(id) {
@@ -18072,6 +18064,8 @@ function homeAppIconSvg(id) {
   if (id === 'love') return '<svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 6l8 7 8-7"/><path d="M12 13l-3.5 3.2a2.2 2.2 0 003.1 0L12 13z" opacity=".35"/></svg>';
   if (id === 'jia') return '<svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>';
   if (id === 'store') return '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>';
+  if (id === 'games') return '<svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="7" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="11" cy="12" r="1" fill="currentColor" stroke="none"/></svg>';
+  if (id === 'with') return '<svg viewBox="0 0 24 24"><path d="M17 8h2a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2h2"/><path d="M12 3v10"/><path d="M8 7l4-4 4 4"/></svg>';
   if (id === 'vecmem') return '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 
   const icons = {
@@ -20035,7 +20029,8 @@ function openStoreApp() {
     + '<div style="padding:8px 14px 8px;font-size:12px;color:#7a9aa2;font-weight:600">我的导入</div>'
     + list + '</div>'
     + '<div style="position:absolute;left:0;right:0;bottom:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.9);border-top:1px solid rgba(120,180,190,.2);display:flex;gap:10px">'
-    + '<button type="button" onclick="storeImportLocal()" style="flex:1;border:none;background:linear-gradient(145deg,#8ec4ce,#6aaab6);color:#fff;border-radius:14px;padding:14px;font-size:14px;font-weight:600;cursor:pointer">导入本地文件</button>'
+    + '<button type="button" onclick="storeMakeGameAI()" style="flex:1;border:none;background:rgba(126,184,196,.25);color:#2a4a52;border-radius:14px;padding:14px;font-size:13px;font-weight:600;cursor:pointer">AI 制作</button>'
+    + '<button type="button" onclick="storeImportLocal()" style="flex:1;border:none;background:linear-gradient(145deg,#8ec4ce,#6aaab6);color:#fff;border-radius:14px;padding:14px;font-size:13px;font-weight:600;cursor:pointer">导入本地</button>'
     + '</div></div>';
   openSubPage('', html, '', { replace: true });
   try { var sn=document.getElementById('subNav'); if(sn) sn.style.display='none'; } catch(e) {}
@@ -20579,6 +20574,195 @@ function openTapGame() {
   },1000);
 }
 
+
+/* ========== 飞行棋（简化） ========== */
+function openLudoGame() {
+  state._homeRoot = 'games';
+  state._subBackFn = function(){ openMiniGames(); };
+  var pos = [0,0,0,0]; // 0=家 1-20=轨道简化
+  var turn = 0;
+  var colors = ['#e07070','#70a0e0','#70c090','#e0c070'];
+  var names = ['红','蓝','绿','黄'];
+  function render() {
+    var track = '';
+    for (var i=1;i<=20;i++) {
+      var who = '';
+      for (var p=0;p<4;p++) if (pos[p]===i) who += '<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:'+colors[p]+';margin:1px"></span>';
+      track += '<div style="width:14%;aspect-ratio:1;margin:1%;border-radius:8px;background:#f0e8dc;border:1px solid #d8d0c4;display:flex;align-items:center;justify-content:center;font-size:10px;flex-wrap:wrap">'+i+who+'</div>';
+    }
+    var homes = names.map(function(n,i){
+      return '<div style="flex:1;text-align:center;padding:8px;border-radius:12px;background:'+colors[i]+'22;border:2px solid '+(turn===i?colors[i]:'transparent')+'"><div style="font-size:12px;font-weight:700;color:'+colors[i]+'">'+n+'</div><div style="font-size:11px;margin-top:4px">'+(pos[i]===0?'家中':pos[i]>=20?'到达':('格'+pos[i]))+'</div></div>';
+    }).join('');
+    openSubPage('飞行棋', '<div style="padding:12px;background:#faf6f0;min-height:100%;box-sizing:border-box">'
+      +'<div style="display:flex;gap:6px;margin-bottom:12px">'+homes+'</div>'
+      +'<div style="display:flex;flex-wrap:wrap;justify-content:center;padding:8px;background:#e8e0d4;border-radius:14px">'+track+'</div>'
+      +'<div style="text-align:center;margin-top:16px"><button type="button" id="ludoDice" style="border:none;background:#5a9aaa;color:#fff;border-radius:14px;padding:12px 28px;font-size:15px;font-weight:700;cursor:pointer">掷骰子 · '+names[turn]+'</button></div>'
+      +'<div id="ludoLog" style="text-align:center;margin-top:10px;font-size:12px;color:#8a7">简化 20 格 · 先到即胜</div></div>', '', {replace:true});
+    try{var sn=document.getElementById('subNav');if(sn)sn.style.display='none';}catch(e){}
+    var btn=document.getElementById('ludoDice');
+    if(btn) btn.onclick=function(){
+      var dice=1+Math.floor(Math.random()*6);
+      if(pos[turn]===0){ if(dice>=2){ pos[turn]=1; } }
+      else { pos[turn]=Math.min(20, pos[turn]+dice); }
+      var log=document.getElementById('ludoLog');
+      if(log) log.textContent=names[turn]+' 掷出 '+dice+(pos[turn]>=20?' · 到达终点！':'');
+      if(pos[turn]>=20){ showToast(names[turn]+' 获胜！'); }
+      turn=(turn+1)%4;
+      render();
+    };
+  }
+  render();
+}
+
+/* ========== with App：推特时间流 + Kakao 聊天 ========== */
+function ensureWithState() {
+  if (!state.withApp || typeof state.withApp !== 'object') state.withApp = { posts: [], chats: {} };
+  if (!Array.isArray(state.withApp.posts)) state.withApp.posts = [];
+  if (!state.withApp.chats || typeof state.withApp.chats !== 'object') state.withApp.chats = {};
+}
+function openWithApp(tab) {
+  ensureWithState();
+  tab = tab || state._withTab || 'feed';
+  state._withTab = tab;
+  state._homeRoot = 'with';
+  state._subKind = 'with';
+  state._subBackFn = function(){ goHome(); };
+  armClickGuard(400);
+  var body = '';
+  if (tab === 'feed') {
+    var posts = (state.withApp.posts||[]).slice().sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+    body = '<div style="padding:0 0 80px">'
+      + posts.map(function(p){
+        return '<div style="padding:14px 16px;border-bottom:1px solid #eff3f4">'
+          + '<div style="display:flex;gap:10px"><div style="width:40px;height:40px;border-radius:50%;background:#c8dde8;flex-shrink:0"></div>'
+          + '<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px;color:#0f1419">'+escapeHtml(p.name||'用户')+' <span style="font-weight:400;color:#536471">@'+escapeHtml(p.handle||'user')+' · '+escapeHtml(p.time||'')+'</span></div>'
+          + '<div style="font-size:15px;line-height:1.45;color:#0f1419;margin-top:4px;white-space:pre-wrap">'+escapeHtml(p.text||'')+'</div>'
+          + '<div style="display:flex;gap:24px;margin-top:10px;color:#536471;font-size:13px"><span>♡ '+(p.likes||0)+'</span><span>↻ '+(p.rts||0)+'</span><span>💬 '+(p.replies||0)+'</span></div></div></div></div>';
+      }).join('') || '<div style="padding:48px;text-align:center;color:#8a9">还没有帖子<br>点右上角生成</div></div>';
+  } else {
+    var chars = state.chars||[];
+    body = '<div style="padding:8px 0 80px;background:#b2c7d9;min-height:100%;box-sizing:border-box">'
+      + chars.map(function(c){
+        return '<div onclick="openWithKakao(\''+c.id+'\')" style="display:flex;gap:12px;padding:12px 14px;margin:8px 12px;background:#fff;border-radius:12px;cursor:pointer;align-items:center">'
+          + '<img src="'+(avatarUrl(c)||defaultAvatar(c.nick||'?'))+'" style="width:44px;height:44px;border-radius:18px;object-fit:cover">'
+          + '<div style="flex:1"><div style="font-weight:600;font-size:15px">'+escapeHtml(c.nick||c.realName||'角色')+'</div>'
+          + '<div style="font-size:12px;color:#8a8;margin-top:2px">KakaoTalk</div></div></div>';
+      }).join('') || '<div style="padding:40px;text-align:center;color:#567">请先添加角色</div></div>';
+  }
+  openSubPage('with', body, 
+    tab==='feed'
+      ? '<button type="button" class="nav-btn" onclick="withGenPosts()" title="生成"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></button>'
+      : '',
+    { replace: true });
+  // bottom dock
+  var sub=document.getElementById('subBody');
+  if (sub) {
+    var dock=document.createElement('div');
+    dock.style.cssText='position:absolute;left:0;right:0;bottom:0;display:flex;background:rgba(255,255,255,.95);border-top:1px solid #e8e8e8;padding:8px 0 calc(8px + env(safe-area-inset-bottom,0px));z-index:8';
+    dock.innerHTML='<button type="button" onclick="openWithApp(\'feed\')" style="flex:1;border:none;background:transparent;padding:8px;font-size:12px;color:'+(tab==='feed'?'#1d9bf0':'#536471')+';font-weight:600">论坛</button>'
+      +'<button type="button" onclick="openWithApp(\'kakao\')" style="flex:1;border:none;background:transparent;padding:8px;font-size:12px;color:'+(tab==='kakao'?'#fee500':'#536471')+';font-weight:600">Kakao</button>';
+    sub.style.position='relative';
+    sub.appendChild(dock);
+  }
+}
+async function withGenPosts() {
+  ensureWithState();
+  showToast('生成中…');
+  try {
+    const r = await apiChat([
+      {role:'system',content:'只输出 JSON 数组。'},
+      {role:'user',content:'生成 5 条推特风格短帖。JSON：[{name,handle,text,likes,rts,replies}]。中文，生活化，可有角色口吻。'}
+    ]);
+    var text=(r&&r.text)||'';
+    var arr=[];
+    try{arr=JSON.parse((text.match(/\[[\s\S]*\]/)||[text])[0]);}catch(e){}
+    if(!Array.isArray(arr))arr=[];
+    arr.forEach(function(p){
+      state.withApp.posts.unshift({ name:p.name, handle:p.handle, text:p.text, likes:p.likes|0, rts:p.rts|0, replies:p.replies|0, ts:Date.now(), time:'刚刚' });
+    });
+    try{save();}catch(e){}
+    openWithApp('feed');
+  } catch(e){ showToast('失败：'+(e.message||e)); }
+}
+function openWithKakao(cid) {
+  ensureWithState();
+  var c=(state.chars||[]).find(function(x){return x.id===cid;});
+  if(!c)return;
+  if(!state.withApp.chats[cid]) state.withApp.chats[cid]={messages:[]};
+  state._withChatId=cid;
+  state._subBackFn=function(){ openWithApp('kakao'); };
+  var msgs=state.withApp.chats[cid].messages||[];
+  var bubbles=msgs.map(function(m){
+    var me=m.from==='user';
+    return '<div style="display:flex;justify-content:'+(me?'flex-end':'flex-start')+';margin:6px 12px">'
+      +'<div style="max-width:75%;padding:10px 12px;border-radius:12px;font-size:14px;line-height:1.4;background:'+(me?'#fee500':'#fff')+';color:#191919;box-shadow:0 1px 1px rgba(0,0,0,.06)">'+escapeHtml(m.content||'')+'</div></div>';
+  }).join('');
+  openSubPage(c.nick||c.realName||'聊天',
+    '<div style="display:flex;flex-direction:column;height:100%;background:#b2c7d9">'
+    +'<div style="flex:1;overflow-y:auto;padding:10px 0">'+bubbles+'</div>'
+    +'<div style="display:flex;gap:8px;padding:8px 10px;background:#f7f7f7">'
+    +'<input id="withKakaoInput" style="flex:1;border:none;border-radius:20px;padding:10px 14px;background:#fff" placeholder="消息" onkeydown="if(event.key===\'Enter\'){event.preventDefault();withKakaoSend(\''+cid+'\');}">'
+    +'<button type="button" onclick="withKakaoSend(\''+cid+'\')" style="border:none;background:#fee500;border-radius:20px;padding:0 16px;font-weight:600">发送</button></div></div>',
+    '', {replace:true});
+}
+function withKakaoSend(cid) {
+  var el=document.getElementById('withKakaoInput');
+  var text=(el&&el.value||'').trim();
+  if(!text)return;
+  ensureWithState();
+  if(!state.withApp.chats[cid]) state.withApp.chats[cid]={messages:[]};
+  state.withApp.chats[cid].messages.push({from:'user',content:text,ts:Date.now()});
+  if(el)el.value='';
+  try{save();}catch(e){}
+  openWithKakao(cid);
+  // 简易角色回一句
+  (async function(){
+    try{
+      var c=(state.chars||[]).find(function(x){return x.id===cid;});
+      var r=await apiChat([{role:'system',content:'你是'+(c&&c.nick||'角色')+'，在 KakaoTalk 回短信，一句话。人设：'+(c&&c.persona||'')},{role:'user',content:text}]);
+      var t=(r&&r.text||'').trim();
+      if(t){ state.withApp.chats[cid].messages.push({from:'them',content:t,ts:Date.now()}); try{save();}catch(e){} openWithKakao(cid); }
+    }catch(e){}
+  })();
+}
+
+/* ========== 应用商店：AI 制作小游戏 ========== */
+function storeMakeGameAI() {
+  openModal('制作小游戏',
+    '<div class="text-sub" style="font-size:12px;margin-bottom:8px;line-height:1.5">用一句话说出你想要的小游戏，将调用聊天 API 生成可运行的 HTML 小游戏并加入应用商店。</div>'
+    +'<div class="form-group"><label>需求描述</label><textarea id="storeGamePrompt" style="min-height:88px" placeholder="例如：一个点击屏幕飞起来的小鸟小游戏，简洁像素风"></textarea></div>',
+    '<button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="storeDoMakeGame()">生成</button>',
+    { replace: true });
+}
+async function storeDoMakeGame() {
+  var prompt=((document.getElementById('storeGamePrompt')||{}).value||'').trim();
+  if(!prompt){ showToast('请填写需求'); return; }
+  closeModal();
+  showToast('正在生成小游戏…');
+  try {
+    var r = await apiChat([
+      {role:'system', content:'你是前端小游戏生成器。只输出完整 HTML 文档（含 style 与 script），不要 markdown 代码块。游戏需可单文件运行，触控友好，画面简洁。'},
+      {role:'user', content:'请生成小游戏：'+prompt}
+    ]);
+    var html=(r&&r.text||'').trim();
+    html=html.replace(/^```html?\s*/i,'').replace(/```\s*$/,'');
+    if(html.length<40){ showToast('生成内容过短'); return; }
+    ensureStoreState();
+    var id='store_ai_'+Date.now();
+    var name=(prompt.slice(0,12)||'AI游戏');
+    var app={ id:id, name:name, type:'html', icon:'🕹️', onHome:true, ts:Date.now() };
+    if(html.length>200*1024 && typeof idbSet==='function'){
+      try{ await idbSet('storeBlob_'+id, html); app.blobKey='storeBlob_'+id; app.html=''; }
+      catch(e){ app.html=html; }
+    } else app.html=html;
+    state.storeApp.apps.unshift(app);
+    try{save();}catch(e){}
+    showToast('已生成并加入应用商店');
+    openStoreApp();
+  } catch(e) {
+    showToast('生成失败：'+(e.message||e));
+  }
+}
 
 function openOfflineApp() {
   resetHomeNav('offline');
@@ -25613,7 +25797,7 @@ function openSmsApp() {
       </div>`).join('') || '<div class="empty">暂无短信</div>'}
       <button type="button" onclick="smsNew()" title="新信息" style="position:fixed;right:24px;bottom:36px;width:52px;height:52px;border-radius:50%;border:none;background:#007aff;color:#fff;font-size:28px;line-height:1;box-shadow:0 4px 14px rgba(0,122,255,.35);z-index:20">＋</button>
     </div>
-  `, `<button type="button" class="nav-btn" onclick="smsImportWechatChars()" title="导入微信角色"><span style="font-size:20px">＋</span></button>`, { replace: true });
+  `, `<button type="button" class="nav-btn" onclick="smsGenerateLifeThreads()" title="生成生活短信" style="margin-right:4px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button><button type="button" class="nav-btn" onclick="smsImportWechatChars()" title="导入微信角色"><span style="font-size:20px">＋</span></button>`, { replace: true });
   state._subKind = 'homeApp';
   state._homeDepth = 0;
   try {
@@ -25843,6 +26027,53 @@ async function sendSms(id) {
   save();
   if (!appendSmsBubble(id, msg, t.messages.length-1)) openSmsThread(id);
 }
+
+async function smsGenerateLifeThreads() {
+  ensureHomeState();
+  if (!state.sms.threads) state.sms.threads = {};
+  if (state._smsLifeLock) return;
+  state._smsLifeLock = true;
+  showToast('生成生活短信中…');
+  try {
+    const userP = (state.user && (state.user.persona || state.user.desc || state.user.nick)) || '';
+    const prompt = '根据 User 人设，生成 4 条短信会话列表项。JSON 数组，每项：{name, preview, messages:[{from:"them"|"user",content}], anon?:true}。类型覆盖：快递通知、话费/套餐、工作或学校通知、一条匿名短信。口语简洁，像真短信。User人设：'+(userP||'普通年轻人')+'。只输出 JSON。';
+    let text = '';
+    try {
+      const r = await apiChat([{ role:'system', content:'你只输出合法 JSON 数组。' }, { role:'user', content: prompt }]);
+      text = (r && r.text) || '';
+    } catch(e) {
+      showToast('生成失败：'+(e.message||e));
+      return;
+    }
+    let arr = [];
+    try {
+      const m = text.match(/\[[\s\S]*\]/);
+      arr = JSON.parse(m ? m[0] : text);
+    } catch(e) {
+      showToast('解析失败');
+      return;
+    }
+    if (!Array.isArray(arr)) arr = [];
+    arr.slice(0, 6).forEach(function(it, i) {
+      const id = 'life_' + Date.now() + '_' + i;
+      state.sms.threads[id] = {
+        name: it.name || ('短信'+(i+1)),
+        messages: (it.messages || [{ from:'them', content: it.preview || '…' }]).map(function(m){
+          return { from: m.from === 'user' ? 'user' : 'them', content: m.content || '', ts: Date.now() - (6-i)*60000 };
+        }),
+        anon: !!it.anon,
+        charId: '',
+        avatar: '',
+        ctx: 0
+      };
+    });
+    try { save(); } catch(e) {}
+    showToast('已生成生活短信');
+    openSmsApp();
+  } finally {
+    state._smsLifeLock = false;
+  }
+}
 async function generateSmsReply(id) {
   ensureHomeState();
   const t = state.sms.threads[id];
@@ -25864,7 +26095,7 @@ async function generateSmsReply(id) {
       content: m.content || ''
     }));
     if (!hist.length) hist.push({ role:'user', content:'你好' });
-    const system = getOnlineChatRules('你在手机【短信/iMessage】里回复。你是'+(c?c.nick:t.name)+'。人设：'+(c&&c.persona||'')+'。性别：'+(c&&c.gender||'')+'。'+(t.anon?'对方可能匿名。':''))
+    const system = getOnlineChatRules('你在手机【短信/iMessage】里回复。你是'+(c?c.nick:t.name)+'。人设：'+(c&&c.persona||'')+'。性别：'+(c&&c.gender||'')+'。'+(t.anon?'【匿名·强制】对方以匿名号码发来短信。你不知道对方是谁，更不知道是 user。禁止叫 user 的名字/昵称/爱称，禁止说「你不就是…」「我知道是你」。把对方当陌生人或未知号码，可怀疑但不可直接认定。':''))
       + (c && typeof nationLangHint==='function' ? nationLangHint(c) : '')
       + (ctx ? '\n【微信互通记忆】\n'+ctx : '');
     const { text: reply } = await apiChat([
@@ -28650,31 +28881,6 @@ async function doToGenShops() {
 
 
 
-function runBootSplash(done) {
-  var el = document.getElementById('bootSplash');
-  var finish = function() {
-    try {
-      if (el) {
-        el.classList.add('hide');
-        setTimeout(function(){ try { if (el && el.parentNode) el.parentNode.removeChild(el); } catch(e) {} }, 600);
-      }
-    } catch(e) {}
-    try { if (typeof done === 'function') done(); } catch(e) {}
-  };
-  if (!el) { finish(); return; }
-  // 最短展示约 1.1s，避免闪一下
-  var minMs = 1100;
-  var t0 = Date.now();
-  var wait = function() {
-    var left = minMs - (Date.now() - t0);
-    setTimeout(finish, left > 0 ? left : 0);
-  };
-  // 若字体/主屏还在准备，也最多等到 2s
-  setTimeout(wait, 0);
-  setTimeout(function(){
-    if (el && !el.classList.contains('hide')) finish();
-  }, 2200);
-}
 function ensureLockState() {
   if (!state.lock || typeof state.lock !== 'object') state.lock = { pin: '0000', wallpaper: '', enabled: true };
   try {
@@ -29058,12 +29264,21 @@ function openWorldChar(charId, tab) {
     const daysInMonth = new Date(y, m+1, 0).getDate();
     let cells = '';
     const marked = [];
+    const todayDate = now.getDate();
+    const todayMonth = now.getMonth();
+    const todayYear = now.getFullYear();
     for (var d=1; d<=daysInMonth; d++) {
       const key = keyPrefix + String(d).padStart(2,'0');
       const mark = w.calendar[key];
       if (mark) marked.push({ key: key, text: mark.text || '', d: d });
-      cells += '<div onclick="worldEditDay(\''+key+'\')" style="aspect-ratio:1;border-radius:12px;background:'+(mark?'rgba(94,184,176,.35)':card)+';display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:1px solid rgba(94,184,176,.18)">'
-        + '<div style="font-size:13px;font-weight:600;color:'+ink+'">'+d+'</div></div>';
+      const isToday = (y === todayYear && m === todayMonth && d === todayDate);
+      const bg = isToday ? 'rgba(60,140,150,.55)' : (mark ? 'rgba(94,184,176,.35)' : card);
+      const bd = isToday ? '2px solid #2a6a72' : '1px solid rgba(94,184,176,.18)';
+      const tc = isToday ? '#fff' : ink;
+      cells += '<div onclick="worldEditDay(\''+key+'\')" style="aspect-ratio:1;border-radius:12px;background:'+bg+';display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:'+bd+';box-shadow:'+(isToday?'0 2px 8px rgba(40,100,110,.25)':'none')+'">'
+        + '<div style="font-size:13px;font-weight:'+(isToday?'800':'600')+';color:'+tc+'">'+d+'</div>'
+        + (isToday ? '<div style="font-size:9px;color:rgba(255,255,255,.9);margin-top:1px">今天</div>' : '')
+        + '</div>';
     }
     main = '<div style="padding:16px 14px 100px">'
       + '<div style="font-size:17px;font-weight:700;color:'+ink+';margin-bottom:4px">日历 · '+(m+1)+'月</div>'
@@ -29551,18 +29766,10 @@ async function worldAutoScheduleTick() {
       if (state.home && typeof safeSet === 'function') safeSet('home', state.home);
     } catch(e) {}
   } catch (e) { console.warn('boot home', e); }
-  // 锁屏：默认显示（用户关闭则跳过）；开屏动画结束后再出现
+  // 锁屏：默认显示（用户明确关闭则跳过）
   try {
     if (typeof ensureLockState === 'function') ensureLockState();
-    if (typeof runBootSplash === 'function') {
-      runBootSplash(function(){
-        try {
-          if (state.lock && state.lock.enabled !== false && typeof showLockScreen === 'function') showLockScreen();
-        } catch(e1) {}
-      });
-    } else if (state.lock && state.lock.enabled !== false && typeof showLockScreen === 'function') {
-      showLockScreen();
-    }
+    if (state.lock && state.lock.enabled !== false && typeof showLockScreen === 'function') showLockScreen();
   } catch (e) {}
   try {
     if (typeof applyFullscreenFromStore === 'function') applyFullscreenFromStore();
