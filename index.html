@@ -2531,7 +2531,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22X';
+const EENOK_BUILD = '2026-08-22Y';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -20677,10 +20677,13 @@ function openWithApp(tab) {
       + '</div>'
       + '<div style="font-size:12px;color:#7a9aa2;margin-bottom:8px">论坛体 · 点击卡片查看楼层</div>'
       + (state.withApp.posts.length ? state.withApp.posts.slice().sort(function(a,b){return (b.ts||0)-(a.ts||0);}).map(function(p){
-          return '<div onclick="withOpenPost(\''+p.id+'\')" style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;border:1px solid '+line+';cursor:pointer">'
+          return '<div style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;border:1px solid '+line+';position:relative">'
+            + '<div onclick="withOpenPost(\''+p.id+'\')" style="cursor:pointer">'
             + '<div style="font-size:11px;color:#5a9aaa;font-weight:600;margin-bottom:4px">'+(p.kind==='forum'?'论坛体':'脑洞')+'</div>'
-            + '<div style="font-size:14px;color:'+ink+';line-height:1.45;font-weight:600">'+escapeHtml((p.title||p.prompt||'').slice(0,48))+'</div>'
+            + '<div style="font-size:14px;color:'+ink+';line-height:1.45;font-weight:600;padding-right:28px">'+escapeHtml((p.title||p.prompt||'').slice(0,48))+'</div>'
             + '<div style="font-size:12px;color:#8aa;margin-top:6px">'+(p.floors?p.floors.length:0)+' 层 · '+escapeHtml(p.charsLabel||'')+'</div>'
+            + '</div>'
+            + '<button type="button" onclick="event.stopPropagation();withDeletePost(\''+p.id+'\')" title="删除" style="position:absolute;top:10px;right:10px;width:28px;height:28px;border:none;background:transparent;color:#b88;font-size:16px;cursor:pointer;line-height:1">×</button>'
             + '</div>';
         }).join('') : '<div style="text-align:center;padding:40px 20px;color:#9ab">还没有帖子<br>在上方填写灵感后点「发布」</div>')
       + '</div>';
@@ -20689,9 +20692,12 @@ function openWithApp(tab) {
       + '<div style="font-size:12px;color:#7a9aa2;margin-bottom:10px">对话体 · Kakao 风格 · 可继续生成</div>'
       + '<button type="button" onclick="withOpenTalkSetup()" style="width:100%;border:1.5px solid '+line+';background:#fff;border-radius:14px;padding:14px;font-size:14px;color:'+ink+';font-weight:600;cursor:pointer;margin-bottom:12px">＋ 新建对话生成</button>'
       + (state.withApp.dialogues.length ? state.withApp.dialogues.slice().sort(function(a,b){return (b.ts||0)-(a.ts||0);}).map(function(d){
-          return '<div onclick="withOpenDialogue(\''+d.id+'\')" style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;border:1px solid '+line+';cursor:pointer">'
+          return '<div style="background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:10px;border:1px solid '+line+';position:relative">'
+            + '<div onclick="withOpenDialogue(\''+d.id+'\')" style="cursor:pointer;padding-right:28px">'
             + '<div style="font-weight:600;font-size:14px;color:'+ink+'">'+escapeHtml((d.title||d.prompt||'对话').slice(0,40))+'</div>'
             + '<div style="font-size:12px;color:#8aa;margin-top:4px">'+(d.messages?d.messages.length:0)+' 句 · '+escapeHtml(d.mode||'')+'</div>'
+            + '</div>'
+            + '<button type="button" onclick="event.stopPropagation();withDeleteDialogue(\''+d.id+'\')" title="删除" style="position:absolute;top:10px;right:10px;width:28px;height:28px;border:none;background:transparent;color:#b88;font-size:16px;cursor:pointer;line-height:1">×</button>'
             + '</div>';
         }).join('') : '<div style="text-align:center;padding:32px;color:#9ab">暂无对话</div>')
       + '</div>';
@@ -20757,15 +20763,19 @@ async function withDoForumGen() {
   var personas = [];
   ids.forEach(function(id){
     var c = (state.chars||[]).find(function(x){ return x.id===id; });
-    if (c) { labels.push(c.nick||c.realName); personas.push((c.nick||c.realName)+'：'+(c.persona||'').slice(0,80)); }
+    if (c) {
+      labels.push(c.nick||c.realName);
+      var lang = (typeof resolveCharLang === 'function' ? resolveCharLang(c) : (c.lang || '中文'));
+      personas.push((c.nick||c.realName)+'｜语言:'+lang+'｜人设:'+String(c.persona||'').slice(0,160)+(c.nation?('｜国籍:'+c.nation):''));
+    }
   });
-  if (customName) { labels.push(customName); personas.push(customName+'：'+(customSet||'自定义角色')); }
+  if (customName) { labels.push(customName); personas.push(customName+'：'+(customSet||'自定义角色')+'｜语言:中文'); }
   closeModal();
   showToast('生成论坛楼层中…');
   try {
     var r = await apiChat([
-      { role:'system', content:'你是同人论坛产粮助手。只输出 JSON：{"title":"大标题","body":"贴主正文（可多段）","floors":[{"author":"角色或路人","content":"跟帖"}]}。跟帖约 '+floorN+' 条。口语化，符合人设，不要 OOC。不要 markdown。' },
-      { role:'user', content:'需求：'+prompt+'\n角色：\n'+personas.join('\n')+'\n模式：'+mode+'\n请生成 '+floorN+' 层论坛回复。' }
+      { role:'system', content:'你是同人论坛产粮助手。严格按每人设与语言，禁止 OOC。只输出 JSON：{"title":"大标题","body":"贴主正文","floors":[{"author":"角色名","content":"跟帖"}]}。跟帖约 '+floorN+' 条。外语角色 content 用其语言，格式 原文|||中文。不要 markdown。' },
+      { role:'user', content:'需求：'+prompt+'\n角色（必须遵守语言与人设，禁止OOC）：\n'+personas.join('\n')+'\n模式：'+mode+'\n请生成贴主帖 + '+floorN+' 条跟帖。' }
     ]);
     var text = (r && r.text) || '';
     var data = null;
@@ -20793,18 +20803,22 @@ function withOpenPost(id) {
   if (!p) return;
   state._subBackFn = function(){ openWithApp('forum'); };
   var floors = (p.floors||[]).map(function(f,i){
+    var raw = String(f.content||'');
+    var main = raw, trans = '';
+    if (raw.indexOf('|||') >= 0) { var ps = raw.split('|||'); main = ps[0].trim(); trans = ps.slice(1).join('|||').trim(); }
     return '<div style="display:flex;gap:10px;padding:14px 0;border-bottom:1px solid rgba(0,0,0,.06)">'
       + '<div style="width:40px;height:40px;border-radius:50%;background:#d0e4ea;flex-shrink:0"></div>'
       + '<div style="flex:1;min-width:0">'
       + '<div style="font-size:13px;font-weight:700;color:#0f1419">'+escapeHtml(f.author||'匿名')+'</div>'
-      + '<div style="font-size:15px;color:#0f1419;line-height:1.45;margin-top:4px;white-space:pre-wrap">'+escapeHtml(f.content||'')+'</div>'
+      + '<div style="font-size:15px;color:#0f1419;line-height:1.45;margin-top:4px;white-space:pre-wrap">'+escapeHtml(main)+'</div>'
+      + (trans ? '<div style="font-size:12px;color:#666;margin-top:6px;padding-top:6px;border-top:1px solid rgba(0,0,0,.06);line-height:1.35">'+escapeHtml(trans)+'</div>' : '')
       + '</div></div>';
   }).join('');
   openSubPage((p.title||'帖子').slice(0,14),
     '<div style="padding:0 0 100px;background:#fff;min-height:100%;box-sizing:border-box">'
     + '<div style="padding:16px 16px 12px;border-bottom:1px solid rgba(0,0,0,.08)">'
     + '<div style="font-size:20px;font-weight:800;color:#0f1419;line-height:1.3">'+escapeHtml(p.title||'')+'</div>'
-    + '<div style="font-size:15px;color:#0f1419;line-height:1.5;margin-top:10px;white-space:pre-wrap">'+escapeHtml(p.body||p.prompt||'')+'</div>'
+    + '<div style="font-size:15px;color:#0f1419;line-height:1.5;margin-top:10px;white-space:pre-wrap">'+(function(){var raw=String(p.body||p.prompt||'');if(raw.indexOf('|||')>=0){var ps=raw.split('|||');return escapeHtml(ps[0].trim())+'<div style=\'font-size:12px;color:#666;margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,.06)\'>'+escapeHtml(ps.slice(1).join('|||').trim())+'</div>';}return escapeHtml(raw);})()+'</div>'
     + '<div style="font-size:12px;color:#8a98a5;margin-top:12px">'+(p.floors?p.floors.length:0)+' 条回复 · '+escapeHtml(p.charsLabel||'')+'</div>'
     + '</div>'
     + '<div style="padding:0 16px">'+floors+'</div>'
@@ -20863,9 +20877,13 @@ async function withDoTalkGen() {
   var names = [];
   ids.forEach(function(id){
     var c = (state.chars||[]).find(function(x){ return x.id===id; });
-    if (c) { names.push(c.nick||c.realName); personas.push((c.nick||c.realName)+'：'+(c.persona||'').slice(0,80)); }
+    if (c) {
+      names.push(c.nick||c.realName);
+      var lang = (typeof resolveCharLang === 'function' ? resolveCharLang(c) : (c.lang || '中文'));
+      personas.push((c.nick||c.realName)+'｜语言:'+lang+'｜人设:'+String(c.persona||'').slice(0,160)+(c.nation?('｜国籍:'+c.nation):''));
+    }
   });
-  if (customName) { names.push(customName); personas.push(customName+'：'+(customSet||'')); }
+  if (customName) { names.push(customName); personas.push(customName+'：'+(customSet||'')+'｜语言:中文'); }
   var userP = (state.user && (state.user.persona || state.user.nick || state.user.name)) || 'User';
   if (includeUser) {
     names.push('User');
@@ -20875,7 +20893,7 @@ async function withDoTalkGen() {
   showToast('生成对话中…');
   try {
     var r = await apiChat([
-      { role:'system', content:'生成同人对话。只输出 JSON：{"title":"...","messages":[{"from":"角色名或User","content":"一句短气泡"}]}。共约 '+count+' 条气泡。一人可连续发多句。有来有往，断句自然，不要一大段。符合人设。'+(includeUser?' User 必须参与。':'') },
+      { role:'system', content:'生成同人对话。严格人设与语言，禁止 OOC。只输出 JSON：{"title":"...","messages":[{"from":"角色名或User","content":"一句","action":"可选动作描写"}]}。共约 '+count+' 条。一人可连发。外语 content 用 原文|||中文。动作放 action 字段。有来有往。'+(includeUser?' User必须参与。':'') },
       { role:'user', content:'需求：'+prompt+'\n模式：'+mode+'\n角色：\n'+personas.join('\n') }
     ]);
     var text = (r&&r.text)||'';
@@ -20896,19 +20914,48 @@ function withOpenDialogue(id) {
   var d = (state.withApp.dialogues||[]).find(function(x){ return x.id===id; });
   if (!d) return;
   state._subBackFn = function(){ openWithApp('talk'); };
-  var names = [];
-  (d.messages||[]).forEach(function(m){ if (m.from && names.indexOf(m.from)<0) names.push(m.from); });
-  var rightName = d.includeUser ? 'User' : (names[0] || '');
+  function splitTrans(content) {
+    content = String(content || '');
+    var parts = content.split('|||');
+    if (parts.length >= 2) {
+      return { main: parts[0].trim(), trans: parts.slice(1).join('|||').trim() };
+    }
+    // also support （翻译） style lightly
+    return { main: content, trans: '' };
+  }
+  function extractAction(m) {
+    if (m.action) return String(m.action).trim();
+    var c = String(m.content || '');
+    // 若 content 以（动作）开头，拆出动作
+    var m1 = c.match(/^[（(]([^）)]+)[）)]\s*([\s\S]*)$/);
+    if (m1) return { action: m1[1], content: m1[2] };
+    return null;
+  }
   var bubbles = (d.messages||[]).map(function(m){
-    var me = (m.from === 'User' || m.from === 'user' || m.from === '我' || (rightName && m.from === rightName && d.includeUser));
-    if (d.includeUser) me = (m.from === 'User' || m.from === 'user' || m.from === '我');
-    else me = (names[0] && m.from === names[0]); // 无 User 时第一个角色靠右
-    // 更合理：User 右黄，其他人左白
-    if (m.from === 'User' || m.from === 'user' || m.from === '我') me = true;
-    else me = false;
-    return '<div style="display:flex;flex-direction:column;align-items:'+(me?'flex-end':'flex-start')+';margin:6px 12px">'
-      + (me?'':'<div style="font-size:11px;color:#5a6a7a;margin-bottom:3px;margin-left:4px">'+escapeHtml(m.from||'')+'</div>')
-      + '<div style="max-width:78%;padding:10px 12px;border-radius:14px;font-size:14px;line-height:1.4;background:'+(me?'#fee500':'#fff')+';color:#191919;box-shadow:0 1px 2px rgba(0,0,0,.06)">'+escapeHtml(m.content||'')+'</div></div>';
+    var me = (m.from === 'User' || m.from === 'user' || m.from === '我');
+    var actInfo = extractAction(m);
+    var content = m.content || '';
+    var action = m.action || '';
+    if (actInfo && typeof actInfo === 'object') {
+      action = actInfo.action || action;
+      content = actInfo.content != null ? actInfo.content : content;
+    } else if (typeof actInfo === 'string') {
+      action = actInfo;
+    }
+    var st = splitTrans(content);
+    var html = '';
+    if (action) {
+      html += '<div style="text-align:center;padding:6px 20px;font-size:12px;color:#666;line-height:1.4">'+escapeHtml(action)+'</div>';
+    }
+    if (st.main) {
+      html += '<div style="display:flex;flex-direction:column;align-items:'+(me?'flex-end':'flex-start')+';margin:4px 12px">'
+        + (me?'':'<div style="font-size:11px;color:#5a6a7a;margin-bottom:3px;margin-left:4px">'+escapeHtml(m.from||'')+'</div>')
+        + '<div style="max-width:78%;padding:10px 12px;border-radius:14px;font-size:14px;line-height:1.4;background:'+(me?'#fee500':'#fff')+';color:#191919;box-shadow:0 1px 2px rgba(0,0,0,.06)">'
+        + escapeHtml(st.main)
+        + (st.trans ? ('<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(0,0,0,.08);font-size:12px;color:#666;line-height:1.35">'+escapeHtml(st.trans)+'</div>') : '')
+        + '</div></div>';
+    }
+    return html;
   }).join('');
   openSubPage((d.title||'对话').slice(0,12),
     '<div style="display:flex;flex-direction:column;height:100%;background:#b2c7d9;position:relative">'
@@ -20928,7 +20975,7 @@ async function withContinueTalk(id) {
   try {
     var hist = (d.messages||[]).slice(-12).map(function(m){ return (m.from||'')+': '+(m.content||''); }).join('\n');
     var r = await apiChat([
-      { role:'system', content:'续写对话。只输出 JSON 数组：[{"from":"角色名","content":"..."}]，3～6 句。' },
+      { role:'system', content:'续写对话。严格人设与语言，禁止 OOC。只输出 JSON 数组：[{"from":"角色名或User","content":"一句","action":"可选动作"}]，3～6 句。外语用 原文|||中文。动作放 action。' },
       { role:'user', content:'需求：'+(d.prompt||'')+'\n已有：\n'+hist }
     ]);
     var text=(r&&r.text)||'';
@@ -20939,6 +20986,23 @@ async function withContinueTalk(id) {
     try{save();}catch(e){}
     withOpenDialogue(id);
   } catch(e){ showToast('失败：'+(e.message||e)); }
+}
+
+function withDeletePost(id) {
+  ensureWithState();
+  if (!confirm('删除这篇论坛？')) return;
+  state.withApp.posts = (state.withApp.posts || []).filter(function(x){ return x.id !== id; });
+  state.withApp.saved = (state.withApp.saved || []).filter(function(x){ return x.refId !== id && x.id !== id; });
+  try { save(); } catch(e) {}
+  openWithApp('forum');
+}
+function withDeleteDialogue(id) {
+  ensureWithState();
+  if (!confirm('删除这段对话？')) return;
+  state.withApp.dialogues = (state.withApp.dialogues || []).filter(function(x){ return x.id !== id; });
+  state.withApp.saved = (state.withApp.saved || []).filter(function(x){ return x.refId !== id && x.id !== id; });
+  try { save(); } catch(e) {}
+  openWithApp('talk');
 }
 function withSaveItem(type, id) {
   ensureWithState();
@@ -26321,11 +26385,17 @@ async function smsGenerateLifeThreads() {
   state._smsLifeLock = true;
   showToast('生成短信中…');
   try {
-    // 优先使用已有会话（角色账号），不新建陌生账号
-    var threads = Object.keys(state.sms.threads || {});
     var chars = state.chars || [];
-    // 确保每个角色至少有一个短信会话
-    chars.forEach(function(c) {
+    if (!chars.length) { showToast('请先添加角色'); return; }
+    // 随机挑 2～4 个角色（不是全员）
+    var pool = chars.slice();
+    for (var i = pool.length - 1; i > 0; i--) {
+      var r = Math.floor(Math.random() * (i + 1));
+      var tmp = pool[i]; pool[i] = pool[r]; pool[r] = tmp;
+    }
+    var nPick = Math.min(pool.length, 2 + Math.floor(Math.random() * 3));
+    var picked = pool.slice(0, nPick);
+    picked.forEach(function(c) {
       if (!state.sms.threads[c.id]) {
         state.sms.threads[c.id] = {
           name: c.nick || c.realName || '角色',
@@ -26337,31 +26407,27 @@ async function smsGenerateLifeThreads() {
         };
       }
     });
-    threads = Object.keys(state.sms.threads);
-    if (!threads.length) {
-      showToast('请先添加角色或短信会话');
-      return;
-    }
     var userP = (state.user && (state.user.persona || state.user.desc || state.user.nick || state.user.name)) || '';
-    var listHint = threads.slice(0, 12).map(function(id) {
-      var t = state.sms.threads[id];
-      var ch = chars.find(function(c){ return c.id === (t.charId || id); });
-      return (t.name || id) + (ch ? ('｜人设:' + String(ch.persona||'').slice(0,40)) : (t.anon ? '｜匿名' : ''));
+    var listHint = picked.map(function(c) {
+      var lang = (typeof resolveCharLang === 'function' ? resolveCharLang(c) : (c.lang || c.language || '中文'));
+      return c.id + '｜' + (c.nick || c.realName) + '｜语言:' + lang + '｜人设:' + String(c.persona || '').slice(0, 100);
     }).join('\n');
-    var prompt = '为下列已有短信联系人各生成 1～2 条「对方发来」的新短信（from 一律 them）。主题不限，生活化即可：可闲聊、关心、吐槽、分享日常、工作学习、快递外卖、心事等，不要千篇一律。只输出 JSON 数组：[{"id":"会话id或名字","messages":[{"content":"..."}]}]。会话必须从下列名单中选，禁止创建新联系人。\n名单：\n' + listHint + '\nUser人设：' + (userP || '普通年轻人') + '。口语短句。';
+    var prompt = '只为下列 ' + picked.length + ' 位联系人生成短信（每人 1～2 条对方发来的消息）。禁止为名单外的人生成。主题随意、生活化，不要全员同一话题。\n'
+      + '重要：每条 content 必须使用该角色的语言（语言字段）；外语角色用外语写，可在同一字符串用 ||| 附中文翻译，格式：外语原文|||中文。中文角色只写中文。\n'
+      + '严格贴合人设，禁止 OOC。\n只输出 JSON：[{"id":"角色id","messages":[{"content":"..."}]}]\n名单：\n' + listHint + '\nUser人设：' + (userP || '普通年轻人');
     var text = '';
     try {
-      var r = await apiChat([
-        { role: 'system', content: '你是短信生成器。只输出合法 JSON 数组，不要解释、不要 markdown。' },
+      var res = await apiChat([
+        { role: 'system', content: '你是短信生成器。只输出合法 JSON 数组。遵守每人的语言与人设。' },
         { role: 'user', content: prompt }
       ]);
-      text = (r && (r.text || r.content || r.message)) || '';
+      text = (res && (res.text || res.content || res.message)) || '';
       if (typeof text !== 'string') text = String(text || '');
     } catch (e) {
-      showToast('生成失败：' + (e && (e.message || e) || 'API错误'));
+      showToast('生成失败：' + (e && (e.message || e) || 'API'));
       return;
     }
-    if (!text.trim()) { showToast('生成结果为空，请检查聊天 API'); return; }
+    if (!text.trim()) { showToast('生成结果为空'); return; }
     var arr = [];
     try {
       var m = text.match(/\[[\s\S]*\]/);
@@ -26371,40 +26437,33 @@ async function smsGenerateLifeThreads() {
       return;
     }
     if (!Array.isArray(arr)) arr = [];
+    var allowed = {};
+    picked.forEach(function(c){ allowed[c.id] = true; });
     var added = 0;
-    function resolveId(raw) {
-      raw = String(raw || '');
-      if (state.sms.threads[raw]) return raw;
-      var hit = threads.find(function(id) {
-        var t = state.sms.threads[id];
-        return t && (t.name === raw || id === raw);
-      });
-      if (hit) return hit;
-      var ch = chars.find(function(c){ return (c.nick === raw || c.realName === raw); });
-      if (ch && state.sms.threads[ch.id]) return ch.id;
-      return null;
-    }
     arr.forEach(function(it) {
       if (!it) return;
-      var id = resolveId(it.id || it.name);
-      if (!id || !state.sms.threads[id]) return;
+      var id = String(it.id || '');
+      if (!allowed[id]) {
+        var ch = picked.find(function(c){ return (c.nick === id || c.realName === id || c.id === id); });
+        if (ch) id = ch.id;
+      }
+      if (!allowed[id] || !state.sms.threads[id]) return;
       var t = state.sms.threads[id];
       t.messages = t.messages || [];
-      (it.messages || []).forEach(function(msg, i) {
+      (it.messages || []).forEach(function(msg, ii) {
         var content = String((msg && msg.content) || '').trim();
         if (!content) return;
-        t.messages.push({ from: 'them', content: content, ts: Date.now() + i });
+        t.messages.push({ from: 'them', content: content, ts: Date.now() + ii });
         added++;
       });
     });
     try { save(); } catch (e) {}
-    showToast(added ? ('已向现有会话写入 ' + added + ' 条') : '未匹配到现有会话，请重试');
+    showToast(added ? ('已生成 ' + added + ' 条（' + picked.length + ' 人）') : '未写入，请重试');
     openSmsApp();
   } finally {
     state._smsLifeLock = false;
   }
 }
-
 
 async function generateSmsReply(id) {
   ensureHomeState();
