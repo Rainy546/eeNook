@@ -367,6 +367,53 @@ body.glass-ui #page-sub, body.glass-ui #subBody {
   background: var(--glass-sub-bg, rgba(232,246,244,.25)) !important;
   backdrop-filter: blur(var(--glass-blur, 0px));
 }
+
+#bootSplash {
+  position: fixed; inset: 0; z-index: 100000;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: linear-gradient(165deg, #e8f6f8 0%, #d4eef2 40%, #b8dce8 100%);
+  transition: opacity .55s ease, visibility .55s ease;
+}
+#bootSplash.hide {
+  opacity: 0; visibility: hidden; pointer-events: none;
+}
+#bootSplash .bs-logo {
+  width: 72px; height: 72px; border-radius: 20px;
+  background: linear-gradient(145deg, #7eb8c4, #5a9aaa);
+  box-shadow: 0 12px 32px rgba(90, 154, 170, .35);
+  display: flex; align-items: center; justify-content: center;
+  animation: bsPop .7s cubic-bezier(.2,1.2,.4,1) both;
+}
+#bootSplash .bs-logo svg { width: 36px; height: 36px; stroke: #fff; fill: none; stroke-width: 1.8; }
+#bootSplash .bs-title {
+  margin-top: 18px; font-size: 22px; font-weight: 700; letter-spacing: .2em;
+  color: #2a4a52; animation: bsFade .8s ease .15s both;
+}
+#bootSplash .bs-sub {
+  margin-top: 8px; font-size: 12px; color: #6a8a92; letter-spacing: .12em;
+  animation: bsFade .8s ease .3s both;
+}
+#bootSplash .bs-bar {
+  margin-top: 28px; width: 96px; height: 3px; border-radius: 99px;
+  background: rgba(90,154,170,.2); overflow: hidden;
+}
+#bootSplash .bs-bar > i {
+  display: block; height: 100%; width: 40%; border-radius: 99px;
+  background: #5a9aaa;
+  animation: bsSlide 1.1s ease-in-out infinite;
+}
+@keyframes bsPop {
+  from { transform: scale(.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes bsFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bsSlide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(280%); }
+}
 </style>
 <style>
 :root {
@@ -2087,6 +2134,13 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 </style>
 </head>
 <body>
+<div id="bootSplash" aria-hidden="true">
+  <div class="bs-logo"><svg viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div>
+  <div class="bs-title">EENOK</div>
+  <div class="bs-sub">小手机 · 加载中</div>
+  <div class="bs-bar"><i></i></div>
+</div>
+
 <div id="lockScreen" class="hidden">
   <div id="lockRaise" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;z-index:2">
     <div class="lock-time" id="lockTime">00:00</div>
@@ -2507,7 +2561,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22S';
+const EENOK_BUILD = '2026-08-22T';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -20252,27 +20306,62 @@ function openVecMemApp() {
   openSubPage('', html, '', { replace: true });
   try { var sn=document.getElementById('subNav'); if(sn) sn.style.display='none'; } catch(e) {}
 }
+function onVecProviderChange(sel) {
+  try {
+    var o = sel.options[sel.selectedIndex];
+    var u = o && o.getAttribute('data-url');
+    if (u && document.getElementById('vecApiUrl')) document.getElementById('vecApiUrl').value = u;
+    var id = sel.value;
+    var m = document.getElementById('vecApiModel');
+    if (m && id === 'openai' && (!m.value || /minimax|bge|m3e/i.test(m.value))) m.value = 'text-embedding-3-small';
+    if (m && id === 'siliconflow' && (!m.value || /text-embedding-3/i.test(m.value))) m.value = 'BAAI/bge-m3';
+  } catch(e) {}
+}
 function openVecMemApiSettings() {
   ensureVecMem();
-  if (!state.vecMem.api) state.vecMem.api = { url: '', key: '', model: 'text-embedding-3-small' };
+  if (!state.vecMem.api) state.vecMem.api = { url: '', key: '', model: 'text-embedding-3-small', provider: 'openai', region: 'overseas' };
   var a = state.vecMem.api;
+  var region = a.region || 'overseas';
+  var providers = [
+    {id:'openai', name:'OpenAI Embeddings', url:'https://api.openai.com/v1', region:'overseas'},
+    {id:'siliconflow', name:'SiliconFlow', url:'https://api.siliconflow.cn/v1', region:'cn'},
+    {id:'deepseek', name:'DeepSeek 兼容', url:'https://api.deepseek.com/v1', region:'cn'},
+    {id:'azure', name:'Azure OpenAI', url:'', region:'overseas'},
+    {id:'custom', name:'自定义', url:'', region:''}
+  ];
+  var provOpts = providers.map(function(p){
+    return '<option value="'+p.id+'" data-url="'+escapeHtml(p.url)+'" '+(a.provider===p.id?'selected':'')+'>'+p.name+(p.region==='cn'?' · 国内':'')+(p.region==='overseas'?' · 海外':'')+'</option>';
+  }).join('');
+  var connected = !!(a.url && a.key);
   openModal('向量 Embedding API',
-    '<div class="text-sub" style="font-size:12px;line-height:1.55;margin-bottom:10px">填写与 OpenAI 兼容的 Embeddings 接口。Base URL 例：<code>https://api.openai.com/v1</code>，会自动请求 <code>/embeddings</code>。与聊天/生图/语音 API 独立。</div>'
-    + '<div class="form-group"><label>Base URL</label><input id="vecApiUrl" value="'+escapeHtml(a.url||'')+'" placeholder="https://api.openai.com/v1"></div>'
-    + '<div class="form-group"><label>API Key</label><input id="vecApiKey" type="password" value="'+escapeHtml(a.key||'')+'" placeholder="sk-..."></div>'
-    + '<div class="form-group"><label>模型</label><input id="vecApiModel" value="'+escapeHtml(a.model||'text-embedding-3-small')+'" placeholder="text-embedding-3-small"></div>',
+    '<div class="text-sub" style="font-size:12px;margin-bottom:10px;line-height:1.5">兼容 OpenAI <code>/embeddings</code>。与聊天 / 生图 / 语音 <b>完全独立</b>。未配置时向量记忆仍可用本地分词检索。</div>'
+    + '<div style="font-size:12px;margin-bottom:10px;padding:8px 10px;border-radius:10px;background:'+(connected?'#e8f8ef':'#f8e8ea')+';color:'+(connected?'#1a7f4b':'#a33')+';">当前状态：'+(connected?'已配置':'未连接（请填写 Base URL + API Key）')+'</div>'
+    + '<div class="form-group"><label>服务商</label><select id="vecApiProvider" onchange="onVecProviderChange(this)">'+provOpts+'</select></div>'
+    + '<div class="form-group"><label>区域</label><select id="vecApiRegion">'
+    + '<option value="overseas" '+(region==='overseas'?'selected':'')+'>海外</option>'
+    + '<option value="cn" '+(region==='cn'?'selected':'')+'>国内</option>'
+    + '</select></div>'
+    + '<div class="form-group"><label>Base URL（必填）</label><input id="vecApiUrl" value="'+escapeHtml(a.url||'')+'" placeholder="https://api.openai.com/v1"></div>'
+    + '<div class="form-group"><label>API Key（必填）</label><input id="vecApiKey" type="password" value="'+escapeHtml(a.key||'')+'" placeholder="sk-..."></div>'
+    + '<div class="form-group"><label>模型</label><input id="vecApiModel" value="'+escapeHtml(a.model||'text-embedding-3-small')+'" placeholder="text-embedding-3-small"></div>'
+    + '<div class="text-sub" style="font-size:11px;line-height:1.5">保存后新增记忆会尝试调用 embeddings；检索时优先用向量余弦相似度。</div>',
     '<button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveVecMemApi()">保存</button>',
     { replace: true });
 }
 function saveVecMemApi() {
   ensureVecMem();
   if (!state.vecMem.api) state.vecMem.api = {};
+  state.vecMem.api.provider = ((document.getElementById('vecApiProvider')||{}).value || '').trim();
+  state.vecMem.api.region = ((document.getElementById('vecApiRegion')||{}).value || 'overseas').trim();
   state.vecMem.api.url = ((document.getElementById('vecApiUrl')||{}).value || '').trim().replace(/\/+$/, '');
   state.vecMem.api.key = ((document.getElementById('vecApiKey')||{}).value || '').trim();
   state.vecMem.api.model = ((document.getElementById('vecApiModel')||{}).value || 'text-embedding-3-small').trim();
+  if (!state.vecMem.api.url || !state.vecMem.api.key) {
+    showToast('请填写 Base URL 和 API Key（或留空仅用本地检索）');
+  }
   try { save(); } catch(e) {}
   closeModal();
-  showToast(state.vecMem.api.url && state.vecMem.api.key ? '向量 API 已保存' : '已清空向量 API（仅用本地检索）');
+  showToast(state.vecMem.api.url && state.vecMem.api.key ? '向量 API 已保存并接通' : '已保存（本地检索模式）');
 }
 async function vecEmbed(text) {
   ensureVecMem();
@@ -28560,16 +28649,44 @@ async function doToGenShops() {
 
 
 
+
+function runBootSplash(done) {
+  var el = document.getElementById('bootSplash');
+  var finish = function() {
+    try {
+      if (el) {
+        el.classList.add('hide');
+        setTimeout(function(){ try { if (el && el.parentNode) el.parentNode.removeChild(el); } catch(e) {} }, 600);
+      }
+    } catch(e) {}
+    try { if (typeof done === 'function') done(); } catch(e) {}
+  };
+  if (!el) { finish(); return; }
+  // 最短展示约 1.1s，避免闪一下
+  var minMs = 1100;
+  var t0 = Date.now();
+  var wait = function() {
+    var left = minMs - (Date.now() - t0);
+    setTimeout(finish, left > 0 ? left : 0);
+  };
+  // 若字体/主屏还在准备，也最多等到 2s
+  setTimeout(wait, 0);
+  setTimeout(function(){
+    if (el && !el.classList.contains('hide')) finish();
+  }, 2200);
+}
 function ensureLockState() {
-  if (!state.lock) state.lock = { pin: '0000', wallpaper: '', enabled: true };
+  if (!state.lock || typeof state.lock !== 'object') state.lock = { pin: '0000', wallpaper: '', enabled: true };
   try {
     const p = localStorage.getItem('eenook_lock_pin');
     if (p && /^\d{4}$/.test(p)) state.lock.pin = p;
     const en = localStorage.getItem('eenook_lock_en');
     if (en === '0') state.lock.enabled = false;
-    if (en === '1') state.lock.enabled = true;
+    else if (en === '1') state.lock.enabled = true;
   } catch(e) {}
-  if (!state.lock.pin) state.lock.pin = '0000';
+  if (!state.lock.pin || !/^\d{4}$/.test(String(state.lock.pin))) state.lock.pin = '0000';
+  // 默认开启锁屏（仅当用户明确关闭时为 false）
+  if (state.lock.enabled !== false && state.lock.enabled !== true) state.lock.enabled = true;
 }
 function showLockScreen() {
   ensureLockState();
@@ -29434,11 +29551,17 @@ async function worldAutoScheduleTick() {
       if (state.home && typeof safeSet === 'function') safeSet('home', state.home);
     } catch(e) {}
   } catch (e) { console.warn('boot home', e); }
-  // 锁屏不要挡死：仅在明确开启时显示
+  // 锁屏：默认显示（用户关闭则跳过）；开屏动画结束后再出现
   try {
-    if (state.lock && state.lock.enabled !== false && typeof showLockScreen === 'function') {
-      // 若用户从未设锁，跳过
-      if (state.lock.pin || state.lock.enabled === true) showLockScreen();
+    if (typeof ensureLockState === 'function') ensureLockState();
+    if (typeof runBootSplash === 'function') {
+      runBootSplash(function(){
+        try {
+          if (state.lock && state.lock.enabled !== false && typeof showLockScreen === 'function') showLockScreen();
+        } catch(e1) {}
+      });
+    } else if (state.lock && state.lock.enabled !== false && typeof showLockScreen === 'function') {
+      showLockScreen();
     }
   } catch (e) {}
   try {
