@@ -2531,7 +2531,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22W';
+const EENOK_BUILD = '2026-08-22X';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -5505,20 +5505,28 @@ function parseCharRichContent(raw) {
   t = t.replace(/\[(?:사진|写真|photo|image)[^\]]*\]/gi, '');
   t = t.replace(/\[表情[:：]([^\]]+)\]/g, function(_, e) {
     const meaning = String(e || '').trim();
+    if (!meaning) return '';
     let url = '';
+    let matchedMeaning = meaning;
     try {
       const lib = state.customEmojis || [];
-      // 精确匹配含义 → 包含匹配 → 随机一个全局表情
+      // 仅从现有表情库挑选：精确匹配 → 含义包含匹配；没有合适的则不发送表情
       let found = lib.find(function(x){ return (x.meaning || '') === meaning; });
-      if (!found) found = lib.find(function(x){ return (x.meaning || '').indexOf(meaning) >= 0 || meaning.indexOf(x.meaning || '') >= 0; });
-      if (!found && lib.length) {
-        const pool = lib.filter(function(x){ return x.scope === 'global' || x.scope === state.currentChatId; });
-        found = (pool.length ? pool : lib)[Math.floor(Math.random() * (pool.length || lib.length))];
+      if (!found) {
+        found = lib.find(function(x){
+          var m = (x.meaning || '');
+          return m && (m.indexOf(meaning) >= 0 || meaning.indexOf(m) >= 0);
+        });
       }
-      if (found && found.url) url = found.url;
-    } catch(err) {}
-    extras.push({ type: 'emoji', content: url || meaning, meaning: meaning, isText: !url });
-    return '';
+      if (found && found.url) {
+        url = found.url;
+        matchedMeaning = found.meaning || meaning;
+        extras.push({ type: 'emoji', content: url, meaning: matchedMeaning, isText: false });
+        return '';
+      }
+      // 库中无匹配：不发表情、不随机顶替
+      return '';
+    } catch(err) { return ''; }
   });
   t = t.replace(/\[收款码(?:[:：]([^\]]*))?\]/g, function(_, note) {
     extras.push({ type: 'paycode', content: (note || '扫码向我付款').trim(), userNick: '', fromChar: true });
@@ -6163,7 +6171,7 @@ function getOnlineChatRules(extra) {
 【主体】角色首先是自己，再是关系身份；可不同意、可拒绝、可不知道；情绪要连贯，小事小情绪。
 【时间】现在是 ${timeStr}（周${week}，${slot}）。尊重时间流逝与历史标注，禁止把很久以前的话当成刚说完。
 
-【表情包】需要表达情绪时可主动发送，必须使用标记 [表情:含义]（含义为简短中文，如「无语」「偷笑」「抱抱」），禁止只发无意义乱码或空表情。系统会按含义匹配图库；列表预览会显示该含义。不要连续刷表情，也不要每句都带表情。
+【表情包】需要表达情绪时可使用标记 [表情:含义]。含义须尽量对应图库里已有表情的名字（短词如「无语」「偷笑」「抱抱」「财迷」）。若没有贴切含义的表情，宁可不发表情、改用文字。禁止乱编含义；禁止连续刷表情。系统只在图库命中时显示图片。
 【格式锁定·最高优先级·严禁掉格式】
 每次生成前必须检查当前角色的固定聊天格式。角色的语言、消息结构、翻译显示方式、表达习惯均属硬性格式，不得随意改变。
 除非 User 或系统明确要求切换，否则不得：改变角色主要使用的语言；突然切换语言；把外语消息改成中文；把中文改成其他语言；随意增减翻译；改变气泡下方显示结构；因上下文变化而自行「掉格式」。
@@ -12541,8 +12549,9 @@ function openMiniGames() {
   state._subStack = [];
   state._subKind = 'games';
   state._homeRoot = 'games';
-  state._subBackFn = function(){ goHome(); };
-  armClickGuard(400);
+  state._fromGamesHub = true;
+  state._subBackFn = function(){ state._fromGamesHub = false; goHome(); };
+  if (typeof armClickGuard === 'function') armClickGuard(400);
   openSubPage('小游戏', `
     <div style="padding:12px 14px 40px;background:linear-gradient(180deg,#f2f8fa,#eef2f4);min-height:100%;box-sizing:border-box">
       <div style="font-size:12px;color:#7a9aa2;margin-bottom:10px">轻松玩一会儿</div>
@@ -20169,9 +20178,18 @@ function openStoreAppById(id) {
 
 
 /* ========== 五子棋 ========== */
+
+function backFromBuiltInGame() {
+  if (state._fromGamesHub || state._homeRoot === 'games' || state._subKind === 'games') {
+    openMiniGames();
+  } else {
+    openStoreApp();
+  }
+}
 function openGomokuGame() {
-  state._homeRoot = 'store';
-  state._subBackFn = function(){ openStoreApp(); };
+  var fromGames = (state._homeRoot === 'games' || state._subKind === 'games' || state._fromGamesHub);
+  state._homeRoot = fromGames ? 'games' : 'store';
+  state._subBackFn = fromGames ? function(){ openMiniGames(); } : function(){ openStoreApp(); };
   var chars = state.chars || [];
   var opts = chars.map(function(c){
     return '<option value="'+c.id+'">'+escapeHtml(c.nick||c.realName||'角色')+'</option>';
@@ -20179,7 +20197,7 @@ function openGomokuGame() {
   var html = '<div style="position:absolute;inset:0;display:flex;flex-direction:column;background:#f7f2ea;color:#2a4a52">'
     + '<div style="padding:12px 14px;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.85);border-bottom:1px solid #e8dcc8">'
     + '<div style="font-weight:700">五子棋</div>'
-    + '<button type="button" onclick="openStoreApp()" style="border:none;background:#e8dcc4;border-radius:10px;padding:6px 12px;font-size:12px;cursor:pointer">返回</button></div>'
+    + '<button type="button" onclick="backFromBuiltInGame()" style="border:none;background:#e8dcc4;border-radius:10px;padding:6px 12px;font-size:12px;cursor:pointer">返回</button></div>'
     + '<div style="padding:10px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
     + '<span style="font-size:12px">对手</span><select id="gomokuRival" style="flex:1;min-width:120px;padding:6px 8px;border-radius:8px;border:1px solid #d4c4b0">'
     + '<option value="">（本地 AI）</option>'+opts+'</select>'
@@ -20473,8 +20491,9 @@ function vecMemTop(query, n) {
 
 /* ========== 2048 ========== */
 function openGame2048() {
-  state._homeRoot = 'store';
-  state._subBackFn = function(){ openStoreApp(); };
+  var fromGames = (state._homeRoot === 'games' || state._subKind === 'games' || state._fromGamesHub);
+  state._homeRoot = fromGames ? 'games' : 'store';
+  state._subBackFn = fromGames ? function(){ openMiniGames(); } : function(){ openStoreApp(); };
   state._g2048 = { board: null, score: 0 };
   function empty(){ var b=[]; for(var i=0;i<4;i++){b[i]=[0,0,0,0];} return b; }
   function add(b){
@@ -20489,7 +20508,7 @@ function openGame2048() {
   openSubPage('', '<div style="position:absolute;inset:0;display:flex;flex-direction:column;background:#faf6f0;color:#2a4a52">'
     +'<div style="padding:12px 14px;display:flex;justify-content:space-between;align-items:center;background:#fff">'
     +'<div style="font-weight:700">2048</div><div id="g2048score" style="font-size:13px">分数 0</div>'
-    +'<button type="button" onclick="openStoreApp()" style="border:none;background:#e8dcc4;border-radius:10px;padding:6px 12px;font-size:12px;cursor:pointer">返回</button></div>'
+    +'<button type="button" onclick="backFromBuiltInGame()" style="border:none;background:#e8dcc4;border-radius:10px;padding:6px 12px;font-size:12px;cursor:pointer">返回</button></div>'
     +'<div id="g2048board" style="flex:1;display:flex;align-items:center;justify-content:center;padding:16px;touch-action:none"></div>'
     +'<div style="text-align:center;padding:10px;font-size:12px;color:#8a8">滑动或用方向键</div></div>', '', {replace:true});
   try{var sn=document.getElementById('subNav');if(sn)sn.style.display='none';}catch(e){}
@@ -20553,14 +20572,15 @@ function openGame2048() {
 }
 /* ========== 反应点点 ========== */
 function openTapGame() {
-  state._homeRoot = 'store';
-  state._subBackFn = function(){ openStoreApp(); };
+  var fromGames = (state._homeRoot === 'games' || state._subKind === 'games' || state._fromGamesHub);
+  state._homeRoot = fromGames ? 'games' : 'store';
+  state._subBackFn = fromGames ? function(){ openMiniGames(); } : function(){ openStoreApp(); };
   state._tap = { score: 0, left: 20, timer: null };
   openSubPage('', '<div style="position:absolute;inset:0;display:flex;flex-direction:column;background:linear-gradient(180deg,#f8f0f4,#eef6f8)">'
     +'<div style="padding:12px 14px;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.85)">'
     +'<div style="font-weight:700;color:#2a4a52">反应点点</div>'
     +'<div id="tapStat" style="font-size:13px;color:#6a8">20s · 0 分</div>'
-    +'<button type="button" onclick="openStoreApp()" style="border:none;background:#e8d0dc;border-radius:10px;padding:6px 12px;font-size:12px;cursor:pointer">返回</button></div>'
+    +'<button type="button" onclick="backFromBuiltInGame()" style="border:none;background:#e8d0dc;border-radius:10px;padding:6px 12px;font-size:12px;cursor:pointer">返回</button></div>'
     +'<div id="tapArea" style="flex:1;position:relative;overflow:hidden"></div></div>', '', {replace:true});
   try{var sn=document.getElementById('subNav');if(sn)sn.style.display='none';}catch(e){}
   function spawn(){
@@ -20744,15 +20764,24 @@ async function withDoForumGen() {
   showToast('生成论坛楼层中…');
   try {
     var r = await apiChat([
-      { role:'system', content:'你是同人论坛产粮助手。只输出 JSON：{"title":"...","floors":[{"author":"楼主或角色名或路人","content":"..."}]}。共 '+floorN+' 层。口语化，符合人设，不要 OOC。不要 markdown。' },
+      { role:'system', content:'你是同人论坛产粮助手。只输出 JSON：{"title":"大标题","body":"贴主正文（可多段）","floors":[{"author":"角色或路人","content":"跟帖"}]}。跟帖约 '+floorN+' 条。口语化，符合人设，不要 OOC。不要 markdown。' },
       { role:'user', content:'需求：'+prompt+'\n角色：\n'+personas.join('\n')+'\n模式：'+mode+'\n请生成 '+floorN+' 层论坛回复。' }
     ]);
     var text = (r && r.text) || '';
     var data = null;
     try { data = JSON.parse((text.match(/\{[\s\S]*\}/)||[text])[0]); } catch(e) {}
-    if (!data || !data.floors) { showToast('解析失败'); return; }
+    if (!data) { showToast('解析失败'); return; }
     var id = 'wp_'+Date.now();
-    var post = { id:id, kind:'forum', title: data.title||prompt.slice(0,30), prompt:prompt, floors:data.floors, charsLabel:labels.join('、'), ts:Date.now() };
+    var floors = data.floors || data.replies || [];
+    var post = {
+      id:id, kind:'forum',
+      title: data.title||prompt.slice(0,30),
+      body: data.body || data.content || data.main || '',
+      prompt:prompt,
+      floors:floors,
+      charsLabel:labels.join('、'),
+      ts:Date.now()
+    };
     state.withApp.posts.unshift(post);
     try { save(); } catch(e) {}
     withOpenPost(id);
@@ -20764,19 +20793,27 @@ function withOpenPost(id) {
   if (!p) return;
   state._subBackFn = function(){ openWithApp('forum'); };
   var floors = (p.floors||[]).map(function(f,i){
-    return '<div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:8px;border:1px solid rgba(90,154,170,.18)">'
-      + '<div style="font-size:12px;font-weight:600;color:#5a9aaa">'+(i+1)+'L · '+escapeHtml(f.author||'匿名')+'</div>'
-      + '<div style="font-size:14px;color:#2a4a52;line-height:1.5;margin-top:6px;white-space:pre-wrap">'+escapeHtml(f.content||'')+'</div></div>';
+    return '<div style="display:flex;gap:10px;padding:14px 0;border-bottom:1px solid rgba(0,0,0,.06)">'
+      + '<div style="width:40px;height:40px;border-radius:50%;background:#d0e4ea;flex-shrink:0"></div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:13px;font-weight:700;color:#0f1419">'+escapeHtml(f.author||'匿名')+'</div>'
+      + '<div style="font-size:15px;color:#0f1419;line-height:1.45;margin-top:4px;white-space:pre-wrap">'+escapeHtml(f.content||'')+'</div>'
+      + '</div></div>';
   }).join('');
-  openSubPage((p.title||'帖子').slice(0,12),
-    '<div style="padding:12px 14px 100px;background:#f0f6f8;min-height:100%;box-sizing:border-box">'
-    + '<div style="font-size:13px;color:#7a9;margin-bottom:10px">'+escapeHtml(p.prompt||'')+'</div>'
-    + floors
-    + '<div style="display:flex;gap:8px;margin-top:12px">'
-    + '<button type="button" onclick="withContinuePost(\''+id+'\')" style="flex:1;border:none;background:#5a9aaa;color:#fff;border-radius:12px;padding:12px;font-weight:600;cursor:pointer">继续生成回复</button>'
-    + '<button type="button" onclick="withSaveItem(\'forum\',\''+id+'\')" style="border:1px solid rgba(90,154,170,.3);background:#fff;border-radius:12px;padding:12px 14px;cursor:pointer;font-size:13px">保存</button>'
+  openSubPage((p.title||'帖子').slice(0,14),
+    '<div style="padding:0 0 100px;background:#fff;min-height:100%;box-sizing:border-box">'
+    + '<div style="padding:16px 16px 12px;border-bottom:1px solid rgba(0,0,0,.08)">'
+    + '<div style="font-size:20px;font-weight:800;color:#0f1419;line-height:1.3">'+escapeHtml(p.title||'')+'</div>'
+    + '<div style="font-size:15px;color:#0f1419;line-height:1.5;margin-top:10px;white-space:pre-wrap">'+escapeHtml(p.body||p.prompt||'')+'</div>'
+    + '<div style="font-size:12px;color:#8a98a5;margin-top:12px">'+(p.floors?p.floors.length:0)+' 条回复 · '+escapeHtml(p.charsLabel||'')+'</div>'
+    + '</div>'
+    + '<div style="padding:0 16px">'+floors+'</div>'
+    + '<div style="display:flex;gap:8px;padding:16px">'
+    + '<button type="button" onclick="withContinuePost(\''+id+'\')" style="flex:1;border:none;background:#5a9aaa;color:#fff;border-radius:999px;padding:12px;font-weight:600;cursor:pointer">继续生成回复</button>'
+    + '<button type="button" onclick="withSaveItem(\'forum\',\''+id+'\')" style="border:1px solid rgba(90,154,170,.3);background:#fff;border-radius:999px;padding:12px 16px;cursor:pointer;font-size:13px">保存</button>'
     + '</div></div>', '', { replace: true });
 }
+
 async function withContinuePost(id) {
   ensureWithState();
   var p = (state.withApp.posts||[]).find(function(x){ return x.id===id; });
@@ -20806,8 +20843,9 @@ function withOpenTalkSetup() {
     '<div class="form-group"><label>需求</label><textarea id="withTPrompt" style="min-height:64px" placeholder="例：雨后重逢的暧昧对话"></textarea></div>'
     + '<div class="form-group"><label>角色</label><div style="max-height:100px;overflow:auto">'+charChips+'</div></div>'
     + '<div class="form-group"><label>自定义角色</label><input id="withTCustomName" placeholder="姓名"><input id="withTCustomSet" placeholder="设定" style="margin-top:6px"></div>'
+    + '<div class="form-group"><label><input type="checkbox" id="withTIncludeUser" style="accent-color:#5a9aaa"> 勾选 User 本人参与对话</label></div>'
     + '<div class="form-group"><label>模式</label><select id="withTMode"><option value="single">单聊</option><option value="group">群聊</option></select></div>'
-    + '<div class="form-group"><label>生成条数</label><input id="withTCount" type="number" min="4" max="30" value="10"></div>',
+    + '<div class="form-group"><label>生成条数（气泡数）</label><input id="withTCount" type="number" min="4" max="40" value="12"></div>',
     '<button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="withDoTalkGen()">开始生成</button>',
     { replace: true });
 }
@@ -20815,7 +20853,8 @@ async function withDoTalkGen() {
   ensureWithState();
   var prompt = ((document.getElementById('withTPrompt')||{}).value||'').trim() || '日常对话';
   var mode = ((document.getElementById('withTMode')||{}).value)||'single';
-  var count = Math.min(30, Math.max(4, +(document.getElementById('withTCount')||{}).value || 10));
+  var count = Math.min(40, Math.max(4, +(document.getElementById('withTCount')||{}).value || 12));
+  var includeUser = !!(document.getElementById('withTIncludeUser')||{}).checked;
   var ids = [];
   document.querySelectorAll('.withTalkCb:checked').forEach(function(cb){ ids.push(cb.value); });
   var customName = ((document.getElementById('withTCustomName')||{}).value||'').trim();
@@ -20827,11 +20866,16 @@ async function withDoTalkGen() {
     if (c) { names.push(c.nick||c.realName); personas.push((c.nick||c.realName)+'：'+(c.persona||'').slice(0,80)); }
   });
   if (customName) { names.push(customName); personas.push(customName+'：'+(customSet||'')); }
+  var userP = (state.user && (state.user.persona || state.user.nick || state.user.name)) || 'User';
+  if (includeUser) {
+    names.push('User');
+    personas.push('User：'+String(userP).slice(0,80));
+  }
   closeModal();
   showToast('生成对话中…');
   try {
     var r = await apiChat([
-      { role:'system', content:'生成同人对话。只输出 JSON：{"title":"...","messages":[{"from":"角色名","content":"..."}]}。共约 '+count+' 句。像 KakaoTalk 短气泡，口语，符合人设。' },
+      { role:'system', content:'生成同人对话。只输出 JSON：{"title":"...","messages":[{"from":"角色名或User","content":"一句短气泡"}]}。共约 '+count+' 条气泡。一人可连续发多句。有来有往，断句自然，不要一大段。符合人设。'+(includeUser?' User 必须参与。':'') },
       { role:'user', content:'需求：'+prompt+'\n模式：'+mode+'\n角色：\n'+personas.join('\n') }
     ]);
     var text = (r&&r.text)||'';
@@ -20839,31 +20883,43 @@ async function withDoTalkGen() {
     try { data = JSON.parse((text.match(/\{[\s\S]*\}/)||[text])[0]); } catch(e) {}
     if (!data || !data.messages) { showToast('解析失败'); return; }
     var id = 'wd_'+Date.now();
-    var d = { id:id, title:data.title||prompt.slice(0,24), prompt:prompt, mode:mode==='group'?'群聊':'单聊', messages:data.messages, ts:Date.now() };
+    var d = { id:id, title:data.title||prompt.slice(0,24), prompt:prompt, mode:mode==='group'?'群聊':'单聊', includeUser:includeUser, messages:data.messages, ts:Date.now() };
     state.withApp.dialogues.unshift(d);
     try { save(); } catch(e) {}
     withOpenDialogue(id);
   } catch(e) { showToast('失败：'+(e.message||e)); }
 }
+
+
 function withOpenDialogue(id) {
   ensureWithState();
   var d = (state.withApp.dialogues||[]).find(function(x){ return x.id===id; });
   if (!d) return;
   state._subBackFn = function(){ openWithApp('talk'); };
-  var bubbles = (d.messages||[]).map(function(m,i){
-    var me = (m.from === 'user' || m.from === '我' || m.from === 'User');
-    return '<div style="display:flex;flex-direction:column;align-items:'+(me?'flex-end':'flex-start')+';margin:8px 12px">'
+  var names = [];
+  (d.messages||[]).forEach(function(m){ if (m.from && names.indexOf(m.from)<0) names.push(m.from); });
+  var rightName = d.includeUser ? 'User' : (names[0] || '');
+  var bubbles = (d.messages||[]).map(function(m){
+    var me = (m.from === 'User' || m.from === 'user' || m.from === '我' || (rightName && m.from === rightName && d.includeUser));
+    if (d.includeUser) me = (m.from === 'User' || m.from === 'user' || m.from === '我');
+    else me = (names[0] && m.from === names[0]); // 无 User 时第一个角色靠右
+    // 更合理：User 右黄，其他人左白
+    if (m.from === 'User' || m.from === 'user' || m.from === '我') me = true;
+    else me = false;
+    return '<div style="display:flex;flex-direction:column;align-items:'+(me?'flex-end':'flex-start')+';margin:6px 12px">'
       + (me?'':'<div style="font-size:11px;color:#5a6a7a;margin-bottom:3px;margin-left:4px">'+escapeHtml(m.from||'')+'</div>')
-      + '<div style="max-width:78%;padding:10px 12px;border-radius:12px;font-size:14px;line-height:1.4;background:'+(me?'#fee500':'#fff')+';color:#191919;box-shadow:0 1px 2px rgba(0,0,0,.06)">'+escapeHtml(m.content||'')+'</div></div>';
+      + '<div style="max-width:78%;padding:10px 12px;border-radius:14px;font-size:14px;line-height:1.4;background:'+(me?'#fee500':'#fff')+';color:#191919;box-shadow:0 1px 2px rgba(0,0,0,.06)">'+escapeHtml(m.content||'')+'</div></div>';
   }).join('');
   openSubPage((d.title||'对话').slice(0,12),
-    '<div style="display:flex;flex-direction:column;height:100%;background:#b2c7d9">'
-    + '<div style="flex:1;overflow-y:auto;padding:10px 0 80px">'+bubbles+'</div>'
+    '<div style="display:flex;flex-direction:column;height:100%;background:#b2c7d9;position:relative">'
+    + '<div style="flex:1;overflow-y:auto;padding:10px 0 88px">'+bubbles+'</div>'
     + '<div style="position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;padding:10px 12px;background:rgba(255,255,255,.95);border-top:1px solid rgba(0,0,0,.06)">'
     + '<button type="button" onclick="withContinueTalk(\''+id+'\')" style="flex:1;border:none;background:#5a9aaa;color:#fff;border-radius:12px;padding:12px;font-weight:600;cursor:pointer">继续生成</button>'
     + '<button type="button" onclick="withSaveItem(\'talk\',\''+id+'\')" style="border:1px solid rgba(90,154,170,.3);background:#fff;border-radius:12px;padding:12px 14px;cursor:pointer">保存</button>'
     + '</div></div>', '', { replace: true });
 }
+
+
 async function withContinueTalk(id) {
   ensureWithState();
   var d = (state.withApp.dialogues||[]).find(function(x){ return x.id===id; });
@@ -20890,11 +20946,14 @@ function withSaveItem(type, id) {
     ? (state.withApp.posts||[]).find(function(x){return x.id===id;})
     : (state.withApp.dialogues||[]).find(function(x){return x.id===id;});
   if (!src) return;
+  if (src.savedTo) { showToast('已在个人中'); return; }
   var copy = JSON.parse(JSON.stringify(src));
   copy.type = type==='forum'?'论坛体':'对话体';
-  copy.savedId = 'ws_'+Date.now();
-  copy.id = copy.savedId;
+  copy.refId = src.id;
+  copy.id = 'ws_'+Date.now();
   copy.ts = Date.now();
+  src.savedTo = copy.id;
+  state.withApp.saved = state.withApp.saved || [];
   state.withApp.saved.unshift(copy);
   try { save(); } catch(e) {}
   showToast('已保存到个人');
@@ -20903,18 +20962,38 @@ function withOpenSaved(id) {
   ensureWithState();
   var x = (state.withApp.saved||[]).find(function(s){ return s.id===id; });
   if (!x) return;
-  if (x.floors) {
+  // 只读打开，不写回论坛/对话列表，避免重复
+  if (x.floors || x.body || x.kind === 'forum') {
+    var tmp = Object.assign({}, x, { id: x.refId || x.id });
+    state._withTempPost = tmp;
     state.withApp.posts = state.withApp.posts || [];
-    if (!state.withApp.posts.find(function(p){return p.id===x.id;})) state.withApp.posts.unshift(x);
-    withOpenPost(x.id);
+    var exist = state.withApp.posts.find(function(p){ return p.id === tmp.id; });
+    if (exist) withOpenPost(exist.id);
+    else {
+      state.withApp.posts.unshift(tmp);
+      withOpenPost(tmp.id);
+      // 打开后若仅来自个人，标记 temp，返回时不强制留存重复——保留源帖即可
+    }
   } else {
-    state.withApp.dialogues = state.withApp.dialogues || [];
-    if (!state.withApp.dialogues.find(function(d){return d.id===x.id;})) state.withApp.dialogues.unshift(x);
-    withOpenDialogue(x.id);
+    var td = Object.assign({}, x, { id: x.refId || x.id });
+    var ex = (state.withApp.dialogues||[]).find(function(d){ return d.id === td.id; });
+    if (ex) withOpenDialogue(ex.id);
+    else {
+      state.withApp.dialogues = state.withApp.dialogues || [];
+      state.withApp.dialogues.unshift(td);
+      withOpenDialogue(td.id);
+    }
   }
 }
 function withDeleteSaved(id) {
   ensureWithState();
+  var item = (state.withApp.saved||[]).find(function(x){ return x.id===id; });
+  if (item && item.refId) {
+    var p = (state.withApp.posts||[]).find(function(x){ return x.id===item.refId; });
+    if (p) delete p.savedTo;
+    var d = (state.withApp.dialogues||[]).find(function(x){ return x.id===item.refId; });
+    if (d) delete d.savedTo;
+  }
   state.withApp.saved = (state.withApp.saved||[]).filter(function(x){ return x.id!==id; });
   try { save(); } catch(e) {}
   openWithApp('me');
@@ -25971,11 +26050,12 @@ function swipeDeleteCall(id) {
 
 
 function openSmsApp() {
-  if (typeof armClickGuard === 'function') armClickGuard(450);
+  if (typeof armClickGuard === 'function') armClickGuard(700);
   ensureHomeState();
   state._homeRoot = 'sms';
   state._homeDepth = 0;
   state._smsThreadId = null;
+  state._smsListGuardUntil = Date.now() + 800;
   // 始终先到列表，禁止残留自动进会话
   try { state._subStack = []; } catch(e) {}
   if (!state.sms.threads) state.sms.threads = {};
@@ -25996,7 +26076,7 @@ function openSmsApp() {
       <button type="button" onclick="smsNew()" title="新信息" style="position:fixed;right:24px;bottom:36px;width:52px;height:52px;border-radius:50%;border:none;background:#007aff;color:#fff;font-size:28px;line-height:1;box-shadow:0 4px 14px rgba(0,122,255,.35);z-index:20">＋</button>
     </div>
   `, `<div style="display:flex;align-items:center;gap:6px;padding-right:4px">
-      <button type="button" onclick="smsGenerateLifeThreads()" title="生成生活短信" style="width:28px;height:28px;border-radius:50%;border:1.5px solid currentColor;background:transparent;display:flex;align-items:center;justify-content:center;padding:0;opacity:.85;cursor:pointer">
+      <button type="button" onclick="smsGenerateLifeThreads()" title="生成生活短信" style="width:36px;height:26px;border-radius:13px;border:1.5px solid currentColor;background:transparent;display:flex;align-items:center;justify-content:center;padding:0;opacity:.85;cursor:pointer">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       </button>
       <button type="button" onclick="smsImportWechatChars()" title="导入角色" style="width:28px;height:28px;border:none;background:transparent;display:flex;align-items:center;justify-content:center;padding:0;opacity:.85;cursor:pointer">
@@ -26073,6 +26153,7 @@ function doSmsNew() {
   save(); closeModal(); openSmsThread(id);
 }
 function openSmsThread(id) {
+  if (state._smsListGuardUntil && Date.now() < state._smsListGuardUntil) return;
   ensureHomeState();
   state._homeRoot = 'sms';
   state._homeDepth = 1;
@@ -26238,51 +26319,86 @@ async function smsGenerateLifeThreads() {
   if (!state.sms.threads) state.sms.threads = {};
   if (state._smsLifeLock) { showToast('正在生成…'); return; }
   state._smsLifeLock = true;
-  showToast('生成生活短信中…');
+  showToast('生成短信中…');
   try {
-    const userP = (state.user && (state.user.persona || state.user.desc || state.user.nick || state.user.name)) || '';
-    const charsHint = (state.chars||[]).slice(0,8).map(function(c){ return c.nick||c.realName; }).filter(Boolean).join('、');
-    const prompt = '根据 User 人设生成 4～5 条手机短信会话。只输出 JSON 数组。每项：{"name":"发件人显示名","anon":false,"messages":[{"from":"them","content":"..."}]}。类型需覆盖：快递/外卖、话费或套餐、工作或学校、一条匿名短信(anon:true)、可有一条像熟人的闲聊。口语短句，像真短信。User人设：'+(userP||'普通年轻人')+'。可参考角色名：'+(charsHint||'无')+'。禁止输出 markdown。';
-    let text = '';
+    // 优先使用已有会话（角色账号），不新建陌生账号
+    var threads = Object.keys(state.sms.threads || {});
+    var chars = state.chars || [];
+    // 确保每个角色至少有一个短信会话
+    chars.forEach(function(c) {
+      if (!state.sms.threads[c.id]) {
+        state.sms.threads[c.id] = {
+          name: c.nick || c.realName || '角色',
+          messages: [],
+          charId: c.id,
+          avatar: c.avatar || '',
+          anon: false,
+          ctx: 20
+        };
+      }
+    });
+    threads = Object.keys(state.sms.threads);
+    if (!threads.length) {
+      showToast('请先添加角色或短信会话');
+      return;
+    }
+    var userP = (state.user && (state.user.persona || state.user.desc || state.user.nick || state.user.name)) || '';
+    var listHint = threads.slice(0, 12).map(function(id) {
+      var t = state.sms.threads[id];
+      var ch = chars.find(function(c){ return c.id === (t.charId || id); });
+      return (t.name || id) + (ch ? ('｜人设:' + String(ch.persona||'').slice(0,40)) : (t.anon ? '｜匿名' : ''));
+    }).join('\n');
+    var prompt = '为下列已有短信联系人各生成 1～2 条「对方发来」的新短信（from 一律 them）。主题不限，生活化即可：可闲聊、关心、吐槽、分享日常、工作学习、快递外卖、心事等，不要千篇一律。只输出 JSON 数组：[{"id":"会话id或名字","messages":[{"content":"..."}]}]。会话必须从下列名单中选，禁止创建新联系人。\n名单：\n' + listHint + '\nUser人设：' + (userP || '普通年轻人') + '。口语短句。';
+    var text = '';
     try {
-      const r = await apiChat([{ role:'system', content:'你是短信数据生成器。只输出合法 JSON 数组，不要解释。' }, { role:'user', content: prompt }]);
+      var r = await apiChat([
+        { role: 'system', content: '你是短信生成器。只输出合法 JSON 数组，不要解释、不要 markdown。' },
+        { role: 'user', content: prompt }
+      ]);
       text = (r && (r.text || r.content || r.message)) || '';
-      if (typeof text !== 'string') text = String(text||'');
-    } catch(e) {
-      showToast('生成失败：'+(e && (e.message||e) || 'API错误'));
+      if (typeof text !== 'string') text = String(text || '');
+    } catch (e) {
+      showToast('生成失败：' + (e && (e.message || e) || 'API错误'));
       return;
     }
     if (!text.trim()) { showToast('生成结果为空，请检查聊天 API'); return; }
-    let arr = [];
+    var arr = [];
     try {
-      const m = text.match(/\[[\s\S]*\]/);
+      var m = text.match(/\[[\s\S]*\]/);
       arr = JSON.parse(m ? m[0] : text);
-    } catch(e) {
-      console.warn('sms gen parse', text.slice(0,200));
+    } catch (e) {
       showToast('解析失败，请重试');
       return;
     }
-    if (!Array.isArray(arr) || !arr.length) { showToast('未得到有效短信'); return; }
+    if (!Array.isArray(arr)) arr = [];
     var added = 0;
-    arr.slice(0, 6).forEach(function(it, i) {
+    function resolveId(raw) {
+      raw = String(raw || '');
+      if (state.sms.threads[raw]) return raw;
+      var hit = threads.find(function(id) {
+        var t = state.sms.threads[id];
+        return t && (t.name === raw || id === raw);
+      });
+      if (hit) return hit;
+      var ch = chars.find(function(c){ return (c.nick === raw || c.realName === raw); });
+      if (ch && state.sms.threads[ch.id]) return ch.id;
+      return null;
+    }
+    arr.forEach(function(it) {
       if (!it) return;
-      const id = 'life_' + Date.now() + '_' + i;
-      const msgs = (it.messages || [{ from:'them', content: it.preview || it.name || '…' }]).map(function(m){
-        return { from: (m.from === 'user') ? 'user' : 'them', content: String(m.content || ''), ts: Date.now() - (6-i)*60000 };
-      }).filter(function(m){ return m.content; });
-      if (!msgs.length) return;
-      state.sms.threads[id] = {
-        name: it.name || ('短信'+(i+1)),
-        messages: msgs,
-        anon: !!it.anon,
-        charId: '',
-        avatar: '',
-        ctx: 0
-      };
-      added++;
+      var id = resolveId(it.id || it.name);
+      if (!id || !state.sms.threads[id]) return;
+      var t = state.sms.threads[id];
+      t.messages = t.messages || [];
+      (it.messages || []).forEach(function(msg, i) {
+        var content = String((msg && msg.content) || '').trim();
+        if (!content) return;
+        t.messages.push({ from: 'them', content: content, ts: Date.now() + i });
+        added++;
+      });
     });
-    try { save(); } catch(e) {}
-    showToast(added ? ('已生成 '+added+' 条短信') : '未写入短信');
+    try { save(); } catch (e) {}
+    showToast(added ? ('已向现有会话写入 ' + added + ' 条') : '未匹配到现有会话，请重试');
     openSmsApp();
   } finally {
     state._smsLifeLock = false;
