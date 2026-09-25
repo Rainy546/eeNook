@@ -831,159 +831,6 @@ body {
 }
 
 
-/* ========== 内置：iOS 6 古早信息 ========== */
-#page-chat[data-chat-theme="ios6"] {
-  background: #b9c0c8 !important;
-  background-image: none !important;
-}
-#page-chat[data-chat-theme="ios6"] .chat-header {
-  background: linear-gradient(180deg, #f4f5f7 0%, #c5ccd6 12%, #8e99a8 55%, #7a8696 100%) !important;
-  border-bottom: 1px solid #5a6570 !important;
-  color: #fff !important;
-  min-height: 44px;
-  padding-top: 4px;
-}
-#page-chat[data-chat-theme="ios6"] .chat-header .chat-title,
-#page-chat[data-chat-theme="ios6"] .chat-header .nav-title {
-  color: #fff !important;
-  font-weight: 700 !important;
-  font-size: 17px !important;
-  text-shadow: 0 -1px 0 rgba(0,0,0,.35);
-}
-#page-chat[data-chat-theme="ios6"] .chat-header .nav-back,
-#page-chat[data-chat-theme="ios6"] .chat-header .back-btn {
-  color: #fff !important;
-  font-size: 15px !important;
-  font-weight: 600;
-  text-shadow: 0 -1px 0 rgba(0,0,0,.3);
-}
-#page-chat[data-chat-theme="ios6"] .ios6-top-actions {
-  display: flex;
-  gap: 8px;
-  padding: 8px 10px 6px;
-  background: linear-gradient(180deg, #d8dde4, #c5ccd4);
-  border-bottom: 1px solid #a0a8b0;
-}
-#page-chat[data-chat-theme="ios6"] .ios6-top-actions button {
-  flex: 1;
-  border: 1px solid #8a929c;
-  border-radius: 8px;
-  padding: 8px 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #2a3340;
-  background: linear-gradient(180deg, #ffffff 0%, #e8ebf0 100%);
-  box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 1px 1px rgba(0,0,0,.08);
-}
-#page-chat[data-chat-theme="ios6"] #msgArea,
-#page-chat[data-chat-theme="ios6"] .msg-area {
-  background: #c5ccd4 !important;
-  background-image: none !important;
-  padding-bottom: 88px !important;
-}
-/* 果冻质感气泡 */
-#page-chat[data-chat-theme="ios6"] .msg-bubble:not(.bare) {
-  border-radius: 18px !important;
-  padding: 9px 13px !important;
-  font-size: 15px !important;
-  line-height: 1.35 !important;
-  backdrop-filter: none !important;
-  position: relative;
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.55) inset,
-    0 -1px 0 rgba(0,0,0,.06) inset,
-    0 2px 4px rgba(0,0,0,.12) !important;
-  border: 1px solid rgba(0,0,0,.12) !important;
-}
-#page-chat[data-chat-theme="ios6"] .msg-row.other .msg-bubble:not(.bare),
-#page-chat[data-chat-theme="ios6"] .msg.them .msg-bubble:not(.bare),
-#page-chat[data-chat-theme="ios6"] .msg-row:not(.me) .msg-bubble:not(.bare) {
-  background: linear-gradient(180deg, #ffffff 0%, #f6f6f6 45%, #ebebeb 100%) !important;
-  color: #000 !important;
-  border-color: #b8b8b8 !important;
-}
-#page-chat[data-chat-theme="ios6"] .msg-row.me .msg-bubble:not(.bare),
-#page-chat[data-chat-theme="ios6"] .msg.me .msg-bubble:not(.bare) {
-  background: linear-gradient(180deg, #7eb6f7 0%, #3a8ee8 40%, #1a6fd0 78%, #0d5bb8 100%) !important;
-  color: #fff !important;
-  border-color: #0a4f9a !important;
-  text-shadow: 0 -1px 0 rgba(0,0,0,.18);
-  box-shadow:
-    0 1px 0 rgba(255,255,255,.35) inset,
-    0 -1px 0 rgba(0,0,0,.12) inset,
-    0 2px 5px rgba(0,60,120,.25) !important;
-}
-#page-chat[data-chat-theme="ios6"] .msg-time,
-#page-chat[data-chat-theme="ios6"] .chat-time-divider {
-  color: #5a6570 !important;
-  font-size: 11px !important;
-  text-align: center;
-  text-shadow: 0 1px 0 rgba(255,255,255,.35);
-}
-/* 悬浮大底栏 */
-#page-chat[data-chat-theme="ios6"] .input-bar,
-#page-chat[data-chat-theme="ios6"] .chat-input-bar {
-  position: absolute !important;
-  left: 8px !important;
-  right: 8px !important;
-  bottom: 10px !important;
-  background: linear-gradient(180deg, #f4f5f7 0%, #c8cdd6 100%) !important;
-  border: 1px solid #8a929c !important;
-  border-radius: 16px !important;
-  box-shadow: 0 4px 16px rgba(0,0,0,.18) !important;
-  padding: 10px 10px !important;
-  min-height: 56px !important;
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  z-index: 20;
-}
-#page-chat[data-chat-theme="ios6"] .input-bar input,
-#page-chat[data-chat-theme="ios6"] .input-bar textarea,
-#page-chat[data-chat-theme="ios6"] #msgInput {
-  flex: 1 !important;
-  background: #fff !important;
-  border: 1px solid #a8b0b8 !important;
-  border-radius: 18px !important;
-  color: #000 !important;
-  padding: 10px 36px 10px 14px !important;
-  min-height: 36px !important;
-  font-size: 15px !important;
-}
-#page-chat[data-chat-theme="ios6"] .ios6-send {
-  border: 1px solid #6a7a8a !important;
-  border-radius: 8px !important;
-  padding: 8px 14px !important;
-  font-size: 14px !important;
-  font-weight: 700 !important;
-  color: #fff !important;
-  background: linear-gradient(180deg, #6aa0d8, #3a6ea8) !important;
-  box-shadow: 0 1px 0 rgba(255,255,255,.25) inset;
-  white-space: nowrap;
-}
-#page-chat[data-chat-theme="ios6"] .ios6-cam {
-  width: 40px; height: 40px;
-  border-radius: 10px;
-  border: 1px solid #8a929c;
-  background: linear-gradient(180deg, #fff, #d8dde4);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  font-size: 18px;
-  color: #2a3340;
-}
-#page-chat[data-chat-theme="ios6"] .ios6-panel-in {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 28px; height: 28px;
-  border: none;
-  background: transparent;
-  color: #6a7380;
-  font-size: 16px;
-  z-index: 2;
-}
-
 /* ========== 内置聊天主题：QQ 经典（高优先级，不被 data-ui 覆盖） ========== */
 #page-chat[data-chat-theme="qq"] {
   background: #f5f5f5 !important;
@@ -2685,7 +2532,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-23A';
+const EENOK_BUILD = '2026-08-23B';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -4232,7 +4079,7 @@ function openChat(id, isGroup) {
 function applyChatStyle(id) {
   const chat = state.chats[id] || {};
   // 已下线的 Bubble 主题：自动清除，回退默认
-  if (chat.themeName === 'bubble') {
+  if (chat.themeName === 'bubble' || chat.themeName === 'ios6') {
     chat.themeName = '';
     try { save(); } catch(e) {}
   }
@@ -4241,95 +4088,12 @@ function applyChatStyle(id) {
   // 内置主题用 data 属性（CSS 用 background-color，不抢 wallpaper）
   if (page) {
     const tn = chat.themeName || '';
-    if (tn === 'qq' || tn === 'wechat' || tn === 'ios26' || tn === 'kakao' || tn === 'ios6') {
+    if (tn === 'qq' || tn === 'wechat' || tn === 'ios26' || tn === 'kakao') {
       page.setAttribute('data-chat-theme', tn);
     } else {
       page.removeAttribute('data-chat-theme');
     }
-    // iOS6 古早：顶栏/底栏英文 + 悬浮底栏按钮
-    try {
-      if (tn === 'ios6') {
-        page.setAttribute('data-ios6-en', '1');
-        var hdr = page.querySelector('.chat-header');
-        if (hdr) {
-          var back = hdr.querySelector('.nav-back, .back-btn, button');
-          if (back && !back.dataset.ios6) {
-            back.dataset.ios6 = '1';
-            back.dataset.labSaved = back.textContent || '';
-            // Messages 作为返回
-            var icon = back.querySelector('svg, .icon');
-            back.innerHTML = (icon ? icon.outerHTML : '') + ' Messages';
-          }
-          var more = hdr.querySelector('.nav-more, .header-right, [onclick*="ChatSettings"], [onclick*="openChatSettings"]');
-          if (more && !more.dataset.ios6) {
-            more.dataset.ios6 = '1';
-            more.dataset.labSaved = more.textContent || '';
-            more.textContent = 'Edit';
-          }
-          // Call / Contact Info 条
-          if (!page.querySelector('.ios6-top-actions')) {
-            var bar = document.createElement('div');
-            bar.className = 'ios6-top-actions';
-            bar.innerHTML = '<button type="button" onclick="try{startVoiceCall&&startVoiceCall()}catch(e){}">Call</button><button type="button" onclick="try{openChatSettings&&openChatSettings()}catch(e){}">Contact Info</button>';
-            if (hdr.nextSibling) hdr.parentNode.insertBefore(bar, hdr.nextSibling);
-            else hdr.parentNode.appendChild(bar);
-          }
-        }
-        var barIn = page.querySelector('.input-bar, .chat-input-bar');
-        if (barIn) {
-          var inp = barIn.querySelector('#msgInput, input, textarea');
-          if (inp) {
-            if (!inp.dataset.phSaved) inp.dataset.phSaved = inp.placeholder || '';
-            inp.placeholder = 'iMessage';
-            inp.style.position = 'relative';
-          }
-          // 隐藏原控制面板类按钮，改用输入框内按钮
-          barIn.querySelectorAll('button, .icon-btn').forEach(function(b){
-            var t = (b.textContent||'')+(b.getAttribute('title')||'')+(b.className||'');
-            if (/表情|面板|加号|\+|panel|emoji|more/i.test(t) && !b.classList.contains('ios6-send') && !b.classList.contains('ios6-cam') && !b.classList.contains('ios6-panel-in')) {
-              b.style.display = 'none';
-              b.dataset.ios6hide = '1';
-            }
-          });
-          if (!barIn.querySelector('.ios6-send')) {
-            var send = document.createElement('button');
-            send.type = 'button';
-            send.className = 'ios6-send';
-            send.textContent = 'Send';
-            send.onclick = function(){ try { if (typeof sendMsg==='function') sendMsg(); else if (typeof sendChatMessage==='function') sendChatMessage(); } catch(e){} };
-            barIn.insertBefore(send, barIn.firstChild);
-          }
-          if (!barIn.querySelector('.ios6-cam')) {
-            var cam = document.createElement('button');
-            cam.type = 'button';
-            cam.className = 'ios6-cam';
-            cam.title = 'Generate';
-            cam.innerHTML = '📷';
-            cam.onclick = function(){ try { if (typeof generateReply==='function') generateReply(); else if (typeof genReply==='function') genReply(); } catch(e){} };
-            barIn.appendChild(cam);
-          }
-          if (inp && !barIn.querySelector('.ios6-panel-in')) {
-            var wrap = inp.parentElement || barIn;
-            if (getComputedStyle(wrap).position === 'static') wrap.style.position = 'relative';
-            var pbtn = document.createElement('button');
-            pbtn.type = 'button';
-            pbtn.className = 'ios6-panel-in';
-            pbtn.title = 'Panel';
-            pbtn.textContent = '⊕';
-            pbtn.onclick = function(){ try { if (typeof openChatPanel==='function') openChatPanel(); else if (typeof togglePanel==='function') togglePanel(); } catch(e){} };
-            wrap.appendChild(pbtn);
-          }
-        }
-      } else {
-        page.removeAttribute('data-ios6-en');
-        var act = page.querySelector('.ios6-top-actions');
-        if (act) act.remove();
-        page.querySelectorAll('[data-ios6hide]').forEach(function(b){ b.style.display=''; delete b.dataset.ios6hide; });
-        page.querySelectorAll('.ios6-send,.ios6-cam,.ios6-panel-in').forEach(function(b){ b.remove(); });
-        var inp2 = page.querySelector('#msgInput, .input-bar input, textarea');
-        if (inp2 && inp2.dataset.phSaved != null) { inp2.placeholder = inp2.dataset.phSaved; delete inp2.dataset.phSaved; }
-      }
-    } catch(e) { console.warn('ios6 chrome', e); }
+
   }
   // 壁纸：会话 bg > 全局 chatWp；用 !important 盖住主题底色
   if (area) {
@@ -9316,7 +9080,6 @@ function openBeautify() {
         <button type="button" class="btn ${cur==='wechat'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('wechat')">微信经典</button>
         <button type="button" class="btn ${cur==='ios26'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('ios26')">iOS 气泡</button>
         <button type="button" class="btn ${cur==='kakao'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('kakao')">KakaoTalk</button>
-        <button type="button" class="btn ${cur==='ios6'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('ios6')">iOS 6 古早</button>
         <button type="button" class="btn btn-secondary" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('')">清除内置</button>
       </div>
     </div>
@@ -9431,7 +9194,7 @@ function applyBuiltinTheme(name) {
   const chat = state.chats[id];
   if (!chat) { showToast('请先进入聊天'); return; }
   // 内置主题只记 themeName，样式走 stylesheet 的 data-chat-theme（避免被覆盖）
-  if (name === 'qq' || name === 'wechat' || name === 'ios26' || name === 'kakao' || name === 'ios6') {
+  if (name === 'qq' || name === 'wechat' || name === 'ios26' || name === 'kakao') {
     chat.themeName = name;
     // 清空旧注入 CSS，避免和内置冲突；用户仍可在保存后手写自定义
     chat.css = '';
@@ -9448,8 +9211,8 @@ function applyBuiltinTheme(name) {
     if (modal) {
       modal.querySelectorAll('button').forEach(function(btn) {
         const t = (btn.textContent || '').trim();
-        const on = (name === 'qq' && t === 'QQ 经典') || (name === 'wechat' && t === '微信经典') || (name === 'ios26' && t === 'iOS 气泡') || (name === 'kakao' && t === 'KakaoTalk') || (name === 'ios6' && (t === 'iOS 6 古早' || t.indexOf('iOS 6')>=0));
-        if (t === 'QQ 经典' || t === '微信经典' || t === 'iOS 气泡' || t === 'KakaoTalk' || t.indexOf('iOS 6')>=0 || t === '清除内置') {
+        const on = (name === 'qq' && t === 'QQ 经典') || (name === 'wechat' && t === '微信经典') || (name === 'ios26' && t === 'iOS 气泡') || (name === 'kakao' && t === 'KakaoTalk');
+        if (t === 'QQ 经典' || t === '微信经典' || t === 'iOS 气泡' || t === 'KakaoTalk' || t === '清除内置') {
           btn.className = on ? 'btn btn-primary' : 'btn btn-secondary';
           if (t !== '清除内置') btn.style.cssText = 'flex:1;min-width:40%;font-size:13px';
         }
@@ -9458,7 +9221,7 @@ function applyBuiltinTheme(name) {
       if (ta) ta.value = chat.css || '';
     }
   } catch(e) {}
-  var toastMap = { qq:'已应用 QQ 经典', wechat:'已应用微信经典', ios26:'已应用 iOS 气泡', kakao:'已应用 KakaoTalk', ios6:'已应用 iOS 6 古早' };
+  var toastMap = { qq:'已应用 QQ 经典', wechat:'已应用微信经典', ios26:'已应用 iOS 气泡', kakao:'已应用 KakaoTalk' };
   showToast(name && toastMap[name] ? toastMap[name] : (name ? ('已应用 '+name) : '已清除内置主题'));
 }
 function saveBeautify() {
@@ -21092,8 +20855,12 @@ function withOpenPost(id) {
     + '<div style="font-size:13px;color:#536471;margin-top:14px">'+(p.ts?new Date(p.ts).toLocaleString():'')+' · <b style="color:#0f1419">'+stats+'</b> replies</div>'
     + '</div>'
     // engagement bar
-    + '<div style="display:flex;justify-content:space-around;padding:12px 8px;border-top:1px solid #eff3f4;border-bottom:1px solid #eff3f4;margin-top:12px;color:#536471;font-size:13px">'
-    + '<span>💬 '+(stats||0)+'</span><span>🔁 0</span><span>♥ 0</span><span>🔖</span><span>↗</span>'
+    + '<div style="display:flex;justify-content:space-around;align-items:center;padding:12px 8px;border-top:1px solid #eff3f4;border-bottom:1px solid #eff3f4;margin-top:12px;color:#536471">'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H5l-4 3V11.5A8.5 8.5 0 1 1 21 11.5z"/></svg> <span style="font-size:13px">'+(stats||0)+'</span></span>'
+    + '<span style="display:inline-flex;align-items:center;gap:6px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg> <span style="font-size:13px">0</span></span>'
+    + '<span style="display:inline-flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></span>'
+    + '<span style="display:inline-flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>'
+    + '<span style="display:inline-flex;align-items:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M16 6l-4-4-4 4"/><path d="M12 2v14"/></svg></span>'
     + '</div>'
     + '<div>'+floors+'</div>'
     + '<div style="display:flex;gap:8px;padding:16px">'
