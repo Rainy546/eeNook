@@ -833,80 +833,157 @@ body {
 
 /* ========== 内置：iOS 6 古早信息 ========== */
 #page-chat[data-chat-theme="ios6"] {
-  background: #c5ccd4 !important;
+  background: #b9c0c8 !important;
   background-image: none !important;
 }
-#page-chat[data-chat-theme="ios6"] .chat-header,
-#page-chat[data-chat-theme="ios6"] .sub-nav,
-#page-chat[data-chat-theme="ios6"] #subNav {
-  background: linear-gradient(180deg, #f8f9fb 0%, #b0b9c4 8%, #8e98a6 50%, #7a8494 92%, #6a7382 100%) !important;
-  border-bottom: 1px solid #4a5360 !important;
+#page-chat[data-chat-theme="ios6"] .chat-header {
+  background: linear-gradient(180deg, #f4f5f7 0%, #c5ccd6 12%, #8e99a8 55%, #7a8696 100%) !important;
+  border-bottom: 1px solid #5a6570 !important;
   color: #fff !important;
-  text-shadow: 0 -1px 0 rgba(0,0,0,.35);
+  min-height: 44px;
+  padding-top: 4px;
 }
 #page-chat[data-chat-theme="ios6"] .chat-header .chat-title,
-#page-chat[data-chat-theme="ios6"] .chat-header .nav-title,
-#page-chat[data-chat-theme="ios6"] #subTitle {
+#page-chat[data-chat-theme="ios6"] .chat-header .nav-title {
   color: #fff !important;
   font-weight: 700 !important;
-  font-size: 16px !important;
-  text-shadow: 0 -1px 0 rgba(0,0,0,.4);
+  font-size: 17px !important;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.35);
 }
-#page-chat[data-chat-theme="ios6"] .chat-header .nav-btn,
-#page-chat[data-chat-theme="ios6"] .chat-header button {
+#page-chat[data-chat-theme="ios6"] .chat-header .nav-back,
+#page-chat[data-chat-theme="ios6"] .chat-header .back-btn {
   color: #fff !important;
+  font-size: 15px !important;
+  font-weight: 600;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.3);
+}
+#page-chat[data-chat-theme="ios6"] .ios6-top-actions {
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px 6px;
+  background: linear-gradient(180deg, #d8dde4, #c5ccd4);
+  border-bottom: 1px solid #a0a8b0;
+}
+#page-chat[data-chat-theme="ios6"] .ios6-top-actions button {
+  flex: 1;
+  border: 1px solid #8a929c;
+  border-radius: 8px;
+  padding: 8px 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2a3340;
+  background: linear-gradient(180deg, #ffffff 0%, #e8ebf0 100%);
+  box-shadow: 0 1px 0 rgba(255,255,255,.8) inset, 0 1px 1px rgba(0,0,0,.08);
 }
 #page-chat[data-chat-theme="ios6"] #msgArea,
 #page-chat[data-chat-theme="ios6"] .msg-area {
   background: #c5ccd4 !important;
   background-image: none !important;
+  padding-bottom: 88px !important;
 }
+/* 果冻质感气泡 */
 #page-chat[data-chat-theme="ios6"] .msg-bubble:not(.bare) {
-  border-radius: 16px !important;
-  box-shadow: 0 1px 1px rgba(0,0,0,.12) !important;
-  border: 1px solid rgba(0,0,0,.08) !important;
-  padding: 8px 12px !important;
+  border-radius: 18px !important;
+  padding: 9px 13px !important;
   font-size: 15px !important;
   line-height: 1.35 !important;
   backdrop-filter: none !important;
+  position: relative;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.55) inset,
+    0 -1px 0 rgba(0,0,0,.06) inset,
+    0 2px 4px rgba(0,0,0,.12) !important;
+  border: 1px solid rgba(0,0,0,.12) !important;
 }
-/* 对方：白气泡 */
 #page-chat[data-chat-theme="ios6"] .msg-row.other .msg-bubble:not(.bare),
 #page-chat[data-chat-theme="ios6"] .msg.them .msg-bubble:not(.bare),
 #page-chat[data-chat-theme="ios6"] .msg-row:not(.me) .msg-bubble:not(.bare) {
-  background: linear-gradient(180deg, #ffffff 0%, #f2f2f2 100%) !important;
+  background: linear-gradient(180deg, #ffffff 0%, #f6f6f6 45%, #ebebeb 100%) !important;
   color: #000 !important;
-  border-color: #b0b0b0 !important;
+  border-color: #b8b8b8 !important;
 }
-/* 我：蓝气泡（仿 iOS6 iMessage） */
 #page-chat[data-chat-theme="ios6"] .msg-row.me .msg-bubble:not(.bare),
 #page-chat[data-chat-theme="ios6"] .msg.me .msg-bubble:not(.bare) {
-  background: linear-gradient(180deg, #5c9fef 0%, #1687e6 40%, #0b6fd0 100%) !important;
-  background: linear-gradient(180deg, #5c9fef 0%, #1687e6 45%, #0b6fd0 100%) !important;
+  background: linear-gradient(180deg, #7eb6f7 0%, #3a8ee8 40%, #1a6fd0 78%, #0d5bb8 100%) !important;
   color: #fff !important;
-  border-color: #0a5fb0 !important;
-  text-shadow: 0 -1px 0 rgba(0,0,0,.15);
+  border-color: #0a4f9a !important;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.18);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.35) inset,
+    0 -1px 0 rgba(0,0,0,.12) inset,
+    0 2px 5px rgba(0,60,120,.25) !important;
 }
+#page-chat[data-chat-theme="ios6"] .msg-time,
+#page-chat[data-chat-theme="ios6"] .chat-time-divider {
+  color: #5a6570 !important;
+  font-size: 11px !important;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255,255,255,.35);
+}
+/* 悬浮大底栏 */
 #page-chat[data-chat-theme="ios6"] .input-bar,
-#page-chat[data-chat-theme="ios6"] .chat-input-bar,
-#page-chat[data-chat-theme="ios6"] .sms-im-input {
-  background: linear-gradient(180deg, #f0f1f3 0%, #c8cdd4 100%) !important;
-  border-top: 1px solid #8a9098 !important;
+#page-chat[data-chat-theme="ios6"] .chat-input-bar {
+  position: absolute !important;
+  left: 8px !important;
+  right: 8px !important;
+  bottom: 10px !important;
+  background: linear-gradient(180deg, #f4f5f7 0%, #c8cdd6 100%) !important;
+  border: 1px solid #8a929c !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,.18) !important;
+  padding: 10px 10px !important;
+  min-height: 56px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  z-index: 20;
 }
 #page-chat[data-chat-theme="ios6"] .input-bar input,
 #page-chat[data-chat-theme="ios6"] .input-bar textarea,
 #page-chat[data-chat-theme="ios6"] #msgInput {
+  flex: 1 !important;
   background: #fff !important;
-  border: 1px solid #a0a6ae !important;
-  border-radius: 16px !important;
+  border: 1px solid #a8b0b8 !important;
+  border-radius: 18px !important;
   color: #000 !important;
+  padding: 10px 36px 10px 14px !important;
+  min-height: 36px !important;
+  font-size: 15px !important;
 }
-#page-chat[data-chat-theme="ios6"] .msg-time,
-#page-chat[data-chat-theme="ios6"] .chat-time-divider {
-  color: #6a7380 !important;
-  font-size: 11px !important;
-  text-shadow: 0 1px 0 rgba(255,255,255,.4);
+#page-chat[data-chat-theme="ios6"] .ios6-send {
+  border: 1px solid #6a7a8a !important;
+  border-radius: 8px !important;
+  padding: 8px 14px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  background: linear-gradient(180deg, #6aa0d8, #3a6ea8) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.25) inset;
+  white-space: nowrap;
 }
+#page-chat[data-chat-theme="ios6"] .ios6-cam {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  border: 1px solid #8a929c;
+  background: linear-gradient(180deg, #fff, #d8dde4);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+  color: #2a3340;
+}
+#page-chat[data-chat-theme="ios6"] .ios6-panel-in {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px; height: 28px;
+  border: none;
+  background: transparent;
+  color: #6a7380;
+  font-size: 16px;
+  z-index: 2;
+}
+
 /* ========== 内置聊天主题：QQ 经典（高优先级，不被 data-ui 覆盖） ========== */
 #page-chat[data-chat-theme="qq"] {
   background: #f5f5f5 !important;
@@ -2608,7 +2685,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22Z';
+const EENOK_BUILD = '2026-08-23A';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -4169,27 +4246,90 @@ function applyChatStyle(id) {
     } else {
       page.removeAttribute('data-chat-theme');
     }
-    // iOS6 古早：顶栏/底栏英文
+    // iOS6 古早：顶栏/底栏英文 + 悬浮底栏按钮
     try {
       if (tn === 'ios6') {
-        var title = page.querySelector('.chat-title, .nav-title, #chatTitle');
-        // keep contact name but force Messages chrome via data attribute for CSS :: 
         page.setAttribute('data-ios6-en', '1');
-        var inp = document.getElementById('msgInput') || page.querySelector('.input-bar input, textarea');
-        if (inp && !inp.dataset.phSaved) {
-          inp.dataset.phSaved = inp.placeholder || '';
-          inp.placeholder = 'iMessage';
+        var hdr = page.querySelector('.chat-header');
+        if (hdr) {
+          var back = hdr.querySelector('.nav-back, .back-btn, button');
+          if (back && !back.dataset.ios6) {
+            back.dataset.ios6 = '1';
+            back.dataset.labSaved = back.textContent || '';
+            // Messages 作为返回
+            var icon = back.querySelector('svg, .icon');
+            back.innerHTML = (icon ? icon.outerHTML : '') + ' Messages';
+          }
+          var more = hdr.querySelector('.nav-more, .header-right, [onclick*="ChatSettings"], [onclick*="openChatSettings"]');
+          if (more && !more.dataset.ios6) {
+            more.dataset.ios6 = '1';
+            more.dataset.labSaved = more.textContent || '';
+            more.textContent = 'Edit';
+          }
+          // Call / Contact Info 条
+          if (!page.querySelector('.ios6-top-actions')) {
+            var bar = document.createElement('div');
+            bar.className = 'ios6-top-actions';
+            bar.innerHTML = '<button type="button" onclick="try{startVoiceCall&&startVoiceCall()}catch(e){}">Call</button><button type="button" onclick="try{openChatSettings&&openChatSettings()}catch(e){}">Contact Info</button>';
+            if (hdr.nextSibling) hdr.parentNode.insertBefore(bar, hdr.nextSibling);
+            else hdr.parentNode.appendChild(bar);
+          }
         }
-        var sendBtns = page.querySelectorAll('.input-bar button, .send-btn');
-        sendBtns.forEach(function(b){
-          if (/发送|Send/i.test(b.textContent||'')) { b.dataset.labSaved = b.textContent; b.textContent = 'Send'; }
-        });
+        var barIn = page.querySelector('.input-bar, .chat-input-bar');
+        if (barIn) {
+          var inp = barIn.querySelector('#msgInput, input, textarea');
+          if (inp) {
+            if (!inp.dataset.phSaved) inp.dataset.phSaved = inp.placeholder || '';
+            inp.placeholder = 'iMessage';
+            inp.style.position = 'relative';
+          }
+          // 隐藏原控制面板类按钮，改用输入框内按钮
+          barIn.querySelectorAll('button, .icon-btn').forEach(function(b){
+            var t = (b.textContent||'')+(b.getAttribute('title')||'')+(b.className||'');
+            if (/表情|面板|加号|\+|panel|emoji|more/i.test(t) && !b.classList.contains('ios6-send') && !b.classList.contains('ios6-cam') && !b.classList.contains('ios6-panel-in')) {
+              b.style.display = 'none';
+              b.dataset.ios6hide = '1';
+            }
+          });
+          if (!barIn.querySelector('.ios6-send')) {
+            var send = document.createElement('button');
+            send.type = 'button';
+            send.className = 'ios6-send';
+            send.textContent = 'Send';
+            send.onclick = function(){ try { if (typeof sendMsg==='function') sendMsg(); else if (typeof sendChatMessage==='function') sendChatMessage(); } catch(e){} };
+            barIn.insertBefore(send, barIn.firstChild);
+          }
+          if (!barIn.querySelector('.ios6-cam')) {
+            var cam = document.createElement('button');
+            cam.type = 'button';
+            cam.className = 'ios6-cam';
+            cam.title = 'Generate';
+            cam.innerHTML = '📷';
+            cam.onclick = function(){ try { if (typeof generateReply==='function') generateReply(); else if (typeof genReply==='function') genReply(); } catch(e){} };
+            barIn.appendChild(cam);
+          }
+          if (inp && !barIn.querySelector('.ios6-panel-in')) {
+            var wrap = inp.parentElement || barIn;
+            if (getComputedStyle(wrap).position === 'static') wrap.style.position = 'relative';
+            var pbtn = document.createElement('button');
+            pbtn.type = 'button';
+            pbtn.className = 'ios6-panel-in';
+            pbtn.title = 'Panel';
+            pbtn.textContent = '⊕';
+            pbtn.onclick = function(){ try { if (typeof openChatPanel==='function') openChatPanel(); else if (typeof togglePanel==='function') togglePanel(); } catch(e){} };
+            wrap.appendChild(pbtn);
+          }
+        }
       } else {
         page.removeAttribute('data-ios6-en');
-        var inp2 = document.getElementById('msgInput') || page.querySelector('.input-bar input, textarea');
+        var act = page.querySelector('.ios6-top-actions');
+        if (act) act.remove();
+        page.querySelectorAll('[data-ios6hide]').forEach(function(b){ b.style.display=''; delete b.dataset.ios6hide; });
+        page.querySelectorAll('.ios6-send,.ios6-cam,.ios6-panel-in').forEach(function(b){ b.remove(); });
+        var inp2 = page.querySelector('#msgInput, .input-bar input, textarea');
         if (inp2 && inp2.dataset.phSaved != null) { inp2.placeholder = inp2.dataset.phSaved; delete inp2.dataset.phSaved; }
       }
-    } catch(e) {}
+    } catch(e) { console.warn('ios6 chrome', e); }
   }
   // 壁纸：会话 bg > 全局 chatWp；用 !important 盖住主题底色
   if (area) {
@@ -9308,17 +9448,18 @@ function applyBuiltinTheme(name) {
     if (modal) {
       modal.querySelectorAll('button').forEach(function(btn) {
         const t = (btn.textContent || '').trim();
-        const on = (name === 'qq' && t === 'QQ 经典') || (name === 'wechat' && t === '微信经典') || (name === 'ios26' && t === 'iOS 气泡');
-        if (t === 'QQ 经典' || t === '微信经典' || t === 'iOS 气泡' || t === '清除内置') {
+        const on = (name === 'qq' && t === 'QQ 经典') || (name === 'wechat' && t === '微信经典') || (name === 'ios26' && t === 'iOS 气泡') || (name === 'kakao' && t === 'KakaoTalk') || (name === 'ios6' && (t === 'iOS 6 古早' || t.indexOf('iOS 6')>=0));
+        if (t === 'QQ 经典' || t === '微信经典' || t === 'iOS 气泡' || t === 'KakaoTalk' || t.indexOf('iOS 6')>=0 || t === '清除内置') {
           btn.className = on ? 'btn btn-primary' : 'btn btn-secondary';
-          if (t !== '清除内置') btn.style.cssText = (btn.style.cssText || '') + ';flex:1;min-width:40%;font-size:13px';
+          if (t !== '清除内置') btn.style.cssText = 'flex:1;min-width:40%;font-size:13px';
         }
       });
       const ta = document.getElementById('fCss');
       if (ta) ta.value = chat.css || '';
     }
   } catch(e) {}
-  showToast(name === 'qq' ? '已应用 QQ 经典' : (name === 'wechat' ? '已应用微信经典' : (name === 'ios26' ? '已应用 iOS 气泡' : (name === 'kakao' ? '已应用 KakaoTalk' : '已清除内置主题'))));
+  var toastMap = { qq:'已应用 QQ 经典', wechat:'已应用微信经典', ios26:'已应用 iOS 气泡', kakao:'已应用 KakaoTalk', ios6:'已应用 iOS 6 古早' };
+  showToast(name && toastMap[name] ? toastMap[name] : (name ? ('已应用 '+name) : '已清除内置主题'));
 }
 function saveBeautify() {
   try {
@@ -9333,6 +9474,12 @@ function saveBeautify() {
     save();
     applyChatStyle(state.currentChatId);
     try { closeModal(); } catch(e) {}
+    // 停留在当前聊天设置，不要误退到通讯录
+    try {
+      if (state.currentChatId && typeof openChatSettings === 'function') {
+        /* 仅关弹窗，不改页面栈 */
+      }
+    } catch(e) {}
     showToast('美化已保存');
   } finally {
     setTimeout(function(){ state._beautySaving = false; }, 400);
@@ -20873,7 +21020,7 @@ async function withDoForumGen() {
   showToast('生成论坛楼层中…');
   try {
     var r = await apiChat([
-      { role:'system', content:'你是同人论坛产粮助手。严格按每人设与语言，禁止 OOC。只输出 JSON：{"title":"大标题","body":"贴主正文","floors":[{"author":"角色名","content":"跟帖"}]}。跟帖约 '+floorN+' 条。外语角色 content 用其语言，格式 原文|||中文。不要 markdown。' },
+      { role:'system', content:'你是同人论坛产粮助手。严格人设与语言，禁止 OOC。只输出 JSON：{"title":"大标题","body":"贴主正文","author":"贴主名","authorType":"char|npc|anon","floors":[{"author":"角色或NPC或匿名","content":"跟帖"}]}。贴主可以是勾选角色、路人NPC或匿名。跟帖约 '+floorN+' 条。外语用 原文|||中文。不要 markdown。' },
       { role:'user', content:'需求：'+prompt+'\n角色（必须遵守语言与人设，禁止OOC）：\n'+personas.join('\n')+'\n模式：'+mode+'\n请生成贴主帖 + '+floorN+' 条跟帖。' }
     ]);
     var text = (r && r.text) || '';
@@ -20886,6 +21033,9 @@ async function withDoForumGen() {
       id:id, kind:'forum',
       title: data.title||prompt.slice(0,30),
       body: data.body || data.content || data.main || '',
+      authorName: data.author || labels[0] || '匿名',
+      authorType: data.authorType || 'npc',
+      handle: '@' + String(data.author || labels[0] || 'anon').replace(/\s/g,'').slice(0,14),
       prompt:prompt,
       floors:floors,
       charsLabel:labels.join('、'),
@@ -20901,31 +21051,57 @@ function withOpenPost(id) {
   var p = (state.withApp.posts||[]).find(function(x){ return x.id===id; });
   if (!p) return;
   state._subBackFn = function(){ openWithApp('forum'); };
-  var floors = (p.floors||[]).map(function(f,i){
-    var raw = String(f.content||'');
-    var main = raw, trans = '';
-    if (raw.indexOf('|||') >= 0) { var ps = raw.split('|||'); main = ps[0].trim(); trans = ps.slice(1).join('|||').trim(); }
-    return '<div style="display:flex;gap:10px;padding:14px 0;border-bottom:1px solid rgba(0,0,0,.06)">'
-      + '<div style="width:40px;height:40px;border-radius:50%;background:#d0e4ea;flex-shrink:0"></div>'
+  function splitLang(raw) {
+    raw = String(raw||'');
+    if (raw.indexOf('|||')>=0) {
+      var ps = raw.split('|||');
+      return { main: ps[0].trim(), trans: ps.slice(1).join('|||').trim() };
+    }
+    return { main: raw, trans: '' };
+  }
+  var bodyST = splitLang(p.body || p.prompt || '');
+  var author = p.authorName || p.opAuthor || (p.charsLabel ? p.charsLabel.split('、')[0] : '匿名');
+  var handle = p.handle || ('@' + String(author).replace(/\s/g,'').slice(0,12));
+  var floors = (p.floors||[]).map(function(f){
+    var st = splitLang(f.content);
+    var fa = f.author || '路人';
+    return '<div style="display:flex;gap:10px;padding:14px 16px;border-bottom:1px solid #eff3f4">'
+      + '<div style="width:40px;height:40px;border-radius:50%;background:#cfd9de;flex-shrink:0;overflow:hidden">'
+      + (f.avatar ? '<img src="'+f.avatar+'" style="width:100%;height:100%;object-fit:cover">' : '')
+      + '</div>'
       + '<div style="flex:1;min-width:0">'
-      + '<div style="font-size:13px;font-weight:700;color:#0f1419">'+escapeHtml(f.author||'匿名')+'</div>'
-      + '<div style="font-size:15px;color:#0f1419;line-height:1.45;margin-top:4px;white-space:pre-wrap">'+escapeHtml(main)+'</div>'
-      + (trans ? '<div style="font-size:12px;color:#666;margin-top:6px;padding-top:6px;border-top:1px solid rgba(0,0,0,.06);line-height:1.35">'+escapeHtml(trans)+'</div>' : '')
+      + '<div style="font-size:14px;font-weight:700;color:#0f1419">'+escapeHtml(fa)
+      + ' <span style="font-weight:400;color:#536471;font-size:13px">@'+escapeHtml(String(fa).replace(/\s/g,'').slice(0,10))+'</span></div>'
+      + '<div style="font-size:15px;color:#0f1419;line-height:1.45;margin-top:4px;white-space:pre-wrap">'+escapeHtml(st.main)+'</div>'
+      + (st.trans ? '<div style="font-size:13px;color:#536471;margin-top:6px;padding-top:6px;border-top:1px solid #eff3f4;line-height:1.4">'+escapeHtml(st.trans)+'</div>' : '')
       + '</div></div>';
   }).join('');
-  openSubPage((p.title||'帖子').slice(0,14),
-    '<div style="padding:0 0 100px;background:#fff;min-height:100%;box-sizing:border-box">'
-    + '<div style="padding:16px 16px 12px;border-bottom:1px solid rgba(0,0,0,.08)">'
-    + '<div style="font-size:20px;font-weight:800;color:#0f1419;line-height:1.3">'+escapeHtml(p.title||'')+'</div>'
-    + '<div style="font-size:15px;color:#0f1419;line-height:1.5;margin-top:10px;white-space:pre-wrap">'+(function(){var raw=String(p.body||p.prompt||'');if(raw.indexOf('|||')>=0){var ps=raw.split('|||');return escapeHtml(ps[0].trim())+'<div style=\'font-size:12px;color:#666;margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,.06)\'>'+escapeHtml(ps.slice(1).join('|||').trim())+'</div>';}return escapeHtml(raw);})()+'</div>'
-    + '<div style="font-size:12px;color:#8a98a5;margin-top:12px">'+(p.floors?p.floors.length:0)+' 条回复 · '+escapeHtml(p.charsLabel||'')+'</div>'
+  var stats = (p.floors ? p.floors.length : 0);
+  openSubPage('Post',
+    '<div style="background:#fff;min-height:100%;box-sizing:border-box;padding-bottom:80px">'
+    + '<div style="padding:12px 16px 0;display:flex;gap:10px;align-items:flex-start">'
+    + '<div style="width:48px;height:48px;border-radius:50%;background:#cfd9de;flex-shrink:0"></div>'
+    + '<div style="flex:1">'
+    + '<div style="font-size:15px;font-weight:800;color:#0f1419">'+escapeHtml(author)
+    + ' <span style="color:#536471;font-weight:400;font-size:14px">'+escapeHtml(handle)+'</span></div>'
+    + '</div></div>'
+    + '<div style="padding:10px 16px 0">'
+    + '<div style="font-size:18px;font-weight:700;color:#0f1419;line-height:1.35;margin-bottom:8px">'+escapeHtml(p.title||'')+'</div>'
+    + '<div style="font-size:16px;color:#0f1419;line-height:1.5;white-space:pre-wrap">'+escapeHtml(bodyST.main)+'</div>'
+    + (bodyST.trans ? '<div style="font-size:13px;color:#536471;margin-top:8px;padding-top:8px;border-top:1px solid #eff3f4">'+escapeHtml(bodyST.trans)+'</div>' : '')
+    + '<div style="font-size:13px;color:#536471;margin-top:14px">'+(p.ts?new Date(p.ts).toLocaleString():'')+' · <b style="color:#0f1419">'+stats+'</b> replies</div>'
     + '</div>'
-    + '<div style="padding:0 16px">'+floors+'</div>'
+    // engagement bar
+    + '<div style="display:flex;justify-content:space-around;padding:12px 8px;border-top:1px solid #eff3f4;border-bottom:1px solid #eff3f4;margin-top:12px;color:#536471;font-size:13px">'
+    + '<span>💬 '+(stats||0)+'</span><span>🔁 0</span><span>♥ 0</span><span>🔖</span><span>↗</span>'
+    + '</div>'
+    + '<div>'+floors+'</div>'
     + '<div style="display:flex;gap:8px;padding:16px">'
-    + '<button type="button" onclick="withContinuePost(\''+id+'\')" style="flex:1;border:none;background:#5a9aaa;color:#fff;border-radius:999px;padding:12px;font-weight:600;cursor:pointer">继续生成回复</button>'
-    + '<button type="button" onclick="withSaveItem(\'forum\',\''+id+'\')" style="border:1px solid rgba(90,154,170,.3);background:#fff;border-radius:999px;padding:12px 16px;cursor:pointer;font-size:13px">保存</button>'
+    + '<button type="button" onclick="withContinuePost(\''+id+'\')" style="flex:1;border:none;background:#0f1419;color:#fff;border-radius:999px;padding:12px;font-weight:700;cursor:pointer">继续生成回复</button>'
+    + '<button type="button" onclick="withSaveItem(\'forum\',\''+id+'\')" style="border:1px solid #cfd9de;background:#fff;border-radius:999px;padding:12px 16px;cursor:pointer">保存</button>'
     + '</div></div>', '', { replace: true });
 }
+
 
 async function withContinuePost(id) {
   ensureWithState();
