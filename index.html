@@ -830,6 +830,83 @@ body {
   margin-right: 4px !important;
 }
 
+
+/* ========== 内置：iOS 6 古早信息 ========== */
+#page-chat[data-chat-theme="ios6"] {
+  background: #c5ccd4 !important;
+  background-image: none !important;
+}
+#page-chat[data-chat-theme="ios6"] .chat-header,
+#page-chat[data-chat-theme="ios6"] .sub-nav,
+#page-chat[data-chat-theme="ios6"] #subNav {
+  background: linear-gradient(180deg, #f8f9fb 0%, #b0b9c4 8%, #8e98a6 50%, #7a8494 92%, #6a7382 100%) !important;
+  border-bottom: 1px solid #4a5360 !important;
+  color: #fff !important;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.35);
+}
+#page-chat[data-chat-theme="ios6"] .chat-header .chat-title,
+#page-chat[data-chat-theme="ios6"] .chat-header .nav-title,
+#page-chat[data-chat-theme="ios6"] #subTitle {
+  color: #fff !important;
+  font-weight: 700 !important;
+  font-size: 16px !important;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.4);
+}
+#page-chat[data-chat-theme="ios6"] .chat-header .nav-btn,
+#page-chat[data-chat-theme="ios6"] .chat-header button {
+  color: #fff !important;
+}
+#page-chat[data-chat-theme="ios6"] #msgArea,
+#page-chat[data-chat-theme="ios6"] .msg-area {
+  background: #c5ccd4 !important;
+  background-image: none !important;
+}
+#page-chat[data-chat-theme="ios6"] .msg-bubble:not(.bare) {
+  border-radius: 16px !important;
+  box-shadow: 0 1px 1px rgba(0,0,0,.12) !important;
+  border: 1px solid rgba(0,0,0,.08) !important;
+  padding: 8px 12px !important;
+  font-size: 15px !important;
+  line-height: 1.35 !important;
+  backdrop-filter: none !important;
+}
+/* 对方：白气泡 */
+#page-chat[data-chat-theme="ios6"] .msg-row.other .msg-bubble:not(.bare),
+#page-chat[data-chat-theme="ios6"] .msg.them .msg-bubble:not(.bare),
+#page-chat[data-chat-theme="ios6"] .msg-row:not(.me) .msg-bubble:not(.bare) {
+  background: linear-gradient(180deg, #ffffff 0%, #f2f2f2 100%) !important;
+  color: #000 !important;
+  border-color: #b0b0b0 !important;
+}
+/* 我：蓝气泡（仿 iOS6 iMessage） */
+#page-chat[data-chat-theme="ios6"] .msg-row.me .msg-bubble:not(.bare),
+#page-chat[data-chat-theme="ios6"] .msg.me .msg-bubble:not(.bare) {
+  background: linear-gradient(180deg, #5c9fef 0%, #1687e6 40%, #0b6fd0 100%) !important;
+  background: linear-gradient(180deg, #5c9fef 0%, #1687e6 45%, #0b6fd0 100%) !important;
+  color: #fff !important;
+  border-color: #0a5fb0 !important;
+  text-shadow: 0 -1px 0 rgba(0,0,0,.15);
+}
+#page-chat[data-chat-theme="ios6"] .input-bar,
+#page-chat[data-chat-theme="ios6"] .chat-input-bar,
+#page-chat[data-chat-theme="ios6"] .sms-im-input {
+  background: linear-gradient(180deg, #f0f1f3 0%, #c8cdd4 100%) !important;
+  border-top: 1px solid #8a9098 !important;
+}
+#page-chat[data-chat-theme="ios6"] .input-bar input,
+#page-chat[data-chat-theme="ios6"] .input-bar textarea,
+#page-chat[data-chat-theme="ios6"] #msgInput {
+  background: #fff !important;
+  border: 1px solid #a0a6ae !important;
+  border-radius: 16px !important;
+  color: #000 !important;
+}
+#page-chat[data-chat-theme="ios6"] .msg-time,
+#page-chat[data-chat-theme="ios6"] .chat-time-divider {
+  color: #6a7380 !important;
+  font-size: 11px !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.4);
+}
 /* ========== 内置聊天主题：QQ 经典（高优先级，不被 data-ui 覆盖） ========== */
 #page-chat[data-chat-theme="qq"] {
   background: #f5f5f5 !important;
@@ -2531,7 +2608,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-22Y';
+const EENOK_BUILD = '2026-08-22Z';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -4087,11 +4164,32 @@ function applyChatStyle(id) {
   // 内置主题用 data 属性（CSS 用 background-color，不抢 wallpaper）
   if (page) {
     const tn = chat.themeName || '';
-    if (tn === 'qq' || tn === 'wechat' || tn === 'ios26' || tn === 'kakao') {
+    if (tn === 'qq' || tn === 'wechat' || tn === 'ios26' || tn === 'kakao' || tn === 'ios6') {
       page.setAttribute('data-chat-theme', tn);
     } else {
       page.removeAttribute('data-chat-theme');
     }
+    // iOS6 古早：顶栏/底栏英文
+    try {
+      if (tn === 'ios6') {
+        var title = page.querySelector('.chat-title, .nav-title, #chatTitle');
+        // keep contact name but force Messages chrome via data attribute for CSS :: 
+        page.setAttribute('data-ios6-en', '1');
+        var inp = document.getElementById('msgInput') || page.querySelector('.input-bar input, textarea');
+        if (inp && !inp.dataset.phSaved) {
+          inp.dataset.phSaved = inp.placeholder || '';
+          inp.placeholder = 'iMessage';
+        }
+        var sendBtns = page.querySelectorAll('.input-bar button, .send-btn');
+        sendBtns.forEach(function(b){
+          if (/发送|Send/i.test(b.textContent||'')) { b.dataset.labSaved = b.textContent; b.textContent = 'Send'; }
+        });
+      } else {
+        page.removeAttribute('data-ios6-en');
+        var inp2 = document.getElementById('msgInput') || page.querySelector('.input-bar input, textarea');
+        if (inp2 && inp2.dataset.phSaved != null) { inp2.placeholder = inp2.dataset.phSaved; delete inp2.dataset.phSaved; }
+      }
+    } catch(e) {}
   }
   // 壁纸：会话 bg > 全局 chatWp；用 !important 盖住主题底色
   if (area) {
@@ -9078,6 +9176,7 @@ function openBeautify() {
         <button type="button" class="btn ${cur==='wechat'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('wechat')">微信经典</button>
         <button type="button" class="btn ${cur==='ios26'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('ios26')">iOS 气泡</button>
         <button type="button" class="btn ${cur==='kakao'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('kakao')">KakaoTalk</button>
+        <button type="button" class="btn ${cur==='ios6'?'btn-primary':'btn-secondary'}" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('ios6')">iOS 6 古早</button>
         <button type="button" class="btn btn-secondary" style="flex:1;min-width:40%;font-size:13px" onclick="applyBuiltinTheme('')">清除内置</button>
       </div>
     </div>
@@ -9192,7 +9291,7 @@ function applyBuiltinTheme(name) {
   const chat = state.chats[id];
   if (!chat) { showToast('请先进入聊天'); return; }
   // 内置主题只记 themeName，样式走 stylesheet 的 data-chat-theme（避免被覆盖）
-  if (name === 'qq' || name === 'wechat' || name === 'ios26' || name === 'kakao') {
+  if (name === 'qq' || name === 'wechat' || name === 'ios26' || name === 'kakao' || name === 'ios6') {
     chat.themeName = name;
     // 清空旧注入 CSS，避免和内置冲突；用户仍可在保存后手写自定义
     chat.css = '';
@@ -20893,7 +20992,7 @@ async function withDoTalkGen() {
   showToast('生成对话中…');
   try {
     var r = await apiChat([
-      { role:'system', content:'生成同人对话。严格人设与语言，禁止 OOC。只输出 JSON：{"title":"...","messages":[{"from":"角色名或User","content":"一句","action":"可选动作描写"}]}。共约 '+count+' 条。一人可连发。外语 content 用 原文|||中文。动作放 action 字段。有来有往。'+(includeUser?' User必须参与。':'') },
+      { role:'system', content:'生成同人对话。严格人设与语言，禁止 OOC。只输出 JSON：{"title":"...","messages":[{"from":"角色名或User","content":"一句","action":"可选"}]}。共约 '+count+' 条。一人可连发多句。外语 content 用 原文|||中文。action 仅在关键动作时偶尔使用（整段对话最多 1～3 次），多数气泡不要 action，禁止每句都写动作、禁止重复啰嗦。有来有往。'+(includeUser?' User必须参与。':'') },
       { role:'user', content:'需求：'+prompt+'\n模式：'+mode+'\n角色：\n'+personas.join('\n') }
     ]);
     var text = (r&&r.text)||'';
@@ -20975,7 +21074,7 @@ async function withContinueTalk(id) {
   try {
     var hist = (d.messages||[]).slice(-12).map(function(m){ return (m.from||'')+': '+(m.content||''); }).join('\n');
     var r = await apiChat([
-      { role:'system', content:'续写对话。严格人设与语言，禁止 OOC。只输出 JSON 数组：[{"from":"角色名或User","content":"一句","action":"可选动作"}]，3～6 句。外语用 原文|||中文。动作放 action。' },
+      { role:'system', content:'续写对话。严格人设与语言，禁止 OOC。只输出 JSON 数组：[{"from":"角色名或User","content":"一句","action":"可选"}]，3～6 句。外语用 原文|||中文。多数句不要 action，整段最多加 0～1 次动作。' },
       { role:'user', content:'需求：'+(d.prompt||'')+'\n已有：\n'+hist }
     ]);
     var text=(r&&r.text)||'';
@@ -26386,79 +26485,94 @@ async function smsGenerateLifeThreads() {
   showToast('生成短信中…');
   try {
     var chars = state.chars || [];
-    if (!chars.length) { showToast('请先添加角色'); return; }
-    // 随机挑 2～4 个角色（不是全员）
+    var userP = (state.user && (state.user.persona || state.user.desc || state.user.nick || state.user.name)) || '';
+    // A. 随机 1～3 个角色 → 写入已有会话
     var pool = chars.slice();
     for (var i = pool.length - 1; i > 0; i--) {
       var r = Math.floor(Math.random() * (i + 1));
-      var tmp = pool[i]; pool[i] = pool[r]; pool[r] = tmp;
+      var t = pool[i]; pool[i] = pool[r]; pool[r] = t;
     }
-    var nPick = Math.min(pool.length, 2 + Math.floor(Math.random() * 3));
+    var nPick = Math.min(pool.length, 1 + Math.floor(Math.random() * 3));
     var picked = pool.slice(0, nPick);
     picked.forEach(function(c) {
       if (!state.sms.threads[c.id]) {
         state.sms.threads[c.id] = {
-          name: c.nick || c.realName || '角色',
-          messages: [],
-          charId: c.id,
-          avatar: c.avatar || '',
-          anon: false,
-          ctx: 20
+          name: c.nick || c.realName || '角色', messages: [], charId: c.id,
+          avatar: c.avatar || '', anon: false, ctx: 20
         };
       }
     });
-    var userP = (state.user && (state.user.persona || state.user.desc || state.user.nick || state.user.name)) || '';
-    var listHint = picked.map(function(c) {
-      var lang = (typeof resolveCharLang === 'function' ? resolveCharLang(c) : (c.lang || c.language || '中文'));
+    var charHint = picked.map(function(c) {
+      var lang = (typeof resolveCharLang === 'function' ? resolveCharLang(c) : (c.lang || '中文'));
       return c.id + '｜' + (c.nick || c.realName) + '｜语言:' + lang + '｜人设:' + String(c.persona || '').slice(0, 100);
     }).join('\n');
-    var prompt = '只为下列 ' + picked.length + ' 位联系人生成短信（每人 1～2 条对方发来的消息）。禁止为名单外的人生成。主题随意、生活化，不要全员同一话题。\n'
-      + '重要：每条 content 必须使用该角色的语言（语言字段）；外语角色用外语写，可在同一字符串用 ||| 附中文翻译，格式：外语原文|||中文。中文角色只写中文。\n'
-      + '严格贴合人设，禁止 OOC。\n只输出 JSON：[{"id":"角色id","messages":[{"content":"..."}]}]\n名单：\n' + listHint + '\nUser人设：' + (userP || '普通年轻人');
-    var text = '';
-    try {
-      var res = await apiChat([
-        { role: 'system', content: '你是短信生成器。只输出合法 JSON 数组。遵守每人的语言与人设。' },
-        { role: 'user', content: prompt }
-      ]);
-      text = (res && (res.text || res.content || res.message)) || '';
-      if (typeof text !== 'string') text = String(text || '');
-    } catch (e) {
-      showToast('生成失败：' + (e && (e.message || e) || 'API'));
-      return;
-    }
-    if (!text.trim()) { showToast('生成结果为空'); return; }
-    var arr = [];
-    try {
-      var m = text.match(/\[[\s\S]*\]/);
-      arr = JSON.parse(m ? m[0] : text);
-    } catch (e) {
-      showToast('解析失败，请重试');
-      return;
-    }
-    if (!Array.isArray(arr)) arr = [];
-    var allowed = {};
-    picked.forEach(function(c){ allowed[c.id] = true; });
+    // B. 系统类新会话（验证码/快递/陌生人等）
+    var sysPrompt = '生成 2～4 条「系统/陌生人」短信会话。JSON 数组：[{"name":"发件显示名","kind":"verify|express|work|stranger|other","messages":[{"content":"..."}]}]。\n'
+      + 'name 示例：验证码、顺丰快递、美团、10086、未知号码、银行通知 等。内容生活化。User人设：' + (userP || '普通年轻人') + '。只输出 JSON。';
+    var charPrompt = picked.length
+      ? ('只为下列角色各生成 1～2 条对方发来的短信。禁止名单外角色。语言与人设必须遵守；外语可用 原文|||中文。\n名单：\n' + charHint + '\nUser：' + (userP || '') + '\n只输出 JSON：[{"id":"角色id","messages":[{"content":"..."}]}]')
+      : '';
     var added = 0;
-    arr.forEach(function(it) {
-      if (!it) return;
-      var id = String(it.id || '');
-      if (!allowed[id]) {
-        var ch = picked.find(function(c){ return (c.nick === id || c.realName === id || c.id === id); });
-        if (ch) id = ch.id;
+    // system first
+    try {
+      var r1 = await apiChat([
+        { role: 'system', content: '只输出合法 JSON 数组。' },
+        { role: 'user', content: sysPrompt }
+      ]);
+      var text1 = (r1 && (r1.text || r1.content)) || '';
+      var arr1 = [];
+      try { arr1 = JSON.parse((String(text1).match(/\[[\s\S]*\]/) || [text1])[0]); } catch (e) {}
+      if (Array.isArray(arr1)) {
+        arr1.slice(0, 5).forEach(function(it, idx) {
+          if (!it || !it.name) return;
+          var id = 'sys_' + Date.now() + '_' + idx;
+          var msgs = (it.messages || [{ content: it.preview || '…' }]).map(function(m, ii) {
+            return { from: 'them', content: String(m.content || '').trim(), ts: Date.now() + ii };
+          }).filter(function(m){ return m.content; });
+          if (!msgs.length) return;
+          state.sms.threads[id] = {
+            name: it.name, messages: msgs, charId: '', avatar: '',
+            anon: it.kind === 'stranger', kind: it.kind || 'other', ctx: 0
+          };
+          added += msgs.length;
+        });
       }
-      if (!allowed[id] || !state.sms.threads[id]) return;
-      var t = state.sms.threads[id];
-      t.messages = t.messages || [];
-      (it.messages || []).forEach(function(msg, ii) {
-        var content = String((msg && msg.content) || '').trim();
-        if (!content) return;
-        t.messages.push({ from: 'them', content: content, ts: Date.now() + ii });
-        added++;
-      });
-    });
+    } catch (e) { console.warn('sms sys', e); }
+    // characters
+    if (charPrompt) {
+      try {
+        var r2 = await apiChat([
+          { role: 'system', content: '只输出合法 JSON 数组。遵守语言与人设。' },
+          { role: 'user', content: charPrompt }
+        ]);
+        var text2 = (r2 && (r2.text || r2.content)) || '';
+        var arr2 = [];
+        try { arr2 = JSON.parse((String(text2).match(/\[[\s\S]*\]/) || [text2])[0]); } catch (e) {}
+        var allowed = {};
+        picked.forEach(function(c){ allowed[c.id] = true; });
+        if (Array.isArray(arr2)) {
+          arr2.forEach(function(it) {
+            if (!it) return;
+            var id = String(it.id || '');
+            if (!allowed[id]) {
+              var ch = picked.find(function(c){ return c.nick === id || c.realName === id || c.id === id; });
+              if (ch) id = ch.id;
+            }
+            if (!allowed[id] || !state.sms.threads[id]) return;
+            var th = state.sms.threads[id];
+            th.messages = th.messages || [];
+            (it.messages || []).forEach(function(msg, ii) {
+              var content = String((msg && msg.content) || '').trim();
+              if (!content) return;
+              th.messages.push({ from: 'them', content: content, ts: Date.now() + ii });
+              added++;
+            });
+          });
+        }
+      } catch (e) { console.warn('sms char', e); }
+    }
     try { save(); } catch (e) {}
-    showToast(added ? ('已生成 ' + added + ' 条（' + picked.length + ' 人）') : '未写入，请重试');
+    showToast(added ? ('已生成 ' + added + ' 条短信') : '生成失败，请检查 API');
     openSmsApp();
   } finally {
     state._smsLifeLock = false;
@@ -31151,10 +31265,17 @@ if (t === 'clock_sm') {
         + '<div id="beautyWpBtn" style="height:120px;border-radius:16px;background:linear-gradient(165deg,#e8f4f8,#d4ebea);overflow:hidden;margin-bottom:10px;display:flex;align-items:center;justify-content:center;color:#5a7a88;font-size:13px">'
         + (state.home.wallpaper?'<img src="'+state.home.wallpaper+'" style="width:100%;height:100%;object-fit:cover">':'点击上传壁纸')+'</div>'
         + '<button type="button" class="btn btn-secondary" id="beautyWpReset" style="width:100%;margin-bottom:16px;font-size:13px">还原壁纸</button>'
-        + '<div style="font-weight:600;margin-bottom:8px">图标圆角</div>'
-        + '<input type="range" id="iconRadiusRange" min="4" max="28" value="'+radius+'" style="width:100%;margin-bottom:16px">'
-        + '<div style="font-weight:600;margin-bottom:8px">App 大小 <span id="appScaleLab">'+Math.round((state.home.appScale!=null?state.home.appScale:1)*100)+'%</span></div>'
-        + '<input type="range" id="appScaleRange" min="70" max="140" value="'+Math.round((state.home.appScale!=null?state.home.appScale:1)*100)+'" style="width:100%;margin-bottom:12px">'
+        + '<div style="font-weight:600;margin-bottom:8px">图标圆角与大小</div>'
+        + '<div style="display:flex;gap:14px;align-items:center;padding:12px;background:#fff;border-radius:14px;border:1px solid rgba(90,154,170,.2);margin-bottom:12px">'
+        + '<div id="iconPreviewBox" style="width:64px;height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(232,244,248,.8);border-radius:12px">'
+        + '<div id="iconPreview" style="width:'+(40*(state.home.appScale!=null?state.home.appScale:1))+'px;height:'+(40*(state.home.appScale!=null?state.home.appScale:1))+'px;border-radius:'+radius+'px;background:linear-gradient(145deg,#7eb8c4,#5a9aaa);box-shadow:0 2px 8px rgba(0,0,0,.12)"></div>'
+        + '</div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:11px;color:#7a9;margin-bottom:4px">圆角 <span id="iconRadiusLab">'+radius+'</span>px</div>'
+        + '<input type="range" id="iconRadiusRange" min="4" max="28" value="'+radius+'" style="width:100%;margin-bottom:8px">'
+        + '<div style="font-size:11px;color:#7a9;margin-bottom:4px">大小 <span id="appScaleLab">'+Math.round((state.home.appScale!=null?state.home.appScale:1)*100)+'%</span></div>'
+        + '<input type="range" id="appScaleRange" min="70" max="140" value="'+Math.round((state.home.appScale!=null?state.home.appScale:1)*100)+'" style="width:100%">'
+        + '</div></div>'
         + '<div style="display:flex;gap:8px;margin-bottom:16px">'
         + '<button type="button" class="btn btn-secondary" id="beautyLayoutCenter" style="flex:1;font-size:12px">默认居中布局</button>'
         + '<button type="button" class="btn btn-secondary" id="beautyLayoutAlign" style="flex:1;font-size:12px">对齐成直线</button></div>'
@@ -31192,9 +31313,24 @@ if (t === 'clock_sm') {
       ];
       main = '<div style="padding:16px"><div style="font-size:12px;color:#8e8e93;margin-bottom:12px">添加后可在桌面拖动；点空白卡片可上传图片</div>'
         + catalog.map(function(w,wi){
-            return '<div style="display:flex;gap:12px;align-items:center;padding:12px;border-radius:14px;background:rgba(255,255,255,.75);margin-bottom:10px">'
-              + (w.img?'<img src="'+w.img+'" style="width:72px;height:52px;object-fit:cover;border-radius:10px">':'<div style="width:72px;height:52px;border-radius:10px;background:#e8eef0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#8aa">空白</div>')
-              + '<div style="flex:1"><div style="font-weight:600">'+w.name+'</div><div class="text-sub" style="font-size:11px">'+w.size+' · 第'+(w.page+1)+'页</div></div>'
+            var thumb;
+            if (w.img) thumb = '<img src="'+w.img+'" style="width:76px;height:56px;object-fit:cover;border-radius:10px">';
+            else {
+              var t = String(w.type||w.id||'');
+              if (t.indexOf('polaroid')>=0) thumb='<div style="width:76px;height:56px;border-radius:8px;background:#fff;border:1px solid #e0e0e0;padding:4px 4px 10px;box-sizing:border-box"><div style="height:100%;background:linear-gradient(135deg,#d8e8ec,#c5d8de);border-radius:4px"></div></div>';
+              else if (t.indexOf('heart')>=0) thumb='<div style="width:76px;height:56px;display:flex;align-items:center;justify-content:center;font-size:28px;color:#f8a0b4">♥</div>';
+              else if (t.indexOf('badge')>=0) thumb='<div style="width:76px;height:56px;display:flex;align-items:center;justify-content:center"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(145deg,#e8f0f2,#c5d8de);box-shadow:0 2px 6px rgba(0,0,0,.12)"></div></div>';
+              else if (t.indexOf('standee')>=0) thumb='<div style="width:76px;height:56px;display:flex;align-items:flex-end;justify-content:center"><div style="width:28px;height:44px;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#eef4f6,#b8cdd4);box-shadow:0 2px 4px rgba(0,0,0,.1)"></div></div>';
+              else if (t.indexOf('music')>=0) thumb='<div style="width:76px;height:56px;border-radius:10px;background:#fff;padding:6px;box-sizing:border-box;display:flex;gap:6px;align-items:center;border:1px solid #e8eef0"><div style="width:28px;height:28px;border-radius:50%;background:#d0e4ea"></div><div style="flex:1;height:6px;background:#e8eef0;border-radius:3px"></div></div>';
+              else if (t.indexOf('orbit')>=0||t.indexOf('dual')>=0) thumb='<div style="width:76px;height:56px;display:flex;align-items:center;justify-content:center;gap:4px"><div style="width:22px;height:22px;border-radius:50%;background:#a8c8d4;border:2px solid #7eb8c4"></div><div style="width:22px;height:22px;border-radius:50%;background:#c8dde8;border:2px solid #9ec4d0"></div></div>';
+              else if (t.indexOf('clock')>=0) thumb='<div style="width:76px;height:56px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:#2a4a52;border:1px solid #e0e8ea">12:00</div>';
+              else if (t.indexOf('photo')>=0||t.indexOf('wall')>=0) thumb='<div style="width:76px;height:56px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;padding:4px;background:#fff;border-radius:8px;box-sizing:border-box;border:1px solid #e8eef0"><div style="background:#d8e8ec;border-radius:3px"></div><div style="background:#c5d8de;border-radius:3px"></div><div style="background:#b8cdd4;border-radius:3px"></div></div>';
+              else if (t.indexOf('airdrop')>=0||t.indexOf('about')>=0) thumb='<div style="width:76px;height:56px;border-radius:12px;background:rgba(255,255,255,.95);border:1px solid #e0e8ea;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px"><div style="width:20px;height:20px;border-radius:50%;background:#c5d8de"></div><div style="width:40px;height:4px;background:#e8eef0;border-radius:2px"></div></div>';
+              else thumb='<div style="width:76px;height:56px;border-radius:10px;background:linear-gradient(145deg,#e8f4f8,#d0e4ea);display:flex;align-items:center;justify-content:center;font-size:10px;color:#6a8a92">样式</div>';
+            }
+            return '<div style="display:flex;gap:12px;align-items:center;padding:12px;border-radius:14px;background:rgba(255,255,255,.9);margin-bottom:10px;border:1px solid rgba(90,154,170,.12)">'
+              + thumb
+              + '<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">'+w.name+'</div><div class="text-sub" style="font-size:11px;margin-top:2px">'+w.size+' · 第'+(w.page+1)+'页</div></div>'
               + '<button type="button" class="btn btn-primary" style="padding:8px 12px;font-size:12px" data-wadd="'+wi+'">添加</button></div>';
           }).join('')
         + '</div>';
@@ -31274,13 +31410,26 @@ if (t === 'clock_sm') {
       var wpReset = document.getElementById('beautyWpReset');
       if (wpReset) wpReset.onclick = function(){ state.home.wallpaper=''; try{sessionStorage.removeItem('eenook_home_wp')}catch(e){}; save(); renderHome(); openHomeBeauty('wallpaper'); };
       var range = document.getElementById('iconRadiusRange');
-      if (range) range.oninput = function(){ state.home.iconRadius=+range.value; document.documentElement.style.setProperty('--home-icon-radius', range.value+'px'); save(); };
+      if (range) range.oninput = function(){
+        state.home.iconRadius=+range.value;
+        document.documentElement.style.setProperty('--home-icon-radius', range.value+'px');
+        var labR = document.getElementById('iconRadiusLab'); if (labR) labR.textContent = range.value;
+        var prev = document.getElementById('iconPreview');
+        if (prev) prev.style.borderRadius = range.value + 'px';
+        save();
+      };
       var sc = document.getElementById('appScaleRange');
       if (sc) sc.oninput = function(){
         state.home.appScale = (+sc.value) / 100;
         document.documentElement.style.setProperty('--home-app-scale', String(state.home.appScale));
         var lab = document.getElementById('appScaleLab');
         if (lab) lab.textContent = sc.value + '%';
+        var prev = document.getElementById('iconPreview');
+        if (prev) {
+          var sz = Math.round(40 * state.home.appScale);
+          prev.style.width = sz + 'px';
+          prev.style.height = sz + 'px';
+        }
         save();
         // 自定义图标走内联尺寸，需刷新主屏才看得见
         try { if (typeof renderHome === 'function') renderHome(); } catch(e) {}
