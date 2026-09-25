@@ -2532,7 +2532,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-23C';
+const EENOK_BUILD = '2026-08-23D';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -3569,6 +3569,10 @@ function openSubPage(title, bodyHtml, rightHtml, opts) {
   const sub = document.getElementById('page-sub');
   if (!sub) { console.error('page-sub missing'); return; }
   opts = opts || {};
+  // 聊天设置重复打开：强制 replace，防止返回栈乱掉进通讯录
+  if (title === '聊天设置' || title === '群聊设置') {
+    opts.replace = true;
+  }
   // 从主屏进 App / replace：清空栈，避免退出时一层层弹旧页面
   if (opts.replace || opts.fromHome || state._openFromHome) {
     state._subStack = [];
@@ -3676,6 +3680,42 @@ function closeSubPage() {
   const subNav = document.getElementById('subNav');
   if (subNav) subNav.style.display = '';
   const kind = state._subKind;
+  // 聊天设置 / 群设置：必须回到当前聊天，禁止落到通讯录
+  if (kind === 'chatSettings' || kind === 'groupSettings') {
+    const fn = state._subBackFn;
+    const chatId = state.currentChatId;
+    const isGroup = !!state.currentIsGroup;
+    state._subBackFn = null;
+    state._subStack = [];
+    state._subKind = null;
+    state._navLock = false;
+    try {
+      if (typeof fn === 'function') fn();
+      else if (chatId && typeof openChat === 'function') openChat(chatId, isGroup);
+      else showPage('chat');
+    } catch(e) {
+      console.warn('chatSettings back', e);
+      try {
+        if (chatId && typeof openChat === 'function') openChat(chatId, isGroup);
+        else showPage('chat');
+      } catch(e2) {
+        try { showPage('chats'); } catch(e3) {}
+      }
+    }
+    return;
+  }
+  // 任意场景：若有自定义返回且非主屏 App 根，优先执行（避免误进通讯录）
+  if (typeof state._subBackFn === 'function' && kind && kind !== 'space' && kind !== 'homeApp') {
+    // homeKinds 分支里也会处理；这里兜底聊天相关
+    if (kind === 'chatSettings' || kind === 'groupSettings' || kind === 'chatBeauty') {
+      const fn2 = state._subBackFn;
+      state._subBackFn = null;
+      state._subStack = [];
+      state._navLock = false;
+      try { fn2(); } catch(e) { try { if (state.currentChatId) openChat(state.currentChatId); } catch(e2) {} }
+      return;
+    }
+  }
   // 从主屏幕打开的 App：优先回主屏（避免掉进通讯录）
   const homeKinds = ['homeApp','bookstore','pomodoro','icity','gal','sk','countdown','memory','offline','charlib','divination','worldbook','world','forum','sms','phone','beauty','settings','tomato','scriptkill','melo','meloPlay','phonecheck','pickup','prompts','love'];
   if (state._homeRoot || homeKinds.indexOf(kind) >= 0) {
@@ -8012,7 +8052,15 @@ function openChatSettings() {
     return;
   }
   state._subKind = 'chatSettings';
-  state._subBackFn = function(){ try { openChat(id); } catch(e) { try { closeSubPage(); } catch(e2) {} } };
+  state._subBackFn = function(){
+    try {
+      if (typeof openChat === 'function') openChat(id, !!state.currentIsGroup);
+      else showPage('chat');
+    } catch(e) {
+      console.warn(e);
+      try { showPage('chats'); } catch(e2) {}
+    }
+  };
   openSubPage('聊天设置', `
     <div class="setting-list" style="padding-bottom:40px;background:#f7f7f7;min-height:100%;box-sizing:border-box">
       <div style="height:8px;background:#f7f7f7"></div>
@@ -9237,13 +9285,24 @@ function saveBeautify() {
     save();
     applyChatStyle(state.currentChatId);
     try { closeModal(); } catch(e) {}
-    // 关弹窗后强制回到「聊天设置」，避免落到通讯录
+    // 不要重新 openChatSettings（会打乱栈）。保证仍在设置页，返回键回当前聊天。
     try {
-      if (state.currentChatId) {
-        state._subKind = 'chatSettings';
-        if (typeof openChatSettings === 'function') openChatSettings();
+      var cid = state.currentChatId;
+      state._subKind = 'chatSettings';
+      state._subBackFn = function(){
+        try {
+          if (cid && typeof openChat === 'function') openChat(cid, !!state.currentIsGroup);
+          else showPage('chat');
+        } catch(e) { try { showPage('chats'); } catch(e2) {} }
+      };
+      // 若设置页被关掉了，再打开一次
+      var sub = document.getElementById('page-sub');
+      var titleEl = document.getElementById('subTitle');
+      var onSettings = sub && sub.classList.contains('active') && titleEl && /聊天设置|群/.test(titleEl.textContent||'');
+      if (!onSettings && typeof openChatSettings === 'function') {
+        openChatSettings();
       }
-    } catch(e) {}
+    } catch(e) { console.warn(e); }
     showToast('美化已保存');
   } finally {
     setTimeout(function(){ state._beautySaving = false; }, 400);
@@ -20843,10 +20902,21 @@ async function withDoForumGen() {
       { role:'system', content:'你是同人论坛产粮助手。严格人设与语言，禁止 OOC。只输出 JSON：{"title":"大标题","body":"贴主正文","author":"贴主名","authorType":"char|npc|anon","floors":[{"author":"角色或NPC或匿名","content":"跟帖"}]}。贴主可以是勾选角色、路人NPC或匿名。NPC/匿名的 author 禁止使用勾选角色的昵称，需自造路人名。若贴主是角色则 author 必须是角色名且 authorType 为 char。跟帖约 '+floorN+' 条。外语用 原文|||中文。不要 markdown。' },
       { role:'user', content:'需求：'+prompt+'\n可选角色（仅当 authorType=char 时用其昵称与口吻）：\n'+personas.join('\n')+'\n模式：'+mode+'\n请生成贴主帖 + '+floorN+' 条跟帖。NPC/匿名不要用上列角色昵称。' }
     ]);
-    var text = (r && r.text) || '';
+    var text = '';
+    if (typeof r === 'string') text = r;
+    else if (r) text = r.text || r.content || r.message || (r.choices && r.choices[0] && (r.choices[0].message||{}).content) || '';
+    text = String(text || '').trim();
+    if (!text) { showToast('生成结果为空，请检查 API'); return; }
     var data = null;
-    try { data = JSON.parse((text.match(/\{[\s\S]*\}/)||[text])[0]); } catch(e) {}
-    if (!data) { showToast('解析失败'); return; }
+    try {
+      var mjson = text.match(/\{[\s\S]*\}/);
+      data = JSON.parse(mjson ? mjson[0] : text);
+    } catch(e) {
+      console.warn('forum parse', e, text.slice(0,200));
+      showToast('解析失败，请重试');
+      return;
+    }
+    if (!data || typeof data !== 'object') { showToast('解析失败'); return; }
     var id = 'wp_'+Date.now();
     var selectedChars = ids.map(function(cid){
       return (state.chars||[]).find(function(x){ return x.id===cid; });
@@ -20882,10 +20952,18 @@ async function withDoForumGen() {
       charsLabel:labels.join('、'),
       ts:Date.now()
     };
+    if (!state.withApp.posts) state.withApp.posts = [];
     state.withApp.posts.unshift(post);
     try { save(); } catch(e) {}
-    withOpenPost(id);
-  } catch(e) { showToast('生成失败：'+(e.message||e)); }
+    try { withOpenPost(id); } catch(e2) {
+      console.warn(e2);
+      showToast('已生成，打开详情失败');
+      try { openWithApp('forum'); } catch(e3) {}
+    }
+  } catch(e) {
+    console.warn('withDoForumGen', e);
+    showToast('生成失败：'+(e && (e.message||e) || '未知错误'));
+  }
 }
 function withOpenPost(id) {
   ensureWithState();
