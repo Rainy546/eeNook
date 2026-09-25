@@ -2532,7 +2532,7 @@ body.night .loc-addr { color: #a1a1a6 !important; }
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-23B';
+const EENOK_BUILD = '2026-08-23C';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -9237,10 +9237,11 @@ function saveBeautify() {
     save();
     applyChatStyle(state.currentChatId);
     try { closeModal(); } catch(e) {}
-    // 停留在当前聊天设置，不要误退到通讯录
+    // 关弹窗后强制回到「聊天设置」，避免落到通讯录
     try {
-      if (state.currentChatId && typeof openChatSettings === 'function') {
-        /* 仅关弹窗，不改页面栈 */
+      if (state.currentChatId) {
+        state._subKind = 'chatSettings';
+        if (typeof openChatSettings === 'function') openChatSettings();
       }
     } catch(e) {}
     showToast('美化已保存');
@@ -20759,6 +20760,62 @@ function withOpenForumSetup() {
     '<button class="btn btn-secondary" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="withDoForumGen()">生成楼层</button>',
     { replace: true });
 }
+
+function withNpcAvatar(seed) {
+  // 简约色块头像，按 seed 稳定
+  var colors = ['#7eb8c4','#a8c8d4','#c5a8d4','#d4b8a8','#a8d4b8','#d4a8b8','#b8c4d4','#c4d4a8'];
+  var n = 0;
+  String(seed||Math.random()).split('').forEach(function(ch){ n += ch.charCodeAt(0); });
+  var bg = colors[n % colors.length];
+  var letter = String(seed||'N').trim().charAt(0) || 'N';
+  return 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" rx="40" fill="'+bg+'"/><text x="40" y="48" text-anchor="middle" fill="#fff" font-size="32" font-family="sans-serif">'+letter+'</text></svg>'
+  );
+}
+function withResolveAuthor(rawName, authorType, selectedChars) {
+  selectedChars = selectedChars || [];
+  var name = String(rawName || '').trim();
+  var type = String(authorType || '').toLowerCase();
+  // 匹配角色
+  var hit = selectedChars.find(function(c){
+    return c && (c.nick === name || c.realName === name || c.id === name || (c.nick && name.indexOf(c.nick)>=0));
+  });
+  if (type === 'char' || hit) {
+    var c = hit || selectedChars[0];
+    if (c) {
+      return {
+        authorName: c.nick || c.realName || '角色',
+        authorType: 'char',
+        avatar: c.avatar || c.img || '',
+        charId: c.id || '',
+        handle: '@' + String(c.nick || c.realName || 'char').replace(/\s/g,'').slice(0,14)
+      };
+    }
+  }
+  if (type === 'anon' || /匿名|路人甲|anonymous/i.test(name) || !name) {
+    var anon = '匿名用户' + String(Math.floor(Math.random()*90)+10);
+    return {
+      authorName: anon,
+      authorType: 'anon',
+      avatar: withNpcAvatar(anon),
+      charId: '',
+      handle: '@anon' + Math.floor(Math.random()*999)
+    };
+  }
+  // NPC：禁止使用已选角色昵称
+  var charNicks = selectedChars.map(function(c){ return c.nick||c.realName; });
+  if (charNicks.indexOf(name) >= 0 || !name) {
+    var pool = ['路过的猫','星屑观测者','汽水味的风','深夜便利店','云边小站','月下信使','街角咖啡','旧书店员','耳机少年','窗台绿植'];
+    name = pool[Math.floor(Math.random()*pool.length)] + Math.floor(Math.random()*9);
+  }
+  return {
+    authorName: name,
+    authorType: 'npc',
+    avatar: withNpcAvatar(name),
+    charId: '',
+    handle: '@' + String(name).replace(/\s/g,'').slice(0,14)
+  };
+}
 async function withDoForumGen() {
   ensureWithState();
   var prompt = ((document.getElementById('withFPrompt')||{}).value||'').trim() || '自由脑洞';
@@ -20783,22 +20840,43 @@ async function withDoForumGen() {
   showToast('生成论坛楼层中…');
   try {
     var r = await apiChat([
-      { role:'system', content:'你是同人论坛产粮助手。严格人设与语言，禁止 OOC。只输出 JSON：{"title":"大标题","body":"贴主正文","author":"贴主名","authorType":"char|npc|anon","floors":[{"author":"角色或NPC或匿名","content":"跟帖"}]}。贴主可以是勾选角色、路人NPC或匿名。跟帖约 '+floorN+' 条。外语用 原文|||中文。不要 markdown。' },
-      { role:'user', content:'需求：'+prompt+'\n角色（必须遵守语言与人设，禁止OOC）：\n'+personas.join('\n')+'\n模式：'+mode+'\n请生成贴主帖 + '+floorN+' 条跟帖。' }
+      { role:'system', content:'你是同人论坛产粮助手。严格人设与语言，禁止 OOC。只输出 JSON：{"title":"大标题","body":"贴主正文","author":"贴主名","authorType":"char|npc|anon","floors":[{"author":"角色或NPC或匿名","content":"跟帖"}]}。贴主可以是勾选角色、路人NPC或匿名。NPC/匿名的 author 禁止使用勾选角色的昵称，需自造路人名。若贴主是角色则 author 必须是角色名且 authorType 为 char。跟帖约 '+floorN+' 条。外语用 原文|||中文。不要 markdown。' },
+      { role:'user', content:'需求：'+prompt+'\n可选角色（仅当 authorType=char 时用其昵称与口吻）：\n'+personas.join('\n')+'\n模式：'+mode+'\n请生成贴主帖 + '+floorN+' 条跟帖。NPC/匿名不要用上列角色昵称。' }
     ]);
     var text = (r && r.text) || '';
     var data = null;
     try { data = JSON.parse((text.match(/\{[\s\S]*\}/)||[text])[0]); } catch(e) {}
     if (!data) { showToast('解析失败'); return; }
     var id = 'wp_'+Date.now();
-    var floors = data.floors || data.replies || [];
+    var selectedChars = ids.map(function(cid){
+      return (state.chars||[]).find(function(x){ return x.id===cid; });
+    }).filter(Boolean);
+    var rawFloors = data.floors || data.replies || [];
+    var op = withResolveAuthor(data.author, data.authorType || 'npc', selectedChars);
+    // 禁止：NPC/匿名却落到角色昵称
+    if (op.authorType !== 'char' && selectedChars.some(function(c){ return (c.nick||c.realName)===op.authorName; })) {
+      op = withResolveAuthor('', 'npc', selectedChars);
+    }
+    var floors = rawFloors.map(function(f){
+      if (!f) return null;
+      var fa = withResolveAuthor(f.author, f.authorType || '', selectedChars);
+      return {
+        author: fa.authorName,
+        authorType: fa.authorType,
+        avatar: fa.avatar,
+        content: f.content || f.text || '',
+        charId: fa.charId || ''
+      };
+    }).filter(Boolean);
     var post = {
       id:id, kind:'forum',
       title: data.title||prompt.slice(0,30),
       body: data.body || data.content || data.main || '',
-      authorName: data.author || labels[0] || '匿名',
-      authorType: data.authorType || 'npc',
-      handle: '@' + String(data.author || labels[0] || 'anon').replace(/\s/g,'').slice(0,14),
+      authorName: op.authorName,
+      authorType: op.authorType,
+      avatar: op.avatar,
+      charId: op.charId || '',
+      handle: op.handle,
       prompt:prompt,
       floors:floors,
       charsLabel:labels.join('、'),
@@ -20843,7 +20921,9 @@ function withOpenPost(id) {
   openSubPage('Post',
     '<div style="background:#fff;min-height:100%;box-sizing:border-box;padding-bottom:80px">'
     + '<div style="padding:12px 16px 0;display:flex;gap:10px;align-items:flex-start">'
-    + '<div style="width:48px;height:48px;border-radius:50%;background:#cfd9de;flex-shrink:0"></div>'
+    + '<div style="width:48px;height:48px;border-radius:50%;background:#cfd9de;flex-shrink:0;overflow:hidden">'
+    + (p.avatar ? '<img src="'+String(p.avatar).replace(/"/g,'')+'" style="width:100%;height:100%;object-fit:cover" onerror="this.remove()">' : '')
+    + '</div>'
     + '<div style="flex:1">'
     + '<div style="font-size:15px;font-weight:800;color:#0f1419">'+escapeHtml(author)
     + ' <span style="color:#536471;font-weight:400;font-size:14px">'+escapeHtml(handle)+'</span></div>'
