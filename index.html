@@ -21120,13 +21120,17 @@ function ludoSplitParts(raw) {
   });
   var chunks = t.split(/\n+/).map(function(s){ return s.trim(); }).filter(Boolean);
   chunks.forEach(function(line) {
-    // 再按句切，避免一整段塞进一个气泡
-    var bits = line.split(/(?<=[。！？!?…])\s*/).map(function(s){ return s.trim(); }).filter(Boolean);
+    var bits = [line];
+    if (line.length > 36 && /[。！？!?]/.test(line)) {
+      bits = line.split(/(?<=[。！？!?])\s*/).map(function(s){ return s.trim(); }).filter(Boolean);
+    }
     if (!bits.length) bits = [line];
     bits.forEach(function(b) {
       b = b.replace(/^[\-\*•]+\s*/, '').replace(/^\*\*|\*\*$/g, '').trim();
-      if (!b) return;
+      b = b.replace(/[\.…]{2,}$/g, '').replace(/。{2,}$/g, '。').trim();
+      if (!b || /^[\.。…\s]+$/.test(b)) return;
       if (/^\[/.test(b)) return;
+      if (b.length < 2) return;
       parts.push({ kind: 'text', text: b });
     });
   });
@@ -21175,7 +21179,7 @@ function ludoBuildSys(L, persona, ch) {
     + ludoPersonaBlock(ch, L.charName) + '\n'
     + (mem ? ('【相关记忆，自然使用，不要复述】\n' + mem + '\n') : '')
     + '【输出格式·必须遵守】\n'
-    + '1. 一句一条，用换行分隔，每轮 1～3 条短句，禁止把好几句塞进同一段。\n'
+    + '1. 一句一条，用换行分隔，每轮 1～3 条。每条必须说完，禁止半句、禁止用省略号结尾、禁止只发「...」。\n'
     + '2. 动作描写必须单独一行，用中文括号包裹，例如：（耳朵有点热）。不要写进对话句子里。\n'
     + '3. 表情只能写 [表情:含义]，且含义必须是用户表情库里已有的；没有合适的就不要写表情，禁止编造。\n'
     + '4. 禁止 <thought>、心声、markdown、小说旁白、总结腔。\n'
@@ -21378,7 +21382,7 @@ function ludoRender() {
         +'<div style="display:flex;align-items:flex-end;justify-content:flex-end;gap:6px;max-width:82%;width:max-content;margin-left:auto">'
         +'<div style="display:flex;align-items:flex-end;gap:3px;min-width:0;max-width:100%">'
         + read
-        +'<div style="padding:8px 12px;font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;max-width:min(260px,68vw);min-width:36px;box-sizing:border-box;text-align:left;'+bubble+'">'+ludoEsc(m.text)+'</div>'
+        +'<div style="padding:8px 12px;font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;max-width:min(280px,78vw);min-width:36px;box-sizing:border-box;text-align:left;overflow:visible;'+bubble+'">'+ludoEsc(m.text)+'</div>'
         +'</div>'
         + av
         +'</div></div>';
@@ -21388,7 +21392,7 @@ function ludoRender() {
       +'<div style="display:flex;align-items:flex-end;gap:6px;max-width:82%;width:max-content">'
       + av
       +'<div style="display:flex;align-items:flex-end;gap:3px;min-width:0;max-width:100%">'
-      +'<div style="padding:8px 12px;font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;max-width:min(260px,68vw);min-width:36px;box-sizing:border-box;text-align:left;'+bubble+'">'+ludoEsc(m.text)+'</div>'
+      +'<div style="padding:8px 12px;font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word;overflow-wrap:break-word;max-width:min(280px,78vw);min-width:36px;box-sizing:border-box;text-align:left;overflow:visible;'+bubble+'">'+ludoEsc(m.text)+'</div>'
       + read
       +'</div></div></div>';
   }).join('');
@@ -21421,10 +21425,10 @@ function ludoRender() {
     +'<button type="button" id="ludoWpBtn" title="壁纸" style="width:20px;height:20px;border-radius:50%;border:1.5px solid #5a9aaa;background:transparent;cursor:pointer;padding:0;display:flex;align-items:center;justify-content:center">'
     +'<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#5a9aaa" stroke-width="1.3"><circle cx="6" cy="6" r="4.5"/></svg>'
     +'</button><input type="file" id="ludoWpFile" accept="image/*" style="display:none"></div>'
-    +'<div id="ludoMsgArea" style="flex:1;overflow-y:auto;padding:24px 0 68px;-webkit-overflow-scrolling:touch">'
+    +'<div id="ludoMsgArea" style="flex:1;overflow-y:auto;padding:16px 0 108px;-webkit-overflow-scrolling:touch">'
     +(msgsHtml || '<div style="text-align:center;padding:28px;font-size:12px;color:#a0b0b4">对话</div>')
     +'</div>'
-    +'<div style="position:absolute;left:0;right:0;bottom:0;padding:8px 10px 10px;background:rgba(238,244,246,.96);border-top:1px solid rgba(90,120,130,.1);display:flex;align-items:center;gap:8px;z-index:6">'
+    +'<div style="position:absolute;left:8px;right:8px;bottom:calc(14px + env(safe-area-inset-bottom, 0px));padding:8px 10px;background:rgba(255,255,255,.94);border:1px solid rgba(90,154,170,.22);border-radius:24px;box-shadow:0 6px 18px rgba(90,120,140,.16);display:flex;align-items:center;gap:8px;z-index:8">'
     +'<button type="button" id="ludoGenBtn" title="生成" style="width:36px;height:36px;border-radius:50%;border:1.5px solid rgba(90,154,170,.45);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">'
     +'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#5a9aaa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6.5-4.3-9-8.5C1.5 9.5 3.5 6 7 6c1.8 0 3.2 1 4 2.2C11.8 7 13.2 6 15 6c3.5 0 5.5 3.5 4 6.5C18.5 16.7 12 21 12 21z"/></svg>'
     +'</button>'
