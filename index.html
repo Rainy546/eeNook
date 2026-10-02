@@ -6418,7 +6418,13 @@ function extractInlineTranslations(parts) {
 }
 /** 展示前再清一次，防止历史消息残留标记 */
 function cleanMsgContentForDisplay(s) {
-  return scrubTrMarkers(s);
+  var t = String(s == null ? '' : s);
+  t = t.replace(/<thought>[\s\S]*?<\/thought>/gi, '');
+  t = t.replace(/<\/?thought>/gi, '');
+  t = t.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
+  t = t.replace(/^\s*\*\*我的心声[：:]*\*\*\s*/gm, '');
+  try { t = scrubTrMarkers(t); } catch(e) {}
+  return t.trim();
 }
 function collectActivePrompts(kind) {
   // kind: 'online' | 'offline'
@@ -9235,6 +9241,8 @@ function switchBeautyTab(tab) {
       + '<option value="jelly"'+(cb.bubbleStyle==='jelly'?' selected':'')+'>果冻立体</option>'
       + '<option value="comic"'+(cb.bubbleStyle==='comic'?' selected':'')+'>漫画线条</option>'
       + '</select></div>'
+      + '<div class="form-group" id="cbOpacityWrap"><label>透明度（仅磨砂/玻璃） <span id="cbOpLab">'+(cb.bubbleOpacity!=null?cb.bubbleOpacity:100)+'%</span></label>'
+      + '<input type="range" id="cbOpacity" min="0" max="100" value="'+(cb.bubbleOpacity!=null?cb.bubbleOpacity:100)+'" oninput="document.getElementById(\'cbOpLab\').textContent=this.value+\'%\';refreshBeautyPreview()" style="width:100%"></div>'
       + '<div class="form-group"><label>圆角 <span id="cbRadLab">'+(cb.bubbleRadius||12)+'px</span></label><input type="range" id="cbRadius" min="0" max="24" value="'+(cb.bubbleRadius||12)+'" oninput="document.getElementById(\'cbRadLab\').textContent=this.value+\'px\';refreshBeautyPreview()" style="width:100%"></div>'
       + '<div class="form-group"><label>字号 <span id="cbFsLab">'+(cb.fontSize||15)+'px</span></label><input type="range" id="cbFont" min="12" max="20" value="'+(cb.fontSize||15)+'" oninput="document.getElementById(\'cbFsLab\').textContent=this.value+\'px\';refreshBeautyPreview()" style="width:100%"></div>'
       + '<div class="form-group"><label>内边距 <span id="cbPadLab">'+(cb.bubblePad||10)+'px</span></label><input type="range" id="cbPad" min="4" max="18" value="'+(cb.bubblePad||10)+'" oninput="document.getElementById(\'cbPadLab\').textContent=this.value+\'px\';refreshBeautyPreview()" style="width:100%"></div>'
@@ -9326,18 +9334,25 @@ function refreshBeautyPreview() {
         el.style.background = 'transparent';
         el.style.opacity = '1';
       } else if (style === 'jelly') {
-        el.style.backdropFilter = 'blur(10px)';
-        el.style.webkitBackdropFilter = 'blur(10px)';
-        el.style.border = '1px solid rgba(255,255,255,.55)';
-        el.style.boxShadow = '0 2px 10px rgba(0,0,0,.04), inset 0 1px 0 rgba(255,255,255,.5)';
+        el.style.backdropFilter = 'none';
+        el.style.webkitBackdropFilter = 'none';
+        el.style.border = '1.5px solid rgba(255,255,255,.75)';
+        el.style.boxShadow = '0 8px 18px rgba(0,0,0,.14), 0 2px 4px rgba(0,0,0,.08), inset 0 2px 4px rgba(255,255,255,.85), inset 0 -4px 8px rgba(0,0,0,.1)';
         el.style.background = color;
-        el.style.opacity = '0.9';
+        el.style.opacity = '1';
       } else if (style === 'comic') {
         el.style.border = '1.5px solid rgba(40,40,50,.55)';
         el.style.boxShadow = '1.5px 1.5px 0 rgba(40,40,50,.25)';
         el.style.opacity = '1';
       } else {
         el.style.opacity = '1';
+      }
+      // 透明度滑条仅影响磨砂/玻璃预览
+      var opEl = document.getElementById('cbOpacity');
+      if (opEl && (style === 'frost' || style === 'glass')) {
+        var o = (+opEl.value || 100) / 100;
+        if (style === 'glass') el.style.opacity = String(Math.max(0.15, 0.25 + o * 0.5));
+        else el.style.opacity = String(0.5 + o * 0.5);
       }
     }
     if (prevMe && me) applyTex(prevMe, me.value);
@@ -9372,6 +9387,8 @@ function collectCustomBeautyFromForm(chat) {
   if (av) cb.avatarRadius = +av.value;
   var st = document.getElementById('cbStyle');
   if (st) cb.bubbleStyle = st.value || 'flat';
+  var opEl = document.getElementById('cbOpacity');
+  if (opEl) cb.bubbleOpacity = +opEl.value;
   return cb;
 }
 
@@ -9389,22 +9406,22 @@ function buildCustomBeautyCss(cb) {
   css += '#page-chat .msg-row.me .msg-bubble:not(.bare){background:'+me+'!important;color:#111!important;}';
   css += '#page-chat .msg-row.other .msg-bubble:not(.bare){background:'+them+'!important;color:#111!important;}';
   css += '#page-chat .msg-avatar,#page-chat .msg-row img.msg-avatar,#page-chat .msg-row .msg-avatar{border-radius:'+ar+'!important;}';
+  var op = (cb.bubbleOpacity != null ? +cb.bubbleOpacity : 100);
+  if (isNaN(op)) op = 100;
+  op = Math.max(0, Math.min(100, op));
   if (style === 'frost') {
-    css += '#page-chat .msg-row .msg-bubble:not(.bare){backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;border:1px solid rgba(255,255,255,.4)!important;box-shadow:0 2px 12px rgba(0,0,0,.05)!important;}';
-    css += '#page-chat .msg-row.me .msg-bubble:not(.bare){background:color-mix(in srgb,'+me+' 70%, transparent)!important;}';
-    css += '#page-chat .msg-row.other .msg-bubble:not(.bare){background:color-mix(in srgb,'+them+' 75%, transparent)!important;}';
+    css += '#page-chat .msg-row .msg-bubble:not(.bare){backdrop-filter:blur(16px)!important;-webkit-backdrop-filter:blur(16px)!important;border:1px solid rgba(255,255,255,.45)!important;box-shadow:0 2px 12px rgba(0,0,0,.05)!important;}';
+    css += '#page-chat .msg-row.me .msg-bubble:not(.bare){background:color-mix(in srgb,'+me+' '+Math.round(70*op/100)+'%, transparent)!important;}';
+    css += '#page-chat .msg-row.other .msg-bubble:not(.bare){background:color-mix(in srgb,'+them+' '+Math.round(75*op/100)+'%, transparent)!important;}';
   } else if (style === 'glass') {
-    // 完全透明：仅保留磨砂模糊与细边，底色全透
-    css += '#page-chat .msg-row .msg-bubble:not(.bare){backdrop-filter:blur(24px) saturate(1.05)!important;-webkit-backdrop-filter:blur(24px) saturate(1.05)!important;border:1px solid rgba(255,255,255,.5)!important;box-shadow:0 1px 10px rgba(0,0,0,.03),inset 0 1px 0 rgba(255,255,255,.4)!important;background:transparent!important;}';
-    css += '#page-chat .msg-row.me .msg-bubble:not(.bare){background:transparent!important;color:#1c1c1e!important;}';
-    css += '#page-chat .msg-row.other .msg-bubble:not(.bare){background:transparent!important;color:#1c1c1e!important;}';
+    css += '#page-chat .msg-row .msg-bubble:not(.bare){backdrop-filter:blur(24px) saturate(1.05)!important;-webkit-backdrop-filter:blur(24px) saturate(1.05)!important;border:1px solid rgba(255,255,255,.5)!important;box-shadow:0 1px 10px rgba(0,0,0,.03),inset 0 1px 0 rgba(255,255,255,.4)!important;}';
+    css += '#page-chat .msg-row.me .msg-bubble:not(.bare){background:color-mix(in srgb,'+me+' '+Math.round(op*0.35)+'%, transparent)!important;color:#1c1c1e!important;}';
+    css += '#page-chat .msg-row.other .msg-bubble:not(.bare){background:color-mix(in srgb,'+them+' '+Math.round(op*0.3)+'%, transparent)!important;color:#1c1c1e!important;}';
   } else if (style === 'jelly') {
-    // 仿图一：软糯半透明、轻渐变、细白边，无厚重阴影
-    css += '#page-chat .msg-row .msg-bubble:not(.bare){border:1px solid rgba(255,255,255,.55)!important;box-shadow:0 2px 10px rgba(0,0,0,.04),inset 0 1px 0 rgba(255,255,255,.5)!important;backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;}';
-    css += '#page-chat .msg-row.me .msg-bubble:not(.bare){background:linear-gradient(165deg,color-mix(in srgb,'+me+' 55%,#fff),color-mix(in srgb,'+me+' 75%, transparent))!important;}';
-    css += '#page-chat .msg-row.other .msg-bubble:not(.bare){background:linear-gradient(165deg,color-mix(in srgb,'+them+' 50%,#fff),color-mix(in srgb,'+them+' 70%, transparent))!important;}';
+    css += '#page-chat .msg-row .msg-bubble:not(.bare){border:1.5px solid rgba(255,255,255,.75)!important;box-shadow:0 8px 18px rgba(0,0,0,.14),0 2px 4px rgba(0,0,0,.08),inset 0 2px 4px rgba(255,255,255,.85),inset 0 -4px 8px rgba(0,0,0,.1)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}';
+    css += '#page-chat .msg-row.me .msg-bubble:not(.bare){background:linear-gradient(165deg,color-mix(in srgb,'+me+' 38%,#fff) 0%,color-mix(in srgb,'+me+' 90%,#fff) 42%,color-mix(in srgb,'+me+' 72%,#b8dce8) 100%)!important;}';
+    css += '#page-chat .msg-row.other .msg-bubble:not(.bare){background:linear-gradient(165deg,color-mix(in srgb,'+them+' 32%,#fff) 0%,color-mix(in srgb,'+them+' 94%,#fff) 42%,color-mix(in srgb,'+them+' 78%,#c8dde6) 100%)!important;}';
   } else if (style === 'comic') {
-    // 轻量漫画线：细描边 + 很浅偏移，不要厚重
     css += '#page-chat .msg-row .msg-bubble:not(.bare){border:1.5px solid rgba(40,40,50,.55)!important;box-shadow:1.5px 1.5px 0 rgba(40,40,50,.25)!important;background-image:none!important;}';
     css += '#page-chat .msg-row .msg-bubble:not(.bare)::after,#page-chat .msg-row .msg-bubble:not(.bare)::before{display:none!important;}';
   }
@@ -21055,17 +21072,42 @@ var LUDO_QUESTIONS = [
   '我爱你'
 ];
 
+
+function ludoCharName(c) {
+  if (!c) return '角色';
+  return c.nick || c.realName || c.name || c.nickname || '角色';
+}
+function ludoCleanReply(raw) {
+  var t = String(raw || '');
+  t = t.replace(/<thought>[\s\S]*?<\/thought>/gi, '');
+  t = t.replace(/<\/?thought>/gi, '');
+  t = t.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
+  t = t.replace(/^\s*\*\*我的心声[：:]*\*\*\s*/gm, '');
+  t = t.replace(/^\s*我的心声[：:]\s*/gm, '');
+  try { if (typeof cleanMsgContentForDisplay === 'function') t = cleanMsgContentForDisplay(t); } catch(e) {}
+  try { if (typeof scrubTrMarkers === 'function') t = scrubTrMarkers(t); } catch(e) {}
+  return String(t || '').trim();
+}
+
 function openLudoGame() {
   state._homeRoot = 'games';
   state._subBackFn = function(){ openMiniGames(); };
-  var chars = (state.chars || []).filter(function(c){ return c && (c.name || c.id); });
+  var chars = (state.chars || []).filter(function(c){ return c && (c.id || c.nick || c.realName || c.name); });
   if (!chars.length) {
     showToast('请先添加角色');
     return;
   }
   var opts = chars.map(function(c, i){
-    return '<div class="setting-item" data-ci="'+i+'" style="margin:0 0 8px;border-radius:14px;border:1px solid rgba(120,180,190,.25);background:#fff;cursor:pointer">'
-      + '<span style="font-weight:600">'+(c.name||('角色'+(i+1)))+'</span><span class="right">›</span></div>';
+    var nm = (c.nick || c.realName || c.name || c.nickname || ('角色'+(i+1)));
+    var av = c.avatar || '';
+    var letter = String(nm).charAt(0);
+    var avHtml = av
+      ? ('<img src="'+String(av).replace(/"/g,'&quot;')+'" alt="" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#e8eef0">')
+      : ('<div style="width:36px;height:36px;border-radius:50%;flex-shrink:0;background:rgba(90,154,170,.15);display:flex;align-items:center;justify-content:center;font-size:13px;color:#5a9aaa;font-weight:600">'+letter+'</div>');
+    var safeNm = String(nm).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<div class="setting-item" data-ci="'+i+'" style="margin:0 0 8px;border-radius:14px;border:1px solid rgba(120,180,190,.25);background:#fff;cursor:pointer;display:flex;align-items:center;gap:12px;padding:10px 14px">'
+      + avHtml
+      + '<span style="font-weight:600;flex:1;text-align:left">'+safeNm+'</span><span class="right">›</span></div>';
   }).join('');
   openSubPage('飞行棋', '<div style="padding:14px 14px 40px;background:linear-gradient(180deg,#f2f8fa,#eef2f4);min-height:100%;box-sizing:border-box">'
     +'<div style="font-size:13px;font-weight:600;color:#5a7a82;margin-bottom:8px">选择角色</div>'
@@ -21102,12 +21144,12 @@ function ludoStartGame(ch, first) {
   try {
     if (state.user) {
       userAv = state.user.avatar || '';
-      userName = state.user.name || state.user.nickname || '我';
+      userName = state.user.nick || state.user.nickname || state.user.name || '我';
     }
   } catch(e){}
   state._ludo = {
-    charId: ch.id || ch.name,
-    charName: ch.name || '角色',
+    charId: ch.id || ch.nick || ch.realName || ch.name,
+    charName: (ch.nick || ch.realName || ch.name || ch.nickname || '角色'),
     charAvatar: ch.avatar || '',
     userAvatar: userAv,
     userName: userName,
@@ -21394,11 +21436,13 @@ async function ludoCharAnswerQuestion(q) {
   if (!L || L.pendingAnswer !== 'char') return;
   var persona = '';
   try {
-    var ch = (state.chars||[]).find(function(c){ return (c.id||c.name) === L.charId || c.name === L.charName; });
+    var ch = (state.chars||[]).find(function(c){ return (c.id||c.nick||c.realName||c.name) === L.charId || (c.nick||c.realName||c.name) === L.charName; });
     if (ch) persona = ch.persona || ch.desc || ch.setting || '';
   } catch(e){}
-  var sys = '你是「'+L.charName+'」。'+(persona?('人设：'+persona):'')
-    +' 正在和用户玩飞行棋恋爱问答。请用纯对话回答问题，可有一句很短的括号动作描写，不要 OOC，二到四句，口语自然。不要复述规则。';
+  var rules='';try{if(typeof getOnlineChatRules==='function')rules=getOnlineChatRules();}catch(e){}
+  var sys = '你是「'+L.charName+'」。'+(persona?('人设：'+String(persona).slice(0,800)):'')
+    +'\n正在和用户玩飞行棋恋爱问答。规则与微信聊天一致：纯口语，可少量括号动作，禁止 OOC，禁止输出 <thought>/心声/思维链/markdown。'
+    +(rules?('\n【聊天规则】\n'+String(rules).slice(0,1200)):'');
   try {
     if (typeof apiChat === 'function' && state.api && state.api.baseUrl && state.api.key) {
       var reply = await apiChat([
@@ -21406,7 +21450,7 @@ async function ludoCharAnswerQuestion(q) {
         { role: 'user', content: q }
       ], {});
       var text = (typeof reply === 'string' ? reply : (reply && (reply.text || reply.content))) || '';
-      text = String(text).trim();
+      text = ludoCleanReply(text);
       if (text) {
         ludoPushMsg('them', text);
         L.pendingAnswer = null;
@@ -21469,13 +21513,16 @@ async function ludoGenCharChat(userHint) {
   if (L.pendingAnswer === 'char') return;
   var persona = '';
   try {
-    var ch = (state.chars||[]).find(function(c){ return (c.id||c.name) === L.charId || c.name === L.charName; });
+    var ch = (state.chars||[]).find(function(c){ return (c.id||c.nick||c.realName||c.name) === L.charId || (c.nick||c.realName||c.name) === L.charName; });
     if (ch) persona = ch.persona || ch.desc || ch.setting || '';
   } catch(e){}
   var hist = (L.messages||[]).filter(function(m){ return !m.sys; }).slice(-10).map(function(m){
     return { role: m.from==='me'?'user':'assistant', content: m.text };
   });
-  var sys = '你是「'+L.charName+'」。'+(persona?('人设：'+persona):'')+' 正在和用户玩飞行棋恋爱问答。纯对话，可极少量括号动作，简短自然，不 OOC。';
+  var rules='';try{if(typeof getOnlineChatRules==='function')rules=getOnlineChatRules();}catch(e){}
+  var sys = '你是「'+L.charName+'」。'+(persona?('人设：'+String(persona).slice(0,800)):'')
+    +'\n正在和用户玩飞行棋恋爱问答。规则与微信聊天一致：纯口语，可少量括号动作，禁止 OOC，禁止输出 <thought>/心声/思维链/markdown。'
+    +(rules?('\n【聊天规则】\n'+String(rules).slice(0,1200)):'');
   showToast('生成中…');
   try {
     if (typeof apiChat === 'function' && state.api && state.api.baseUrl && state.api.key) {
@@ -21484,7 +21531,7 @@ async function ludoGenCharChat(userHint) {
       else if (!hist.length) msgs.push({ role:'user', content: '继续。' });
       var reply = await apiChat(msgs, {});
       var text = (typeof reply === 'string' ? reply : (reply && (reply.text || reply.content))) || '';
-      text = String(text).trim();
+      text = ludoCleanReply(text);
       if (text) {
         ludoPushMsg('them', text);
         ludoRender();
