@@ -21084,9 +21084,104 @@ function ludoCleanReply(raw) {
   t = t.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
   t = t.replace(/^\s*\*\*我的心声[：:]*\*\*\s*/gm, '');
   t = t.replace(/^\s*我的心声[：:]\s*/gm, '');
+  t = t.replace(/```[\s\S]*?```/g, '');
   try { if (typeof cleanMsgContentForDisplay === 'function') t = cleanMsgContentForDisplay(t); } catch(e) {}
   try { if (typeof scrubTrMarkers === 'function') t = scrubTrMarkers(t); } catch(e) {}
   return String(t || '').trim();
+}
+function ludoFindEmoji(meaning) {
+  var lib = (state.customEmojis || []);
+  var m = String(meaning || '').trim();
+  if (!m || !lib.length) return null;
+  var found = lib.find(function(x){ return (x.meaning || '') === m && x.url; });
+  if (!found) {
+    found = lib.find(function(x){
+      var mm = x.meaning || '';
+      return x.url && mm && (mm.indexOf(m) >= 0 || m.indexOf(mm) >= 0);
+    });
+  }
+  return found || null;
+}
+function ludoSplitParts(raw) {
+  var t = ludoCleanReply(raw);
+  if (!t) return [];
+  var parts = [];
+  // 先抽出表情标记（仅图库命中才保留）
+  t = t.replace(/\[表情[:：]([^\]]+)\]/g, function(_, e) {
+    var found = ludoFindEmoji(e);
+    if (found) parts.push({ kind: 'emoji', text: found.meaning || e, url: found.url });
+    return '\n';
+  });
+  // 括号动作单独成条（中英文括号）
+  t = t.replace(/[（(]([^）)]{1,40})[）)]/g, function(_, a) {
+    var act = String(a || '').trim();
+    if (act && !/表情|thought|心声/.test(act)) parts.push({ kind: 'action', text: act });
+    return '\n';
+  });
+  var chunks = t.split(/\n+/).map(function(s){ return s.trim(); }).filter(Boolean);
+  chunks.forEach(function(line) {
+    // 再按句切，避免一整段塞进一个气泡
+    var bits = line.split(/(?<=[。！？!?…])\s*/).map(function(s){ return s.trim(); }).filter(Boolean);
+    if (!bits.length) bits = [line];
+    bits.forEach(function(b) {
+      b = b.replace(/^[\-\*•]+\s*/, '').replace(/^\*\*|\*\*$/g, '').trim();
+      if (!b) return;
+      if (/^\[/.test(b)) return;
+      parts.push({ kind: 'text', text: b });
+    });
+  });
+  // 动作插在相邻文字之间：保持抽取顺序（表情/动作先入队会跑到前面）
+  // 重新按原文顺序：上面 push 时动作和表情先被抽走。改为二次扫描更好——已按出现顺序 push，文字后追加，体验上动作在句前也可接受。
+  return parts.filter(function(p){ return p && p.text; }).slice(0, 6);
+}
+function ludoPushParts(from, raw) {
+  var parts = ludoSplitParts(raw);
+  if (!parts.length) return;
+  parts.forEach(function(p) {
+    ludoPushMsg(from, p.text, { kind: p.kind, url: p.url || '' });
+  });
+}
+function ludoPersonaBlock(ch, name) {
+  if (!ch) return '人设：未提供，请保持活人感，不要 OOC。';
+  var bits = [];
+  if (ch.realName || ch.nick) bits.push('姓名：' + (ch.realName || '') + (ch.nick ? (' / 昵称' + ch.nick) : ''));
+  if (ch.gender) bits.push('性别：' + ch.gender);
+  if (ch.nation) bits.push('国籍：' + ch.nation);
+  if (ch.lang) bits.push('语言：' + ch.lang);
+  if (ch.persona) bits.push('人设：' + String(ch.persona).slice(0, 900));
+  if (ch.setting) bits.push('设定：' + String(ch.setting).slice(0, 400));
+  if (ch.speech || ch.style) bits.push('说话方式：' + String(ch.speech || ch.style).slice(0, 240));
+  return bits.join('\n') || ('人设：' + name);
+}
+function ludoMemorySnippet(charId) {
+  try {
+    var chat = state.chats && state.chats[charId];
+    if (!chat) return '';
+    var longM = (chat.longMemory || []).slice(-4).map(function(m){ return (m.text || m.content || m.title || ''); }).filter(Boolean);
+    var shortM = (chat.shortMemory || []).slice(-4).map(function(m){ return (m.text || m.content || ''); }).filter(Boolean);
+    var s = '';
+    if (longM.length) s += '长期记忆：' + longM.join('；').slice(0, 280) + '\n';
+    if (shortM.length) s += '近期记忆：' + shortM.join('；').slice(0, 220);
+    return s;
+  } catch(e) { return ''; }
+}
+function ludoBuildSys(L, persona, ch) {
+  var rules = '';
+  try { if (typeof getOnlineChatRules === 'function') rules = getOnlineChatRules(); } catch(e) {}
+  var memRules = '';
+  try { if (typeof getMemoryRulesText === 'function') memRules = getMemoryRulesText(); } catch(e) {}
+  var mem = ludoMemorySnippet(L.charId);
+  return '你是「' + L.charName + '」，正在和用户玩飞行棋恋爱问答，但说话方式必须和微信单聊完全一致。\n'
+    + ludoPersonaBlock(ch, L.charName) + '\n'
+    + (mem ? ('【相关记忆，自然使用，不要复述】\n' + mem + '\n') : '')
+    + '【输出格式·必须遵守】\n'
+    + '1. 一句一条，用换行分隔，每轮 1～3 条短句，禁止把好几句塞进同一段。\n'
+    + '2. 动作描写必须单独一行，用中文括号包裹，例如：（耳朵有点热）。不要写进对话句子里。\n'
+    + '3. 表情只能写 [表情:含义]，且含义必须是用户表情库里已有的；没有合适的就不要写表情，禁止编造。\n'
+    + '4. 禁止 <thought>、心声、markdown、小说旁白、总结腔。\n'
+    + '5. 严格遵守人设与线上聊天内置规则，不准 OOC。\n'
+    + (memRules ? ('\n' + memRules + '\n') : '')
+    + (rules ? ('\n【线上聊天内置规则】\n' + String(rules).slice(0, 1600)) : '');
 }
 
 function openLudoGame() {
@@ -21185,7 +21280,15 @@ function ludoPushMsg(from, text, opts) {
   var L = state._ludo;
   if (!L) return;
   opts = opts || {};
-  L.messages.push({ from: from, text: text, time: ludoNow(), read: opts.read !== false, sys: !!opts.sys });
+  L.messages.push({
+    from: from,
+    text: text,
+    time: ludoNow(),
+    read: opts.read !== false,
+    sys: !!opts.sys || opts.kind === 'action',
+    kind: opts.kind || (opts.sys ? 'sys' : 'text'),
+    url: opts.url || ''
+  });
 }
 
 function ludoAvHtml(src, name, border) {
@@ -21243,8 +21346,20 @@ function ludoRender() {
   else statusLine = '轮到 ' + L.charName + ' · 余'+leftQ+'题';
 
   var msgsHtml = (L.messages||[]).map(function(m){
+    if (m.kind === 'action' || (m.sys && m.kind === 'action')) {
+      return '<div style="text-align:center;margin:8px 28px;font-size:12px;color:#6d7c84;line-height:1.5;letter-spacing:.02em">'+ludoEsc(m.text)+'</div>';
+    }
     if (m.sys) {
       return '<div style="text-align:center;margin:8px 20px;font-size:11px;color:#8a9aa2;line-height:1.45">'+ludoEsc(m.text)+'</div>';
+    }
+    if (m.kind === 'emoji' && m.url) {
+      var meE = m.from === 'me';
+      var avE = meE ? ludoAvHtml(L.userAvatar, L.userName || '我', 'rgba(90,154,170,.35)') : ludoAvHtml(L.charAvatar, L.charName, 'rgba(90,154,170,.35)');
+      var img = '<img src="'+String(m.url).replace(/"/g,'"')+'" alt="'+ludoEsc(m.text)+'" title="'+ludoEsc(m.text)+'" style="width:92px;height:92px;object-fit:contain;border-radius:12px;background:transparent">';
+      if (meE) {
+        return '<div style="display:flex;align-items:flex-end;justify-content:flex-end;gap:6px;margin:6px 12px">'+img+avE+'</div>';
+      }
+      return '<div style="display:flex;align-items:flex-end;gap:6px;margin:6px 12px">'+avE+img+'</div>';
     }
     var me = m.from === 'me';
     var time = m.time || '';
@@ -21439,10 +21554,8 @@ async function ludoCharAnswerQuestion(q) {
     var ch = (state.chars||[]).find(function(c){ return (c.id||c.nick||c.realName||c.name) === L.charId || (c.nick||c.realName||c.name) === L.charName; });
     if (ch) persona = ch.persona || ch.desc || ch.setting || '';
   } catch(e){}
-  var rules='';try{if(typeof getOnlineChatRules==='function')rules=getOnlineChatRules();}catch(e){}
-  var sys = '你是「'+L.charName+'」。'+(persona?('人设：'+String(persona).slice(0,800)):'')
-    +'\n正在和用户玩飞行棋恋爱问答。规则与微信聊天一致：纯口语，可少量括号动作，禁止 OOC，禁止输出 <thought>/心声/思维链/markdown。'
-    +(rules?('\n【聊天规则】\n'+String(rules).slice(0,1200)):'');
+    var chRef = (state.chars||[]).find(function(c){ return (c.id||c.nick||c.realName||c.name) === L.charId || (c.nick||c.realName||c.name) === L.charName; });
+  var sys = ludoBuildSys(L, persona, chRef);
   try {
     if (typeof apiChat === 'function' && state.api && state.api.baseUrl && state.api.key) {
       var reply = await apiChat([
@@ -21450,9 +21563,8 @@ async function ludoCharAnswerQuestion(q) {
         { role: 'user', content: q }
       ], {});
       var text = (typeof reply === 'string' ? reply : (reply && (reply.text || reply.content))) || '';
-      text = ludoCleanReply(text);
-      if (text) {
-        ludoPushMsg('them', text);
+      if (ludoSplitParts(text).length) {
+        ludoPushParts('them', text);
         L.pendingAnswer = null;
         L.pendingQ = '';
         L.turn = 'user';
@@ -21519,10 +21631,8 @@ async function ludoGenCharChat(userHint) {
   var hist = (L.messages||[]).filter(function(m){ return !m.sys; }).slice(-10).map(function(m){
     return { role: m.from==='me'?'user':'assistant', content: m.text };
   });
-  var rules='';try{if(typeof getOnlineChatRules==='function')rules=getOnlineChatRules();}catch(e){}
-  var sys = '你是「'+L.charName+'」。'+(persona?('人设：'+String(persona).slice(0,800)):'')
-    +'\n正在和用户玩飞行棋恋爱问答。规则与微信聊天一致：纯口语，可少量括号动作，禁止 OOC，禁止输出 <thought>/心声/思维链/markdown。'
-    +(rules?('\n【聊天规则】\n'+String(rules).slice(0,1200)):'');
+    var chRef = (state.chars||[]).find(function(c){ return (c.id||c.nick||c.realName||c.name) === L.charId || (c.nick||c.realName||c.name) === L.charName; });
+  var sys = ludoBuildSys(L, persona, chRef);
   showToast('生成中…');
   try {
     if (typeof apiChat === 'function' && state.api && state.api.baseUrl && state.api.key) {
@@ -21531,9 +21641,8 @@ async function ludoGenCharChat(userHint) {
       else if (!hist.length) msgs.push({ role:'user', content: '继续。' });
       var reply = await apiChat(msgs, {});
       var text = (typeof reply === 'string' ? reply : (reply && (reply.text || reply.content))) || '';
-      text = ludoCleanReply(text);
-      if (text) {
-        ludoPushMsg('them', text);
+      if (ludoSplitParts(text).length) {
+        ludoPushParts('them', text);
         ludoRender();
         showToast('已生成');
         return;
