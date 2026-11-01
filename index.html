@@ -1398,20 +1398,11 @@ body {
   flex-shrink: 0 !important;
   box-sizing: border-box;
   width: 100%;
-  position: relative;
+  position: relative !important;
   z-index: 8;
 }
 .panel.show {
   display: flex !important;
-}
-#page-chat.panel-open .msg-area {
-  flex: 1 1 0 !important;
-  min-height: 0 !important;
-}
-#page-chat.panel-open .panel {
-  max-height: 42vh !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch;
 }
 .panel-item {
   width: calc(20% - 4px);
@@ -1941,6 +1932,73 @@ body.night .input-btn.gen, .night .input-btn.gen { color: #f5f5f7 !important; }
 body.night .panel, .night .panel { background: #1c1c1e !important; border-color: #3a3a3c; }
 body.night .panel-item, .night .panel-item { color: #f5f5f7 !important; }
 body.night .panel-icon, .night .panel-icon { background: #2c2c2e !important; border-color: #48484a !important; color: #f5f5f7 !important; }
+/* 控制面板：打开时完整两行，悬浮输入栏不得盖住 */
+#page-chat .panel.show {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-content: flex-start !important;
+  justify-content: flex-start !important;
+  min-height: 152px !important;
+  max-height: min(46vh, 280px) !important;
+  height: auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  padding: 12px 6px 16px !important;
+  gap: 12px 4px !important;
+  z-index: 20 !important;
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  background: var(--card, #f7f7f7) !important;
+  border-top: 1px solid var(--line, #e5e5ea) !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+#page-chat.panel-open {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+#page-chat.panel-open .msg-area {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  max-height: none !important;
+}
+#page-chat.panel-open .input-bar,
+#page-chat.panel-open .wx-input-bar,
+#page-chat.panel-open .input-bar.wx-input-bar {
+  position: relative !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  top: auto !important;
+  width: 100% !important;
+  margin: 0 !important;
+  transform: none !important;
+  flex-shrink: 0 !important;
+  z-index: 21 !important;
+  box-sizing: border-box !important;
+}
+#page-chat.panel-open #emojiSuggestBar {
+  flex-shrink: 0 !important;
+}
+#page-chat .panel-item {
+  width: calc(20% - 5px) !important;
+  min-width: 58px !important;
+  max-width: 76px !important;
+  box-sizing: border-box !important;
+  flex: 0 0 calc(20% - 5px) !important;
+}
+#page-chat .panel-icon {
+  width: 48px !important;
+  height: 48px !important;
+}
 body.night .emoji-panel, .night .emoji-panel { background: #1c1c1e !important; }
 /* dock night handled above */
 body.night .dock-item, .night .dock-item { color: #8e8e93; }
@@ -2621,7 +2679,7 @@ window.onerror=function(m,s,l,c,e){try{window.__eenookBootErr.push(String(m)+' @
 
 // ===== IndexedDB 扩容存储 =====
 const IDB_NAME = 'graychat_idb';
-const EENOK_BUILD = '2026-08-23D';
+const EENOK_BUILD = '2026-11-01B';
 /** 检测版本变化；进入主界面后弹出「已更新」提醒 */
 function checkAppUpdate() {
   try {
@@ -3159,6 +3217,7 @@ function openDataManager() {
     <button class="btn btn-secondary" style="width:100%;margin-bottom:8px" onclick="clearChatsSelect()">清除聊天（选角色）</button>
     <button class="btn btn-secondary" style="width:100%;margin-bottom:8px" onclick="clearAllImages()">仅清除图片数据</button>
     <button class="btn btn-secondary" style="width:100%;margin-bottom:8px" onclick="exportAllData()">导出全部数据</button>
+    <button class="btn btn-secondary" style="width:100%;margin-bottom:8px" onclick="exportChatDataSelect()">仅导出聊天（选角色）</button>
     <button class="btn btn-secondary" style="width:100%;margin-bottom:8px" onclick="document.getElementById('importDataInput').click()">导入并覆盖</button>
     <input type="file" id="importDataInput" accept="application/json,.json" style="display:none" onchange="importAllData(event)">
     <button class="btn btn-danger" style="width:100%" onclick="clearAppStorage()">清空全部数据</button>
@@ -3236,6 +3295,81 @@ function clearAllImages() {
     state.theme.dockIcons = {};
   }
   save(); alert('图片已清除，约占用 ' + formatBytes(storageSize())); openDataManager();
+}
+function exportChatDataSelect() {
+  const chars = state.chars || [];
+  const opts = chars.map(function(ch) {
+    const n = (state.chats && state.chats[ch.id] && state.chats[ch.id].messages) ? state.chats[ch.id].messages.length : 0;
+    return '<label style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)">'
+      + '<input type="checkbox" class="expChat" value="'+ch.id+'">'
+      + '<img src="'+avatarUrl(ch)+'" style="width:28px;height:28px;border-radius:6px;object-fit:cover">'
+      + '<span style="flex:1">'+escapeHtml(ch.nick||ch.realName||ch.id)+'</span>'
+      + '<span class="text-sub" style="font-size:11px">'+n+' 条</span></label>';
+  }).join('') || '<div class="empty">暂无角色</div>';
+  openModal('仅导出聊天',
+    '<div class="text-sub" style="margin-bottom:8px;font-size:12px;line-height:1.5">勾选要导出的角色。导出内容含该角色人设摘要与聊天记录（含记忆），不含其它 App 数据。</div>'
+    + opts
+    + '<label style="display:flex;gap:8px;padding:10px 0"><input type="checkbox" id="expAllChats" onchange="document.querySelectorAll(\'.expChat\').forEach(function(c){c.checked=document.getElementById(\'expAllChats\').checked})"> 全选</label>',
+    '<button class="btn btn-secondary" onclick="closeModal()">取消</button>'
+    + '<button class="btn btn-primary" onclick="doExportChatData()">导出</button>',
+    { replace: true });
+}
+function doExportChatData() {
+  var ids = [];
+  document.querySelectorAll('.expChat:checked').forEach(function(el){ ids.push(el.value); });
+  if (!ids.length) { showToast('请至少选择一个角色'); return; }
+  var chars = (state.chars || []).filter(function(c){ return ids.indexOf(c.id) >= 0; }).map(function(c){
+    return {
+      id: c.id,
+      nick: c.nick,
+      realName: c.realName,
+      persona: c.persona,
+      relation: c.relation || c.relationship,
+      gender: c.gender,
+      nationality: c.nationality,
+      lang: c.lang || c.language,
+      avatar: c.avatar
+    };
+  });
+  var chats = {};
+  ids.forEach(function(id){
+    if (state.chats && state.chats[id]) {
+      var ch = state.chats[id];
+      chats[id] = {
+        messages: ch.messages || [],
+        shortMemory: ch.shortMemory || [],
+        longMemory: ch.longMemory || [],
+        worldBookIds: ch.worldBookIds || [],
+        timeAware: ch.timeAware,
+        lang: ch.lang,
+        autoTranslate: ch.autoTranslate
+      };
+    } else {
+      chats[id] = { messages: [], shortMemory: [], longMemory: [] };
+    }
+  });
+  var data = {
+    _app: 'eeNook',
+    _type: 'chat_only',
+    _exportedAt: new Date().toISOString(),
+    _version: 1,
+    user: {
+      nick: (state.user && state.user.nick) || '',
+      realName: (state.user && state.user.realName) || '',
+      persona: (state.user && state.user.persona) || '',
+      id: (state.user && state.user.id) || ''
+    },
+    chars: chars,
+    chats: chats
+  };
+  var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'eeNook-chats-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  try { closeModal(); } catch(e) {}
+  showToast('已导出 ' + ids.length + ' 个角色的聊天');
 }
 async function exportAllData() {
   const data = {};
@@ -4265,6 +4399,24 @@ function applyChatStyle(id) {
       '#page-chat:not([data-chat-theme]) .input-bar #sendBtn,',
       '#page-chat:not([data-chat-theme]) .input-bar .btn-send{',
       'border-radius:50%!important;min-width:36px!important;height:36px!important;',
+      '}',
+      /* 控制面板打开时：取消悬浮，输入栏回到文档流，面板完整显示在上方 */
+      '#page-chat.panel-open:not([data-chat-theme]) .input-bar,',
+      '#page-chat.panel-open .input-bar{',
+      'position:relative!important;left:auto!important;right:auto!important;bottom:auto!important;top:auto!important;',
+      'width:100%!important;margin:0!important;border-radius:0!important;',
+      'box-shadow:none!important;z-index:21!important;flex-shrink:0!important;',
+      'border-left:none!important;border-right:none!important;border-bottom:none!important;',
+      '}',
+      '#page-chat.panel-open:not([data-chat-theme]) #msgArea,',
+      '#page-chat.panel-open #msgArea{padding-bottom:8px!important;}',
+      '#page-chat.panel-open #funcPanel.show{',
+      'display:flex!important;flex-wrap:wrap!important;position:relative!important;',
+      'left:auto!important;right:auto!important;bottom:auto!important;top:auto!important;',
+      'min-height:152px!important;max-height:min(46vh,280px)!important;overflow-y:auto!important;',
+      'flex-shrink:0!important;width:100%!important;z-index:20!important;',
+      'padding:12px 6px 14px!important;box-sizing:border-box!important;',
+      'background:var(--card,#f7f7f7)!important;border-top:1px solid var(--line,#e5e5ea)!important;',
       '}',
     ].join('');
   }
@@ -13739,50 +13891,69 @@ function openSKPostDetail(i) {
   const isFriend = p.authorId && p.authorId !== 'user' && (state.scriptKill.friends||[]).includes(p.authorId);
   const canAdd = p.authorId && p.authorId !== 'user' && !(String(p.authorId).startsWith('npc')) && !isFriend;
   state._skTab = 'chat';
-  state._skChatTab = state._skChatTab || 'forum';
-  state._subBackFn = function(){ try { openScriptKill('chat'); } catch(e) { openScriptKill('scripts'); } };
+  state._skChatTab = 'forum';
+  state._skPostDetailIdx = i;
+  state._subBackFn = function(){ state._skPostDetailIdx = null; try { openScriptKill('chat'); } catch(e) { openScriptKill('scripts'); } };
+  // 侧边栏网页风：论坛 | 详情，不整页跳走
   openSubPage('帖子', `
-    <div style="background:linear-gradient(180deg,#3a4552,#1e262e);color:#e8eef4;min-height:100%;padding:16px 16px 40px">
-      <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px">
-        <img src="${p.avatar||avatarUrl({nick:p.author})}" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:700">${escapeHtml(p.author||'匿名')}</div>
-          <div style="font-size:12px;opacity:.5">${formatTime(p.ts)}</div>
+    <div style="display:flex;height:100%;background:#2c3640;color:#e4eaf0;overflow:hidden">
+      <div style="width:88px;flex-shrink:0;background:#252e36;border-right:1px solid rgba(180,200,220,.1);display:flex;flex-direction:column;padding:12px 8px;gap:4px">
+        <div style="font-size:10px;color:#7a8a98;padding:0 4px 8px;font-weight:600">聊天</div>
+        <button type="button" onclick="state._skPostDetailIdx=null;state._skChatTab='forum';openScriptKill('chat')" style="border:none;border-radius:8px;padding:10px 8px;text-align:left;font-size:12px;cursor:pointer;background:transparent;color:#9aabba">论坛</button>
+        <button type="button" onclick="state._skPostDetailIdx=null;state._skChatTab='friends';openScriptKill('chat')" style="border:none;border-radius:8px;padding:10px 8px;text-align:left;font-size:12px;cursor:pointer;background:transparent;color:#9aabba">好友</button>
+        <button type="button" style="border:none;border-radius:8px;padding:10px 8px;text-align:left;font-size:12px;cursor:pointer;background:rgba(180,200,220,.14);color:#e4eaf0;font-weight:600">详情</button>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;background:#2c3640">
+        <div style="flex-shrink:0;border-bottom:1px solid rgba(180,200,220,.1);background:#28323c;padding:8px 12px">
+          <div style="font-size:11px;color:#8a9aaa">
+            <span style="color:#8ab0c0">script</span><span style="margin:0 6px;opacity:.35">/</span>
+            <span style="color:#8ab0c0">chat</span><span style="margin:0 6px;opacity:.35">/</span>
+            <span style="color:#8ab0c0">forum</span><span style="margin:0 6px;opacity:.35">/</span>
+            <span style="color:#e4eaf0">post</span>
+          </div>
         </div>
-        ${canAdd?`<button type="button" onclick="skAddFriendFromPost('${p.authorId}')" style="border:1px solid #3dd6c6;background:transparent;color:#3dd6c6;border-radius:12px;padding:4px 10px;font-size:12px">加好友</button>`:(isFriend?'<span style="font-size:12px;opacity:.5">已是好友</span>':'')}
-        <button type="button" onclick="delSKPost(${i})" style="border:none;background:transparent;color:#e74c3c;font-size:20px;padding:4px 6px" title="删除">×</button>
-      </div>
-      ${p.title?`<div style="font-size:18px;font-weight:700;margin-bottom:8px">${escapeHtml(p.title)}</div>`:''}
-      <div style="font-size:15px;line-height:1.7;margin-bottom:12px;white-space:pre-wrap">${escapeHtml(p.text)}</div>
-      ${p.tags?`<div style="font-size:12px;opacity:.5;margin-bottom:12px"># ${escapeHtml(p.tags)}</div>`:''}
-      <div style="display:flex;gap:18px;padding:12px 0;border-top:1px solid #2a2a2e;border-bottom:1px solid #2a2a2e;font-size:13px;opacity:.75">
-        <span onclick="skLikePost(${i});openSKPostDetail(${i})" style="cursor:pointer">${p.liked?'已赞':'赞'} ${p.likes||0}</span>
-        <span>评论 ${(p.comments||[]).length}</span>
-        <span onclick="skForwardPost(${i})" style="cursor:pointer">转发 ${p.forwards||0}</span>
-      </div>
-      <div style="display:flex;gap:6px;margin-top:14px;margin-bottom:8px">
-        <button type="button" onclick="skCommentPost(${i})" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid rgba(180,200,220,.22);background:rgba(255,255,255,.06);color:#d0dce8;cursor:pointer;font-size:12px">写评论</button>
-        <button type="button" id="skCmtGenBtn" onclick="skGenComment(${i})" style="padding:6px 12px;border-radius:8px;border:1px dashed rgba(180,200,220,.28);background:transparent;color:#a8c0d0;cursor:pointer;font-size:12px">生成</button>
-      </div>
-      <div style="margin-bottom:8px">
-        <button type="button" id="skCmtToggle" onclick="(function(btn){var b=document.getElementById('skCmtBody');if(!b)return;var on=b.style.display==='none';b.style.display=on?'block':'none';btn.textContent=(on?'收起':'展开')+'评论 · ${ (p.comments||[]).length }'})(this)"
-          style="width:100%;text-align:left;border:1px solid rgba(180,200,220,.2);background:rgba(255,255,255,.05);color:#c8d4e0;border-radius:10px;padding:10px 12px;font-size:13px;cursor:pointer">
-          展开评论 · ${(p.comments||[]).length}
-        </button>
-      </div>
-      <div id="skCmtBody" style="display:none;margin-bottom:12px;padding:4px 2px 8px;border-left:2px solid rgba(180,200,220,.2);margin-left:4px;padding-left:12px">
-        ${(p.comments||[]).map((cm,ci) => `
-          <div style="padding:10px 0;border-bottom:1px solid rgba(180,200,220,.1)">
-            <div style="display:flex;align-items:center;gap:8px">
-              <span style="font-size:11px;color:#8ab0c0;flex-shrink:0;min-width:28px">#${ci+1}</span>
-              <div style="font-size:12px;opacity:.55;flex:1">${escapeHtml(cm.from)}${cm.replyTo?' · 回复 '+escapeHtml(cm.replyTo):''}</div>
-              <span onclick="event.stopPropagation();replySKComment(${i},${ci})" style="font-size:11px;color:#8ab0c0;cursor:pointer">回复</span>
-              <span onclick="event.stopPropagation();delSKComment(${i},${ci})" style="font-size:14px;color:#e74c3c;cursor:pointer">×</span>
+        <div style="flex:1;min-height:0;overflow-y:auto;padding:16px 14px 40px;background:#2c3640;color:#e4eaf0">
+          <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px">
+            <img src="${p.avatar||avatarUrl({nick:p.author})}" style="width:48px;height:48px;border-radius:50%;object-fit:cover">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700">${escapeHtml(p.author||'匿名')}</div>
+              <div style="font-size:12px;opacity:.5">${formatTime(p.ts)}</div>
             </div>
-            <div style="font-size:14px;margin-top:4px">${escapeHtml(cm.text)}</div>
-          </div>`).join('') || '<div style="opacity:.4;padding:12px 0">暂无评论</div>'}
+            ${canAdd?`<button type="button" onclick="skAddFriendFromPost('${p.authorId}')" style="border:1px solid rgba(180,200,220,.4);background:transparent;color:#a8c0d0;border-radius:12px;padding:4px 10px;font-size:12px">加好友</button>`:(isFriend?'<span style="font-size:12px;opacity:.5">已是好友</span>':'')}
+            <button type="button" onclick="delSKPost(${i})" style="border:none;background:transparent;color:#e74c3c;font-size:20px;padding:4px 6px" title="删除">×</button>
+          </div>
+          ${p.title?`<div style="font-size:17px;font-weight:700;margin-bottom:8px">${escapeHtml(p.title)}</div>`:''}
+          <div style="font-size:15px;line-height:1.7;margin-bottom:12px;white-space:pre-wrap">${escapeHtml(p.text)}</div>
+          ${p.tags?`<div style="font-size:12px;opacity:.5;margin-bottom:12px"># ${escapeHtml(p.tags)}</div>`:''}
+          <div style="display:flex;gap:18px;padding:12px 0;border-top:1px solid rgba(180,200,220,.12);border-bottom:1px solid rgba(180,200,220,.12);font-size:13px;opacity:.75">
+            <span onclick="skLikePost(${i});openSKPostDetail(${i})" style="cursor:pointer">${p.liked?'已赞':'赞'} ${p.likes||0}</span>
+            <span>评论 ${(p.comments||[]).length}</span>
+            <span onclick="skForwardPost(${i})" style="cursor:pointer">转发 ${p.forwards||0}</span>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:14px;margin-bottom:8px">
+            <button type="button" onclick="skCommentPost(${i})" style="flex:1;padding:6px 10px;border-radius:8px;border:1px solid rgba(180,200,220,.22);background:rgba(255,255,255,.06);color:#d0dce8;cursor:pointer;font-size:12px">写评论</button>
+            <button type="button" id="skCmtGenBtn" onclick="skGenComment(${i})" style="padding:6px 12px;border-radius:8px;border:1px dashed rgba(180,200,220,.28);background:transparent;color:#a8c0d0;cursor:pointer;font-size:12px">生成</button>
+          </div>
+          <div style="margin-bottom:8px">
+            <button type="button" id="skCmtToggle" onclick="(function(btn){var b=document.getElementById('skCmtBody');if(!b)return;var on=b.style.display==='none';b.style.display=on?'block':'none';btn.textContent=(on?'收起':'展开')+'评论 · ${ (p.comments||[]).length }'})(this)"
+              style="width:100%;text-align:left;border:1px solid rgba(180,200,220,.2);background:rgba(255,255,255,.05);color:#c8d4e0;border-radius:10px;padding:10px 12px;font-size:13px;cursor:pointer">
+              展开评论 · ${(p.comments||[]).length}
+            </button>
+          </div>
+          <div id="skCmtBody" style="display:none;margin-bottom:12px;padding:4px 2px 8px;border-left:2px solid rgba(180,200,220,.2);margin-left:4px;padding-left:12px">
+            ${(p.comments||[]).map((cm,ci) => `
+              <div style="padding:10px 0;border-bottom:1px solid rgba(180,200,220,.1)">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <span style="font-size:11px;color:#8ab0c0;flex-shrink:0;min-width:28px">#${ci+1}</span>
+                  <div style="font-size:12px;opacity:.55;flex:1">${escapeHtml(cm.from)}${cm.replyTo?' · 回复 '+escapeHtml(cm.replyTo):''}</div>
+                  <span onclick="event.stopPropagation();replySKComment(${i},${ci})" style="font-size:11px;color:#8ab0c0;cursor:pointer">回复</span>
+                  <span onclick="event.stopPropagation();delSKComment(${i},${ci})" style="font-size:14px;color:#e74c3c;cursor:pointer">×</span>
+                </div>
+                <div style="font-size:14px;margin-top:4px">${escapeHtml(cm.text)}</div>
+              </div>`).join('') || '<div style="opacity:.4;padding:12px 0">暂无评论</div>'}
+          </div>
+        </div>
       </div>
-      
     </div>
   `);
 }
@@ -13938,11 +14109,11 @@ function renderSKFriends() {
     }).join('') || '<div style="text-align:center;padding:20px;opacity:.4">还没有好友</div>'}
     <div style="margin-top:16px;font-size:12px;opacity:.45;margin-bottom:8px">房间（左滑删除）</div>
     ${(state.scriptKill.rooms||[]).map((r,ri) => `
-      <div class="sk-room-swipe" data-ri="${ri}" style="position:relative;overflow:hidden;border-radius:10px;margin-bottom:6px">
-        <div class="sk-room-del" onclick="delSKRoom(${ri})" style="position:absolute;right:0;top:0;bottom:0;width:72px;background:#e74c3c;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px">删除</div>
-        <div class="sk-room-main" onclick="openSKRoomChat(${ri})" style="position:relative;padding:12px;background:rgba(0,0,0,.25);border:1px solid rgba(180,200,220,.12);border-radius:12px;transition:transform .2s">
+      <div class="sk-room-swipe" data-ri="${ri}" style="position:relative;overflow:hidden;border-radius:12px;margin-bottom:8px;background:#2a343e">
+        <div class="sk-room-del" onclick="event.stopPropagation();delSKRoom(${ri})" style="position:absolute;right:0;top:0;bottom:0;width:72px;background:#e74c3c;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:0;border-radius:0 12px 12px 0">删除</div>
+        <div class="sk-room-main" onclick="openSKRoomChat(${ri})" style="position:relative;z-index:1;width:100%;box-sizing:border-box;padding:12px 14px;background:#323c48;border:1px solid rgba(180,200,220,.14);border-radius:12px;transition:transform .2s ease;transform:translateX(0);color:#e4eaf0">
           <div style="font-weight:600;font-size:14px">${escapeHtml(r.name)}</div>
-          <div style="font-size:12px;opacity:.5;margin-top:4px">剧本：${escapeHtml((getSKScript(r.scriptId)||{}).title||r.scriptId)} · ${(r.members||[]).length+1}人（含你）</div>
+          <div style="font-size:12px;opacity:.55;margin-top:4px">剧本：${escapeHtml((getSKScript(r.scriptId)||{}).title||r.scriptId)} · ${(r.members||[]).length+1}人（含你）</div>
         </div>
       </div>`).join('') || '<div style="opacity:.35;font-size:13px">暂无房间</div>'}`;
 }
@@ -18153,21 +18324,43 @@ function getSeasonInfo() {
   if (m <= 8) return { id: 'summer', label: '夏 · 晴', kind: 'sun' };
   return { id: 'autumn', label: '秋 · 落叶', kind: 'leaf' };
 }
+function setHomeWeatherMode(mode) {
+  ensureHomeState();
+  state.home.weather = mode || '';
+  try { save(); } catch(e) {}
+  try { if (typeof renderHome === 'function') renderHome(); } catch(e) {}
+  try { if (typeof renderSeasonFx === 'function') renderSeasonFx(); } catch(e) {}
+  var labs = { '': '跟随季节', rain: '雨落', snow: '落雪', leaf: '落叶', off: '已关闭' };
+  showToast(labs[mode] != null ? labs[mode] : '已切换');
+  try { openHomeSettingsPage('weather'); } catch(e) {}
+}
 function renderSeasonFx() {
   var host = document.getElementById('homeSeasonFx');
   if (!host) {
-    var page = document.getElementById('page-home');
+    var page = document.getElementById('page-home') || document.getElementById('homeInner');
     if (!page) return;
     host = document.createElement('div');
     host.id = 'homeSeasonFx';
-    page.appendChild(host);
+    if (page.id === 'homeInner') {
+      page.style.position = page.style.position || 'relative';
+      page.appendChild(host);
+    } else {
+      page.appendChild(host);
+    }
   }
   var force = (state.home && state.home.weather) || '';
   var info = getSeasonInfo();
   if (force === 'snow') info = { id: 'winter', label: '雪', kind: 'snow' };
   else if (force === 'rain') info = { id: 'spring', label: '雨', kind: 'rain' };
+  else if (force === 'leaf') info = { id: 'autumn', label: '落叶', kind: 'leaf' };
   else if (force === 'off') { host.innerHTML = ''; return; }
-  var n = 18;
+  // 夏季晴：无粒子，仅角标
+  if (info.kind === 'sun' && !force) {
+    host.innerHTML = '<div class="home-season-badge">' + info.label + '</div>';
+    return;
+  }
+  var lvl = Math.max(1, Math.min(10, +((state.home && state.home.weatherLevel) || 5)));
+  var n = Math.round(10 + lvl * 3);
   var html = '<div class="home-season-badge">' + info.label + '</div>';
   for (var i = 0; i < n; i++) {
     var left = (Math.random() * 100).toFixed(1);
@@ -18275,8 +18468,13 @@ function renderHome() {
   const appScale = state.home.appScale != null ? state.home.appScale : 1;
   document.documentElement.style.setProperty('--home-icon-radius', radius + 'px');
   document.documentElement.style.setProperty('--home-app-scale', String(appScale));
-  const appHtml = apps.map(function(a) {
+  // 文件夹：state.home.folders = [{id,name,apps:['wechat',...],x,y,page}]
+  if (!state.home.folders) state.home.folders = [];
+  const foldered = {};
+  (state.home.folders||[]).forEach(function(f){ (f.apps||[]).forEach(function(aid){ foldered[aid]=true; }); });
+  const appHtml = apps.filter(function(a){ return !foldered[a.id]; }).map(function(a) {
     const pos = lay[a.id] || { x: 0, y: 0 };
+    if (pos.page != null && (pos.page|0) !== (state.home.page|0)) return '';
     const custom = icons[a.id];
     const inner = custom
       ? '<img src="'+custom+'" alt="" draggable="false">'
@@ -18284,6 +18482,15 @@ function renderHome() {
     return '<div class="home-app" data-key="'+a.id+'" data-open="'+a.open+'" style="left:'+pos.x+'px;top:'+pos.y+'px">' +
       '<div class="ha-icon">'+inner+'</div>' +
       '<div class="ha-name">'+a.name+'</div></div>';
+  }).join('') + (state.home.folders||[]).filter(function(f){ return (f.page|0)===(state.home.page|0); }).map(function(f) {
+    const pos = { x: f.x||16, y: f.y||16 };
+    const mini = (f.apps||[]).slice(0,9).map(function(aid){
+      const ic = icons[aid];
+      return '<div style="width:18px;height:18px;border-radius:4px;overflow:hidden;background:rgba(255,255,255,.5)">'+(ic?'<img src="'+ic+'" style="width:100%;height:100%;object-fit:cover">':'')+'</div>';
+    }).join('');
+    return '<div class="home-app home-folder" data-folder="'+f.id+'" onclick="event.stopPropagation();openHomeFolder(\''+f.id+'\')" style="left:'+pos.x+'px;top:'+pos.y+'px">' +
+      '<div class="ha-icon" style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:6px;background:rgba(255,255,255,.55);backdrop-filter:blur(12px)">'+mini+'</div>' +
+      '<div class="ha-name">'+escapeHtml(f.name||'文件夹')+'</div></div>';
   }).join('');
 
   const ppos = lay.polaroid || { x: 160, y: 100 };
@@ -18448,6 +18655,18 @@ function editHomePolaroid() {
 
 function getChangelogData() {
   return [
+    { v: '2026-11-01B', items: [
+      '设置改为侧边栏：通用 / 氛围 / 接口，内容直接展示',
+      'icity：user 发布动态同步到广场与日记',
+      '文件夹：主屏右下角拖边框调大小；美化可编辑已有文件夹'
+    ]},
+    { v: '2026-11-01A', items: [
+      '控制面板：悬浮输入栏打开时回文档流，两行图标完整显示',
+      '剧本杀房间左滑删除默认隐藏；帖子详情侧边栏网页风',
+      '写信：无主题读近期记忆，有主题则主题+记忆',
+      'with 对话：User 与角色均显示圆形 50px 头像与姓名',
+      '主屏文件夹：可创建/编辑/解散，内含 App 网格'
+    ]},
     { v: '2026-08-20O', items: [
       '红包/转账：去掉外层 248px 强制宽，QQ·iOS 卡片贴紧头像',
       '表情「我的」显示含义；角色[表情]匹配图库；控制面板重roll清锁',
@@ -18783,26 +19002,72 @@ function openChangelog() {
   state._homeDepth = 1;
 }
 
-function openHomeSettingsPage() {
+function openHomeSettingsPage(tab) {
   ensureHomeState();
+  tab = tab || state._settingsTab || 'general';
+  state._settingsTab = tab;
+  const ink = '#2a4a55', soft = '#6a8a95', accent = '#5eb8b0';
+  const sideBtn = function(id, lab) {
+    const on = tab === id;
+    return '<button type="button" onclick="openHomeSettingsPage(\''+id+'\')" style="border:none;border-radius:8px;padding:11px 8px;text-align:left;font-size:13px;cursor:pointer;background:'+(on?'rgba(94,184,176,.22)':'transparent')+';color:'+(on?ink:soft)+';font-weight:'+(on?'600':'400')+'">'+lab+'</button>';
+  };
+  let main = '';
+  if (tab === 'general') {
+    main = '<div style="padding:14px 16px 40px">'
+      + '<div style="font-size:16px;font-weight:700;color:'+ink+';margin-bottom:12px">通用</div>'
+      + '<div class="setting-item" onclick="openLockSettings()" style="border-radius:12px;margin-bottom:6px;background:rgba(255,255,255,.85)">锁屏密码与壁纸 <span class="right">›</span></div>'
+      + '<div class="setting-item" onclick="openChangelog()" style="border-radius:12px;margin-bottom:6px;background:rgba(255,255,255,.85)">更新日志 <span class="right">›</span></div>'
+      + '<div class="setting-item" onclick="toggleFullscreen();openHomeSettingsPage(\'general\')" style="border-radius:12px;margin-bottom:6px;background:rgba(255,255,255,.85)">全屏模式 <span class="right">'+(state.fullscreen?'开':'关')+'</span></div>'
+      + '<div class="setting-item" onclick="state.home.layout=homeDefaultLayout();save();showToast(\'已重置图标位置\');goHome()" style="border-radius:12px;background:rgba(255,255,255,.85)">重置主屏幕布局</div>'
+      + '</div>';
+  } else if (tab === 'weather') {
+    const w = state.home.weather || '';
+    const modes = [
+      { id: '', lab: '跟随季节', desc: '按真实月份：春雨 / 夏晴 / 秋叶 / 冬雪' },
+      { id: 'rain', lab: '雨落', desc: '细雨动效' },
+      { id: 'snow', lab: '落雪', desc: '飘雪动效' },
+      { id: 'leaf', lab: '落叶', desc: '秋日落叶' },
+      { id: 'off', lab: '关闭动效', desc: '不显示季节粒子' }
+    ];
+    main = '<div style="padding:14px 16px 40px">'
+      + '<div style="font-size:16px;font-weight:700;color:'+ink+';margin-bottom:6px">天气氛围</div>'
+      + '<div style="font-size:11px;color:'+soft+';margin-bottom:12px;line-height:1.5">选择主界面粒子动效；密度影响数量</div>'
+      + modes.map(function(m){
+          const on = w === m.id;
+          return '<div onclick="setHomeWeatherMode(\''+m.id+'\')" style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;margin-bottom:6px;background:rgba(255,255,255,'+(on?'.95':'.75')+');border:1.5px solid '+(on?accent:'transparent')+';cursor:pointer">'
+            + '<div style="width:18px;height:18px;border-radius:50%;border:2px solid '+(on?accent:'#c5d5da')+';display:flex;align-items:center;justify-content:center;flex-shrink:0">'
+            + (on?'<div style="width:10px;height:10px;border-radius:50%;background:'+accent+'"></div>':'')+'</div>'
+            + '<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600;color:'+ink+'">'+m.lab+'</div>'
+            + '<div style="font-size:11px;color:'+soft+';margin-top:2px">'+m.desc+'</div></div></div>';
+        }).join('')
+      + '<div style="padding:14px;border-radius:12px;background:rgba(255,255,255,.85);margin-top:10px">'
+      + '<div style="font-size:13px;color:'+ink+';margin-bottom:8px">动效密度（1-10）· 当前 '+(state.home.weatherLevel||5)+'</div>'
+      + '<input type="range" min="1" max="10" value="'+(state.home.weatherLevel||5)+'" oninput="state.home.weatherLevel=+this.value;save();if(typeof renderHome===\'function\')renderHome();if(typeof renderSeasonFx===\'function\')renderSeasonFx()" style="width:100%">'
+      + '</div></div>';
+  } else if (tab === 'api') {
+    main = '<div style="padding:14px 16px 40px">'
+      + '<div style="font-size:16px;font-weight:700;color:'+ink+';margin-bottom:12px">接口与数据</div>'
+      + '<div class="setting-item" onclick="openApi()" style="border-radius:12px;margin-bottom:6px;background:rgba(255,255,255,.85)">API 设置 <span class="right">›</span></div>'
+      + '<div class="setting-item" onclick="openDataManager()" style="border-radius:12px;margin-bottom:6px;background:rgba(255,255,255,.85)">数据管理 <span class="right">›</span></div>'
+      + '<div style="font-size:11px;color:'+soft+';margin-top:12px;line-height:1.5">聊天 / 语音 / 生图 API 相互独立，未连接不会互相回落。</div>'
+      + '</div>';
+  } else {
+    main = '<div style="padding:14px 16px 40px"><div style="color:'+soft+'">未知分页</div></div>';
+  }
   openSubPage('设置', `
-    <div class="setting-item" onclick="openLockSettings()">锁屏密码与壁纸 <span class="right">›</span></div>
-    <div class="setting-item" onclick="openChangelog()">更新日志 <span class="right">›</span></div>
-    <div class="setting-item" onclick="state.home.weather=(state.home.weather==='rain'?'': 'rain');save();renderHome();showToast(state.home.weather?'已开启雨落':'已关闭雨落')">主界面雨落 ${state.home.weather==='rain'?'开':'关'} <span class="right">›</span></div>
-    <div class="setting-item" onclick="state.home.weather=(state.home.weather==='snow'?'': 'snow');save();renderHome();showToast(state.home.weather==='snow'?'已开启落雪':'已关闭落雪')">主界面落雪 ${state.home.weather==='snow'?'开':'关'} <span class="right">›</span></div>
-    <div class="setting-item" style="flex-direction:column;align-items:stretch;gap:8px">
-      <div>雨/雪密度（1-10）</div>
-      <input type="range" min="1" max="10" value="${state.home.weatherLevel||5}" oninput="state.home.weatherLevel=+this.value;save();renderHome()" style="width:100%">
+    <div style="display:flex;height:100%;background:linear-gradient(180deg,#e8f4f8,#dceef4);color:${ink};overflow:hidden">
+      <div style="width:88px;flex-shrink:0;background:rgba(255,255,255,.72);border-right:1px solid rgba(94,184,176,.2);display:flex;flex-direction:column;padding:14px 8px;gap:4px">
+        <div style="font-size:10px;color:${soft};padding:0 4px 8px;font-weight:600">设置</div>
+        ${sideBtn('general','通用')}
+        ${sideBtn('weather','氛围')}
+        ${sideBtn('api','接口')}
+      </div>
+      <div style="flex:1;min-width:0;overflow-y:auto;-webkit-overflow-scrolling:touch">${main}</div>
     </div>
-    <!-- clock widget / 捏捏乐 已移除 -->
-    <div style="padding:8px 0">
-      <div class="setting-item" onclick="openApi()">API 设置 <span class="right">›</span></div>
-      <div class="setting-item" onclick="toggleFullscreen();openHomeSettingsPage()">全屏模式 <span class="right">${state.fullscreen?'开':'关'}</span></div>
-      <div class="setting-item" onclick="openDataManager()">数据管理 <span class="right">›</span></div>
-      <div class="setting-item" onclick="state.home.layout=homeDefaultLayout();save();showToast('已重置图标位置');goHome()">重置主屏幕布局</div>
-    </div>
-  `);
+  `, '', { replace: true, fromHome: true });
   state._subKind = 'homeApp';
+  state._homeRoot = 'settings';
+  state._homeDepth = 0;
 }
 function homeAppIconSvg(id) {
   if (id === 'world') return '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
@@ -19103,6 +19368,13 @@ function openHomeBeauty() {
         <button type="button" class="btn btn-secondary" style="flex:1;font-size:12px" onclick="homeAlignApps()">对齐并居中</button>
       </div>
 
+      <div style="margin:0 0 16px;padding:14px;border-radius:14px;background:linear-gradient(145deg,rgba(200,230,240,.5),rgba(230,245,250,.6));border:1px solid rgba(120,180,200,.3)">
+        <div style="font-weight:700;color:#2a4a55;margin-bottom:6px">App 文件夹</div>
+        <div style="font-size:11px;color:#5a7a80;margin-bottom:10px;line-height:1.5">像真机一样把多个 App 收进一个文件夹。创建后点文件夹可打开/编辑包含的 App。</div>
+        <button type="button" onclick="createHomeFolder()" style="width:100%;border:none;border-radius:12px;padding:12px;background:#5eb8b0;color:#fff;font-weight:600;cursor:pointer;margin-bottom:8px">＋ 创建文件夹</button>
+        ${((state.home.folders||[]).length ? '<div style="font-size:12px;color:#5a7a80">已有 '+(state.home.folders||[]).length+' 个文件夹 · 回主屏点开即可编辑</div>' : '<div style="font-size:12px;color:#8a9aaa">暂无文件夹</div>')}
+      </div>
+
       <div style="font-size:13px;color:var(--sub);margin:8px 0">App 图标（逐个更换，支持透明底）</div>
       <div style="border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px">${rows}</div>
 
@@ -19140,6 +19412,114 @@ function toggleDockApp(id, name, open, on) {
   save();
 }
 
+function openHomeFolder(fid) {
+  ensureHomeState();
+  if (!state.home.folders) state.home.folders = [];
+  const f = state.home.folders.find(function(x){ return x.id === fid; });
+  if (!f) return;
+  const allApps = (typeof homeAllApps === 'function') ? homeAllApps() : [
+    { id:'wechat', name:'微信', open:'openWechatApp()' },
+    { id:'memory', name:'记忆', open:'openMemoryApp()' },
+    { id:'offline', name:'线下', open:'openOfflineApp()' },
+    { id:'bookstore', name:'书城', open:'openBookStore()' },
+    { id:'tomato', name:'agenda', open:'openPomodoro()' },
+    { id:'icity', name:'icity', open:'openIcityApp()' },
+    { id:'forum', name:'Instagram', open:'openForumIG()' },
+    { id:'countdown', name:'倒数日', open:'openCountdownApp()' },
+    { id:'gal', name:'galgame', open:'openGalApp()' },
+    { id:'sk', name:'剧本杀', open:'openScriptKill_HOME()' },
+    { id:'sms', name:'短信', open:'openSmsApp()' },
+    { id:'melo', name:'Melo', open:'openMelo()' },
+    { id:'divination', name:'占卜', open:'openDivination()' },
+    { id:'worldbook', name:'世界书', open:'openWorldBook()' },
+    { id:'prompts', name:'提示词', open:'openPromptApp()' },
+    { id:'charlib', name:'角色库', open:'openCharLib()' },
+    { id:'pickup', name:'捡手机', open:'openPickupPhone()' },
+    { id:'love', name:'爱', open:'openLoveApp()' },
+    { id:'jia', name:'家', open:'openJiaApp()' }
+  ];
+  const icons = (state.home && state.home.appIcons) || {};
+  const radius = (state.home.iconRadius != null) ? state.home.iconRadius : 16;
+  const items = (f.apps||[]).map(function(aid){
+    const a = allApps.find(function(x){ return x.id===aid; }) || { id:aid, name:aid, open:'' };
+    const ic = icons[aid];
+    var iconHtml = ic
+      ? '<img src="'+ic+'" style="width:100%;height:100%;object-fit:cover;display:block" draggable="false">'
+      : '<span style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#2a4a55">'
+        + (typeof homeAppIconSvg==='function'
+          ? homeAppIconSvg(aid).replace('<svg','<svg width="28" height="28" style="width:28px;height:28px"')
+          : escapeHtml((a.name||'?').slice(0,2)))
+        + '</span>';
+    return '<div class="hf-app-item" data-open="'+escapeHtml(a.open||'')+'" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;-webkit-tap-highlight-color:transparent">'
+      + '<div style="width:54px;height:54px;border-radius:'+radius+'px;overflow:hidden;background:rgba(255,255,255,.88);border:0.5px solid rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,.06)">'
+      + iconHtml
+      + '</div><div style="font-size:11px;color:#1c1c1e;max-width:64px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">'+escapeHtml(a.name||aid)+'</div></div>';
+  }).join('');
+  // 仅展示 App 网格，无多余编辑/解散按钮（编辑在美化里）
+  openModal(f.name||'文件夹',
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px 8px;padding:12px 4px 8px;min-height:80px">'
+    + (items || '<div style="grid-column:1/-1;text-align:center;color:#8e8e93;font-size:13px;padding:24px 0">文件夹是空的<br><span style="font-size:11px">去美化里编辑添加 App</span></div>')
+    + '</div>',
+    '', { center: true });
+  setTimeout(function(){
+    document.querySelectorAll('.hf-app-item').forEach(function(el){
+      el.onclick = function(e){
+        e.preventDefault(); e.stopPropagation();
+        var fn = el.getAttribute('data-open') || '';
+        try { closeModal(); } catch(err) {}
+        setTimeout(function(){
+          try { if (fn) eval(fn); } catch(err2) { console.warn(err2); }
+        }, 40);
+      };
+    });
+  }, 60);
+}
+function editHomeFolder(fid) {
+  ensureHomeState();
+  const f = (state.home.folders||[]).find(function(x){ return x.id===fid; });
+  if (!f) return;
+  const all = ['wechat','memory','offline','bookstore','tomato','icity','forum','countdown','gal','sk','sms','melo','divination','worldbook','prompts','charlib','pickup','love','jia'];
+  const names = {wechat:'微信',memory:'记忆',offline:'线下',bookstore:'书城',tomato:'agenda',icity:'icity',forum:'Instagram',countdown:'倒数日',gal:'galgame',sk:'剧本杀',sms:'短信',melo:'Melo',divination:'占卜',worldbook:'世界书',prompts:'提示词',charlib:'角色库',pickup:'捡手机',love:'爱',jia:'家'};
+  const checks = all.map(function(id){
+    const on = (f.apps||[]).indexOf(id)>=0;
+    return '<label style="display:flex;align-items:center;gap:8px;padding:8px 0;font-size:13px"><input type="checkbox" class="hfApp" value="'+id+'" '+(on?'checked':'')+'> '+(names[id]||id)+'</label>';
+  }).join('');
+  const scPct = Math.round(((f.scale != null ? +f.scale : 1) || 1) * 100);
+  openModal('编辑文件夹',
+    '<div class="form-group"><label>名称</label><input id="hfName" value="'+escapeHtml(f.name||'')+'"></div>'
+    + '<div class="form-group"><label>桌面大小 <span id="hfScaleLab">'+scPct+'%</span></label>'
+    + '<input type="range" id="hfScale" min="70" max="160" value="'+scPct+'" style="width:100%" oninput="var l=document.getElementById(\'hfScaleLab\');if(l)l.textContent=this.value+\'%\'"></div>'
+    + '<div class="form-group"><label>包含的 App</label><div style="max-height:200px;overflow:auto">'+checks+'</div></div>'
+    + '<button type="button" class="btn btn-danger" style="width:100%;margin-top:8px" onclick="if(confirm(\'解散文件夹？App 会回到桌面\'))dissolveHomeFolder(\''+fid+'\')">解散文件夹</button>',
+    '<button class="btn btn-secondary" onclick="closeModal()">取消</button>'
+    + '<button class="btn btn-primary" onclick="saveHomeFolderEdit(\''+fid+'\')">保存</button>', { center: true });
+}
+function saveHomeFolderEdit(fid) {
+  ensureHomeState();
+  const f = (state.home.folders||[]).find(function(x){ return x.id===fid; });
+  if (!f) return;
+  f.name = ((document.getElementById('hfName')||{}).value||'文件夹').trim() || '文件夹';
+  var scEl = document.getElementById('hfScale');
+  if (scEl) f.scale = Math.max(0.7, Math.min(1.6, (+scEl.value || 100) / 100));
+  f.apps = [];
+  document.querySelectorAll('.hfApp:checked').forEach(function(cb){ f.apps.push(cb.value); });
+  save(); closeModal(); renderHome(); showToast('已保存');
+}
+function dissolveHomeFolder(fid) {
+  ensureHomeState();
+  state.home.folders = (state.home.folders||[]).filter(function(x){ return x.id!==fid; });
+  save(); closeModal(); renderHome(); showToast('已解散');
+}
+function createHomeFolder() {
+  ensureHomeState();
+  if (!state.home.folders) state.home.folders = [];
+  const id = 'fld'+Date.now();
+  state.home.folders.push({ id: id, name: '文件夹'+(state.home.folders.length+1), apps: [], x: 20, y: 40, page: state.home.page|0 });
+  save();
+  showToast('已创建空文件夹，点开可添加 App');
+  renderHome();
+  setTimeout(function(){ editHomeFolder(id); }, 80);
+}
 function moveHomeWidget(fromPage, wi, toPage) {
   ensureHomeState();
   if (!state.home.pageWidgets) state.home.pageWidgets = {};
@@ -19638,11 +20018,35 @@ async function loveDoGenLetter() {
   const uName = user.nick || user.name || '你';
   const cName = ch.nick || ch.realName || '我';
   const lang = (typeof resolveCharLang === 'function') ? resolveCharLang(ch) : '中文';
-  let prompt = '你是「'+cName+'」。人设：'+(ch.persona||'普通人')+'。\n'
+  // 读取近期记忆（聊天短期/长期 + 记忆 app）
+  let memHint = '';
+  try {
+    const chat = (state.chats || {})[charId] || {};
+    const bits = [];
+    (chat.shortMemory || []).slice(-6).forEach(function(m){ if (m && (m.content||m.text)) bits.push(String(m.content||m.text).slice(0,120)); });
+    (chat.longMemory || []).slice(-3).forEach(function(m){ if (m && (m.content||m.text)) bits.push(String(m.content||m.text).slice(0,160)); });
+    ((state.memoryApp && state.memoryApp.items) || []).filter(function(it){ return it.charId === charId; }).slice(0, 8).forEach(function(it){
+      bits.push((it.title ? it.title+'：' : '') + String(it.content||'').slice(0,100));
+    });
+    // 最近微信聊天摘几句作语境
+    (chat.messages || []).filter(function(m){ return m && (m.type==='text'||!m.type) && m.content; }).slice(-12).forEach(function(m){
+      bits.push((m.from==='user'?'对方':'我') + '：' + String(m.content).slice(0,80));
+    });
+    if (bits.length) memHint = bits.slice(0, 14).join('\n');
+  } catch(e) {}
+  let prompt = '你是「'+cName+'」。人设：'+(ch.persona||'普通人')+'。关系：'+(ch.relation||ch.relationship||'')+'。\n'
     + '请以第一人称给「'+uName+'」写一封纸质信，口语化、有温度、符合人设，不要 OOC。\n'
     + '结构：称呼开头 + 2～4 段正文 + 署名结尾。\n'
-    + '不要用 markdown，不要引号包裹全文。字数 180～420 字。\n';
-  if (theme) prompt += '主题倾向：'+theme+'\n';
+    + '不要用 markdown，不要引号包裹全文。字数 180～420 字。\n'
+    + '不要复述记忆清单，只在自然需要时融入近期相处细节。\n';
+  if (theme) {
+    prompt += '主题倾向：'+theme+'\n';
+    if (memHint) prompt += '可参考的近期记忆与相处（辅助，勿照抄）：\n'+memHint+'\n';
+  } else {
+    // 无主题：以近期记忆为写信依据
+    if (memHint) prompt += '没有指定主题。请根据以下近期记忆与相处自然写信：\n'+memHint+'\n';
+    else prompt += '没有指定主题，也没有可用记忆。写一封日常问候信即可。\n';
+  }
   if (lang && lang !== '中文' && lang !== '汉语') {
     prompt += '用「'+lang+'」写正文，并在全文末尾另起一行写「译：」后附完整中文翻译。\n';
   }
@@ -22372,8 +22776,23 @@ function withOpenDialogue(id) {
     if (m1) return { action: m1[1], content: m1[2] };
     return null;
   }
+  var userNick = (state.user && (state.user.nick || state.user.realName || state.user.name)) || '我';
+  var userAv = (state.user && state.user.avatar) ? state.user.avatar : (typeof defaultAvatar==='function'?defaultAvatar(userNick):'');
+  function withResolveAvatar(fromName, isMe) {
+    if (isMe) return userAv;
+    var nm = String(fromName || '');
+    var ch = (state.chars || []).find(function(c){
+      return (c.nick||'')===nm || (c.realName||'')===nm || (c.id||'')===nm;
+    });
+    if (ch) return (typeof avatarUrl==='function'?avatarUrl(ch):(ch.avatar||defaultAvatar(nm)));
+    return (typeof defaultAvatar==='function'?defaultAvatar(nm||'?'):'');
+  }
+  function withResolveName(fromName, isMe) {
+    if (isMe) return userNick;
+    return String(fromName || '角色');
+  }
   var bubbles = (d.messages||[]).map(function(m){
-    var me = (m.from === 'User' || m.from === 'user' || m.from === '我');
+    var me = (m.from === 'User' || m.from === 'user' || m.from === '我' || m.from === userNick);
     var actInfo = extractAction(m);
     var content = m.content || '';
     var action = m.action || '';
@@ -22389,9 +22808,14 @@ function withOpenDialogue(id) {
       html += '<div style="text-align:center;padding:6px 20px;font-size:12px;color:#666;line-height:1.4">'+escapeHtml(action)+'</div>';
     }
     if (st.main) {
-      html += '<div style="display:flex;flex-direction:column;align-items:'+(me?'flex-end':'flex-start')+';margin:4px 12px">'
-        + (me?'':'<div style="font-size:11px;color:#5a6a7a;margin-bottom:3px;margin-left:4px">'+escapeHtml(m.from||'')+'</div>')
-        + '<div style="max-width:78%;padding:10px 12px;border-radius:14px;font-size:14px;line-height:1.4;background:'+(me?'#fee500':'#fff')+';color:#191919;box-shadow:0 1px 2px rgba(0,0,0,.06)">'
+      var nm = withResolveName(m.from, me);
+      var av = withResolveAvatar(m.from, me);
+      html += '<div style="display:flex;align-items:flex-start;gap:8px;margin:8px 12px;flex-direction:'+(me?'row-reverse':'row')+'">'
+        + '<div style="flex-shrink:0;width:50px;text-align:center">'
+        + '<img src="'+av+'" style="width:50px;height:50px;border-radius:50%;object-fit:cover;background:#ddd;display:block;margin:0 auto">'
+        + '<div style="font-size:10px;color:#5a6a7a;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:50px">'+escapeHtml(nm)+'</div>'
+        + '</div>'
+        + '<div style="max-width:calc(100% - 70px);padding:10px 12px;border-radius:14px;font-size:14px;line-height:1.4;background:'+(me?'#fee500':'#fff')+';color:#191919;box-shadow:0 1px 2px rgba(0,0,0,.06)">'
         + escapeHtml(st.main)
         + (st.trans ? ('<div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(0,0,0,.08);font-size:12px;color:#666;line-height:1.35">'+escapeHtml(st.trans)+'</div>') : '')
         + '</div></div>';
@@ -23849,22 +24273,54 @@ function icityGenOrPost(tab) {
 }
 function doIcityPost() {
   ensureHomeState();
+  if (!state.icity) state.icity = { posts: [], myPosts: [], diaries: [], profile: {} };
   const content = (document.getElementById('icContent')||{}).value;
   if (!content || !String(content).trim()) return;
   const title = ((document.getElementById('icTitle')||{}).value||'').trim();
   const tagsEl = document.getElementById('icTags');
   const tags = tagsEl ? (tagsEl.value||'').split(/\s+/).filter(Boolean) : [];
+  const body = (title ? title + '\n' : '') + String(content).trim();
+  const u = state.user || {};
+  const p = state.icity.profile || {};
+  const post = {
+    nick: p.nick || u.nick || '我',
+    avatar: p.avatar || u.avatar || '',
+    content: body,
+    tags: tags,
+    likes: [],
+    comments: [],
+    ts: Date.now(),
+    img: state._icityPostImg || '',
+    loc: state._icityPostLoc || '',
+    isUser: true,
+    fromUser: true
+  };
+  // 我的日记
   state.icity.myPosts = state.icity.myPosts || [];
-  state.icity.myPosts.unshift({
-    nick: state.user.nick||'我', avatar: state.user.avatar,
-    content: (title ? title + '\n' : '') + String(content).trim(),
-    tags, likes:[], comments:[], ts:Date.now(),
-    img: state._icityPostImg||'', loc: state._icityPostLoc||'', isUser: true
+  state.icity.myPosts.unshift(Object.assign({}, post));
+  // 广场同步显示
+  state.icity.posts = state.icity.posts || [];
+  state.icity.posts.unshift(Object.assign({}, post));
+  // 日记列表同步
+  state.icity.diaries = state.icity.diaries || [];
+  state.icity.diaries.unshift({
+    content: body,
+    vis: 'public',
+    ts: post.ts,
+    likes: [],
+    comments: [],
+    liked: false,
+    nick: post.nick,
+    avatar: post.avatar,
+    img: post.img,
+    isUser: true
   });
-  state._icityPostImg = ''; state._icityPostLoc = '';
+  state._icityPostImg = '';
+  state._icityPostLoc = '';
   save();
   try { closeModal(); } catch(e) {}
-  openIcityApp('mine');
+  showToast('已发布到广场与日记');
+  openIcityApp('square');
 }
 async function doIcityGen() {
   ensureHomeState();
@@ -31156,7 +31612,11 @@ function openWorldChar(charId, tab) {
     }
   } else if (tab === 'calendar') {
     const now = new Date();
-    const y = now.getFullYear(), m = now.getMonth();
+    // 可切换月份：w.calY / w.calM（0-11）
+    if (w.calY == null) w.calY = now.getFullYear();
+    if (w.calM == null) w.calM = now.getMonth();
+    const y = w.calY | 0;
+    const m = Math.max(0, Math.min(11, w.calM | 0));
     const keyPrefix = y + '-' + String(m+1).padStart(2,'0') + '-';
     const daysInMonth = new Date(y, m+1, 0).getDate();
     let cells = '';
@@ -31178,14 +31638,18 @@ function openWorldChar(charId, tab) {
         + '</div>';
     }
     main = '<div style="padding:16px 14px 100px">'
-      + '<div style="font-size:17px;font-weight:700;color:'+ink+';margin-bottom:4px">日历 · '+(m+1)+'月</div>'
-      + '<div style="font-size:12px;color:'+soft+';margin-bottom:14px">点日期标注；标注内容显示在下方</div>'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+      + '<button type="button" onclick="(function(){var ww=ensureCharWorld(\''+charId+'\');ww.calM=(ww.calM|0)-1;if(ww.calM<0){ww.calM=11;ww.calY=(ww.calY|0)-1;}openWorldChar(\''+charId+'\',\'calendar\');})()" style="border:none;background:rgba(255,255,255,.85);border-radius:10px;width:36px;height:36px;font-size:18px;color:'+ink+';cursor:pointer">‹</button>'
+      + '<div style="text-align:center"><div style="font-size:17px;font-weight:700;color:'+ink+'">'+y+'年 '+(m+1)+'月</div>'
+      + '<button type="button" onclick="(function(){var n=new Date();var ww=ensureCharWorld(\''+charId+'\');ww.calY=n.getFullYear();ww.calM=n.getMonth();openWorldChar(\''+charId+'\',\'calendar\');})()" style="border:none;background:transparent;color:'+accent+';font-size:11px;cursor:pointer;margin-top:2px">回到本月</button></div>'
+      + '<button type="button" onclick="(function(){var ww=ensureCharWorld(\''+charId+'\');ww.calM=(ww.calM|0)+1;if(ww.calM>11){ww.calM=0;ww.calY=(ww.calY|0)+1;}openWorldChar(\''+charId+'\',\'calendar\');})()" style="border:none;background:rgba(255,255,255,.85);border-radius:10px;width:36px;height:36px;font-size:18px;color:'+ink+';cursor:pointer">›</button></div>'
+      + '<div style="font-size:12px;color:'+soft+';margin-bottom:14px;text-align:center">左右切换月份 · 点日期标注 · 标注显示在下方</div>'
       + '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:18px">'+cells+'</div>'
       + '<div style="font-size:14px;font-weight:600;color:'+ink+';margin-bottom:10px">本月标注</div>'
-      + (marked.length ? marked.map(function(m){
-          return '<div onclick="worldEditDay(\''+m.key+'\')" style="background:'+card+';border-radius:14px;padding:12px 14px;margin-bottom:8px;border:1px solid rgba(94,184,176,.2);cursor:pointer">'
-            + '<div style="font-size:12px;color:'+accent+';font-weight:600">'+m.key+'</div>'
-            + '<div style="font-size:13px;color:'+ink+';margin-top:4px;white-space:pre-wrap">'+escapeHtml(m.text)+'</div></div>';
+      + (marked.length ? marked.map(function(mm){
+          return '<div onclick="worldEditDay(\''+mm.key+'\')" style="background:'+card+';border-radius:14px;padding:12px 14px;margin-bottom:8px;border:1px solid rgba(94,184,176,.2);cursor:pointer">'
+            + '<div style="font-size:12px;color:'+accent+';font-weight:600">'+mm.key+'</div>'
+            + '<div style="font-size:13px;color:'+ink+';margin-top:4px;white-space:pre-wrap">'+escapeHtml(mm.text)+'</div></div>';
         }).join('') : '<div style="color:'+soft+';font-size:13px;padding:12px 0">暂无标注，点上方日期添加</div>')
       + '</div>';
   } else if (tab === 'schedule') {
@@ -31820,10 +32284,15 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     state.home.dockApps = dockIds;
     var hidden = state.home.hiddenApps || [];
 
+    // 文件夹内的 App 不在桌面单独显示
+    if (!state.home.folders) state.home.folders = [];
+    var foldered = {};
+    (state.home.folders||[]).forEach(function(f){ (f.apps||[]).forEach(function(aid){ foldered[aid]=true; }); });
     // 本页 App：网格排列（不依赖乱布局坐标）
     var pageApps = allApps.filter(function(a) {
       if (hidden.indexOf(a.id) >= 0) return false;
       if (dockIds.indexOf(a.id) >= 0) return false;
+      if (foldered[a.id]) return false;
       var p = (state.home.layout[a.id] && state.home.layout[a.id].page != null) ? state.home.layout[a.id].page : 0;
       return p === page;
     });
@@ -31866,6 +32335,31 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
         + (editMode ? '<span class="home-app-del" data-del="'+a.id+'" style="position:absolute;top:-4px;right:4px;width:20px;height:20px;border-radius:50%;background:#ff3b30;color:#fff;font-size:14px;line-height:20px;text-align:center;z-index:3">−</span>' : '')
         + '</div>';
     }).join('');
+    // 文件夹（本页）— 可拖动、可单独缩放
+    var folderHtml = (state.home.folders||[]).filter(function(f){ return (f.page|0)===page; }).map(function(f, fi) {
+      var sc = (state.home.appScale != null) ? +state.home.appScale : 1;
+      if (!(sc > 0.5 && sc < 2)) sc = 1;
+      var fsc = (f.scale != null && +f.scale > 0.5) ? +f.scale : sc;
+      if (!(fsc > 0.5 && fsc < 2.5)) fsc = sc;
+      var appW = Math.round(72 * fsc);
+      var iconS = Math.round(56 * fsc);
+      var nameFs = Math.max(10, Math.round(11 * fsc));
+      var x = f.x != null ? f.x : (10 + ((pageApps.length + fi) % 4) * 82);
+      var y = f.y != null ? f.y : (gridTop + Math.floor((pageApps.length + fi) / 4) * 92);
+      var mini = (f.apps||[]).slice(0,9).map(function(aid){
+        var ic = icons[aid];
+        var cell = Math.max(10, Math.round(iconS / 3.4));
+        if (ic) return '<div style="width:'+cell+'px;height:'+cell+'px;border-radius:3px;overflow:hidden;background:rgba(255,255,255,.7)"><img src="'+ic+'" style="width:100%;height:100%;object-fit:cover" draggable="false"></div>';
+        var svg = (typeof homeAppIconSvg==='function') ? homeAppIconSvg(aid).replace('<svg','<svg width="'+Math.max(8,cell-2)+'" height="'+Math.max(8,cell-2)+'"') : '';
+        return '<div style="width:'+cell+'px;height:'+cell+'px;border-radius:3px;overflow:hidden;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center">'+svg+'</div>';
+      }).join('');
+      return '<div class="home-app home-folder" data-folder="'+f.id+'" data-key="folder:'+f.id+'" data-scale="'+fsc+'" style="left:'+x+'px;top:'+y+'px;width:'+appW+'px;position:absolute;z-index:3;touch-action:none">'
+        + '<div class="ha-icon" style="width:'+iconS+'px;height:'+iconS+'px;margin:0 auto;border-radius:'+radius+'px;background:rgba(255,255,255,.62);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:6px;box-sizing:border-box;align-content:center;justify-items:center;border:0.5px solid rgba(255,255,255,.5);position:relative">'+mini
+        + '<span class="folder-resize-handle" data-folder="'+f.id+'" title="拖动调节大小" style="position:absolute;right:-4px;bottom:-4px;width:18px;height:18px;border-radius:4px 0 10px 0;background:rgba(94,184,176,.95);box-shadow:0 1px 4px rgba(0,0,0,.15);cursor:nwse-resize;z-index:5;display:flex;align-items:flex-end;justify-content:flex-end;padding:2px 3px 3px 2px;box-sizing:border-box">'
+        + '<svg width="8" height="8" viewBox="0 0 8 8" style="display:block"><path d="M7 1v6H1" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg></span></div>'
+        + '<div class="ha-name" style="text-align:center;font-size:'+nameFs+'px;margin-top:4px;color:#333;max-width:'+appW+'px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escapeHtml(f.name||'文件夹')+'</div></div>';
+    }).join('');
+    appHtml = appHtml + folderHtml;
 
     var widgetHtml = widgets.map(function(w, wi) {
       try {
@@ -32154,6 +32648,8 @@ if (t === 'clock_sm') {
     }
 
     inner.querySelectorAll('.home-app').forEach(function(el) {
+      // 文件夹有独立拖动/点击逻辑，跳过通用 App 绑定
+      if (el.classList.contains('home-folder')) return;
       var moved = false, sx=0, sy=0;
       el.addEventListener('touchstart', function(e) {
         var t = e.touches[0]; sx = t.clientX; sy = t.clientY; moved = false;
@@ -32199,6 +32695,16 @@ if (t === 'clock_sm') {
             state.home.layout[key].y = ny;
             state.home.layout[key].page = newPage;
             state.home.layout[key]._user = true;
+            // 文件夹坐标写回 folders
+            if (String(key).indexOf('folder:') === 0) {
+              var fid = String(key).slice(7);
+              var fold = (state.home.folders||[]).find(function(x){ return x.id === fid; });
+              if (fold) {
+                fold.x = (newPage !== page) ? 12 : nx;
+                fold.y = ny;
+                fold.page = newPage;
+              }
+            }
             if (newPage !== page) {
               state.home.page = newPage;
               try { showToast(newPage === 0 ? '已移到第1页' : '已移到第2页'); } catch(e) {}
@@ -32234,6 +32740,141 @@ if (t === 'clock_sm') {
         if (hidden.indexOf(id) < 0) state.home.hiddenApps.push(id);
         save(); renderHome();
       };
+    });
+    // 文件夹：拖动位置 / 右下角拉大小 / 点击打开
+    inner.querySelectorAll('.home-folder').forEach(function(el) {
+      var fid = el.getAttribute('data-folder');
+      var moved = false, resized = false, sx = 0, sy = 0, dragging = false, resizing = false;
+      var startScale = 1, startDist = 0;
+      var handle = el.querySelector('.folder-resize-handle');
+      function applyFolderSize(fsc) {
+        fsc = Math.max(0.7, Math.min(1.8, fsc));
+        var appW = Math.round(72 * fsc);
+        var iconS = Math.round(56 * fsc);
+        var nameFs = Math.max(10, Math.round(11 * fsc));
+        el.style.width = appW + 'px';
+        el.setAttribute('data-scale', String(fsc));
+        var icon = el.querySelector('.ha-icon');
+        if (icon) {
+          icon.style.width = iconS + 'px';
+          icon.style.height = iconS + 'px';
+        }
+        var name = el.querySelector('.ha-name');
+        if (name) {
+          name.style.fontSize = nameFs + 'px';
+          name.style.maxWidth = appW + 'px';
+        }
+        return fsc;
+      }
+      if (handle) {
+        var onResizeStart = function(clientX, clientY) {
+          resizing = true; resized = false; moved = false;
+          sx = clientX; sy = clientY;
+          startScale = parseFloat(el.getAttribute('data-scale')) || 1;
+          startDist = 0;
+          state._suppressLaunch = true;
+        };
+        var onResizeMove = function(clientX, clientY, e) {
+          if (!resizing) return;
+          if (e && e.cancelable) e.preventDefault();
+          var dx = clientX - sx, dy = clientY - sy;
+          // 右下方向：向右/下变大
+          var delta = (dx + dy) / 80;
+          if (Math.abs(dx) + Math.abs(dy) > 4) resized = true;
+          applyFolderSize(startScale + delta);
+        };
+        var onResizeEnd = function() {
+          if (!resizing) return;
+          resizing = false;
+          var fsc = parseFloat(el.getAttribute('data-scale')) || 1;
+          fsc = applyFolderSize(fsc);
+          var fold = (state.home.folders || []).find(function(x){ return x.id === fid; });
+          if (fold) fold.scale = fsc;
+          try { save(); } catch (err) {}
+          setTimeout(function(){ state._suppressLaunch = false; }, 300);
+        };
+        handle.addEventListener('touchstart', function(e) {
+          e.stopPropagation();
+          var t = e.touches[0];
+          onResizeStart(t.clientX, t.clientY);
+        }, { passive: true });
+        handle.addEventListener('touchmove', function(e) {
+          e.stopPropagation();
+          if (!resizing) return;
+          var t = e.touches[0];
+          onResizeMove(t.clientX, t.clientY, e);
+        }, { passive: false });
+        handle.addEventListener('touchend', function(e) {
+          e.stopPropagation();
+          onResizeEnd();
+        });
+        handle.addEventListener('mousedown', function(e) {
+          e.preventDefault(); e.stopPropagation();
+          onResizeStart(e.clientX, e.clientY);
+          var mm = function(ev){ onResizeMove(ev.clientX, ev.clientY, ev); };
+          var mu = function(){
+            document.removeEventListener('mousemove', mm);
+            document.removeEventListener('mouseup', mu);
+            onResizeEnd();
+          };
+          document.addEventListener('mousemove', mm);
+          document.addEventListener('mouseup', mu);
+        });
+      }
+      el.addEventListener('touchstart', function(e) {
+        if (e.target && e.target.closest && e.target.closest('.folder-resize-handle')) return;
+        var t = e.touches[0];
+        sx = t.clientX; sy = t.clientY; moved = false; resized = false; dragging = true;
+      }, { passive: true });
+      el.addEventListener('touchmove', function(e) {
+        if (resizing || !dragging) return;
+        var t = e.touches[0];
+        var dx = t.clientX - sx, dy = t.clientY - sy;
+        if (Math.abs(dx) + Math.abs(dy) > 8) moved = true;
+        if (moved) {
+          if (e.cancelable) e.preventDefault();
+          var ox = parseFloat(el.style.left) || 0;
+          var oy = parseFloat(el.style.top) || 0;
+          el.style.left = Math.max(0, ox + dx) + 'px';
+          el.style.top = Math.max(0, oy + dy) + 'px';
+          sx = t.clientX; sy = t.clientY;
+        }
+      }, { passive: false });
+      el.addEventListener('touchend', function(e) {
+        if (resizing) return;
+        dragging = false;
+        if (moved) {
+          e.preventDefault();
+          e.stopPropagation();
+          var nx = parseFloat(el.style.left) || 0;
+          var ny = parseFloat(el.style.top) || 0;
+          if (typeof homeSnapToGrid === 'function') {
+            var sn = homeSnapToGrid(nx, ny);
+            nx = sn.x; ny = sn.y;
+            el.style.left = nx + 'px';
+            el.style.top = ny + 'px';
+          }
+          var fold = (state.home.folders || []).find(function(x){ return x.id === fid; });
+          if (fold) {
+            fold.x = nx; fold.y = ny; fold.page = page;
+          }
+          if (!state.home.layout) state.home.layout = {};
+          state.home.layout['folder:' + fid] = { x: nx, y: ny, page: page, _user: true };
+          try { save(); } catch (err) {}
+          state._suppressLaunch = true;
+          setTimeout(function(){ state._suppressLaunch = false; }, 350);
+          return;
+        }
+        if (resized || state.home.editMode || editMode || state._suppressLaunch) return;
+        if (fid && typeof openHomeFolder === 'function') openHomeFolder(fid);
+      });
+      el.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.target && e.target.closest && e.target.closest('.folder-resize-handle')) return;
+        if (moved || resized || state.home.editMode || editMode || state._suppressLaunch) return;
+        if (fid && typeof openHomeFolder === 'function') openHomeFolder(fid);
+      });
     });
 
     inner.querySelectorAll('.home-dock-item').forEach(function(el) {
@@ -32567,6 +33208,8 @@ if (t === 'clock_sm') {
         else if(dx>0 && state.home.page>0){ state.home.page--; renderHome(); }
       }, {passive:true});
     }
+    try { if (typeof renderSeasonFx === 'function') renderSeasonFx(); } catch(eFx) {}
+    try { if (typeof renderHomeExtras === 'function') renderHomeExtras(); } catch(eEx) {}
     } catch (err) {
       console.error('renderHome error', err);
       try {
@@ -32717,9 +33360,25 @@ if (t === 'clock_sm') {
         + '<div style="font-size:11px;color:#7a9;margin-bottom:4px">大小 <span id="appScaleLab">'+Math.round((state.home.appScale!=null?state.home.appScale:1)*100)+'%</span></div>'
         + '<input type="range" id="appScaleRange" min="70" max="140" value="'+Math.round((state.home.appScale!=null?state.home.appScale:1)*100)+'" style="width:100%">'
         + '</div></div>'
-        + '<div style="display:flex;gap:8px;margin-bottom:16px">'
+        + '<div style="display:flex;gap:8px;margin-bottom:12px">'
         + '<button type="button" class="btn btn-secondary" id="beautyLayoutCenter" style="flex:1;font-size:12px">默认居中布局</button>'
         + '<button type="button" class="btn btn-secondary" id="beautyLayoutAlign" style="flex:1;font-size:12px">对齐成直线</button></div>'
+        + '<div style="margin-bottom:16px;padding:12px;border-radius:14px;background:linear-gradient(145deg,rgba(200,230,240,.55),rgba(230,245,250,.7));border:1px solid rgba(120,180,200,.3)">'
+        + '<div style="font-weight:600;color:#2a4a55;margin-bottom:6px;font-size:13px">App 文件夹</div>'
+        + '<div style="font-size:11px;color:#5a7a80;margin-bottom:10px;line-height:1.45">创建后可在主屏拖动位置，右下角小三角可拉大/缩小</div>'
+        + '<button type="button" id="beautyCreateFolder" style="width:100%;border:none;border-radius:12px;padding:12px;background:#5eb8b0;color:#fff;font-weight:600;cursor:pointer;font-size:14px;margin-bottom:10px">＋ 创建文件夹</button>'
+        + (function(){
+            var fl = state.home.folders || [];
+            if (!fl.length) return '<div style="font-size:11px;color:#8a9aaa">暂无文件夹</div>';
+            return fl.map(function(f){
+              return '<div style="display:flex;align-items:center;gap:8px;padding:10px 8px;margin-bottom:6px;background:rgba(255,255,255,.85);border-radius:10px;border:0.5px solid rgba(120,180,200,.25)">'
+                + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:#2a4a55">'+escapeHtml(f.name||'文件夹')+'</div>'
+                + '<div style="font-size:11px;color:#7a9aa3;margin-top:2px">'+(f.apps||[]).length+' 个 App · 第'+((f.page|0)+1)+'页</div></div>'
+                + '<button type="button" data-editfld="'+f.id+'" style="border:none;background:#e8f4f6;color:#2a6a72;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer">编辑</button>'
+                + '<button type="button" data-delfld="'+f.id+'" style="border:none;background:transparent;color:#e74c3c;border-radius:8px;padding:6px 8px;font-size:12px;cursor:pointer">解散</button></div>';
+            }).join('');
+          })()
+        + '</div>'
         + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px">'
         + '<div style="font-weight:600">更换图标</div>'
         + '<button type="button" id="beautyResetIcons" class="btn btn-secondary" style="font-size:12px;padding:4px 10px;flex-shrink:0">一键还原图标</button>'
@@ -32891,6 +33550,25 @@ if (t === 'clock_sm') {
       if (blc) blc.onclick = function(){ state.home.layout = homeDefaultLayout(); save(); try{renderHome();}catch(e){} showToast('已居中'); };
       var bla = document.getElementById('beautyLayoutAlign');
       if (bla) bla.onclick = function(){ homeAlignApps(); };
+      var bcf = document.getElementById('beautyCreateFolder');
+      if (bcf) bcf.onclick = function(){ try { createHomeFolder(); } catch(e) { showToast('创建失败'); } };
+      document.querySelectorAll('[data-editfld]').forEach(function(el){
+        el.onclick = function(ev){
+          if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+          var id = el.getAttribute('data-editfld');
+          if (id && typeof editHomeFolder === 'function') editHomeFolder(id);
+        };
+      });
+      document.querySelectorAll('[data-delfld]').forEach(function(el){
+        el.onclick = function(ev){
+          if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+          var id = el.getAttribute('data-delfld');
+          if (id && confirm('解散此文件夹？App 会回到桌面')) {
+            try { dissolveHomeFolder(id); } catch(e) {}
+            try { openHomeBeauty('wallpaper'); } catch(e2) {}
+          }
+        };
+      });
       document.querySelectorAll('[data-iconapp]').forEach(function(el){
         el.onclick = function(){ state.fileTarget='homeAppIcon:'+el.getAttribute('data-iconapp'); var fi=document.getElementById('fileInput'); fi.accept='image/*'; fi.value=''; fi.click(); };
       });
